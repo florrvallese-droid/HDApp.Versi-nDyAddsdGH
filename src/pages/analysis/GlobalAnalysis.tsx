@@ -186,7 +186,7 @@ export default function GlobalAnalysis() {
         <TabsList className="grid w-full grid-cols-2 bg-zinc-900">
           <TabsTrigger value="dashboard">Bitácora & Gráficos</TabsTrigger>
           <TabsTrigger value="ai-audit" className="gap-2">
-             <Brain className="h-3 w-3" /> Análisis IA
+             <Brain className="h-3 w-3" /> Auditoría Global
           </TabsTrigger>
         </TabsList>
 
@@ -315,10 +315,10 @@ export default function GlobalAnalysis() {
             <Card className="border-primary/20 bg-primary/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                   <Brain className="h-5 w-5" /> Inteligencia de Enjambre
+                   <Brain className="h-5 w-5" /> Medí tu Progreso
                 </CardTitle>
                 <CardDescription>
-                  Analiza todos tus registros para detectar patrones ocultos que frenan tu progreso.
+                  Analizá tus registros y descubrí si estás progresando o si hay patrones que frenan tu llegada a la meta.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
