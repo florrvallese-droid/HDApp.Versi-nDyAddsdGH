@@ -72,25 +72,34 @@ export default function Nutrition() {
     }
   }, [profile]);
 
-  // Ensure correct variants structure when switching strategy
-  useEffect(() => {
-    if (strategyType === 'single') {
-        // If switching to single, strictly keep only the first variant or create one
-        if (variants.length > 1) {
-            // We won't delete data automatically here to be safe, but UI will only show first
-        } else if (variants.length === 0) {
-            setVariants([{
-                id: crypto.randomUUID(),
-                name: "Dieta Base",
-                calories: 0,
-                macros: { p: 0, c: 0, f: 0 }
-            }]);
+  // Handle strategy switching with default initialization
+  const handleStrategyChange = (newType: 'single' | 'cycling') => {
+    setStrategyType(newType);
+    
+    if (newType === 'cycling') {
+        // If switching to cycling and we don't have enough variants (e.g. only have the Single Diet base),
+        // initialize with High/Low days.
+        if (variants.length < 2) {
+             const baseVariant = variants[0];
+             
+             const highDay: DietVariant = {
+                 id: baseVariant?.id || crypto.randomUUID(),
+                 name: "Día Alto (Carga)",
+                 calories: baseVariant?.calories || 0,
+                 macros: baseVariant?.macros || { p: 0, c: 0, f: 0 }
+             };
+             
+             const lowDay: DietVariant = {
+                 id: crypto.randomUUID(),
+                 name: "Día Bajo (Descarga)",
+                 calories: 0,
+                 macros: { p: 0, c: 0, f: 0 }
+             };
+             
+             setVariants([highDay, lowDay]);
         }
-    } else {
-        // Switching to cycling: ensure we have at least High/Low if empty?
-        // Let's leave it as is, user can add.
     }
-  }, [strategyType]);
+  };
 
   const saveConfig = async () => {
     if (!hasProAccess) {
@@ -291,7 +300,7 @@ export default function Nutrition() {
         {/* Custom Segmented Control */}
         <div className="grid grid-cols-2 bg-zinc-900 p-1 rounded-lg border border-zinc-800">
             <button
-                onClick={() => setStrategyType('single')}
+                onClick={() => handleStrategyChange('single')}
                 className={cn(
                     "text-xs font-black uppercase tracking-wider py-2.5 rounded-md transition-all",
                     strategyType === 'single' 
@@ -302,7 +311,7 @@ export default function Nutrition() {
                 Dieta Única
             </button>
             <button
-                onClick={() => setStrategyType('cycling')}
+                onClick={() => handleStrategyChange('cycling')}
                 className={cn(
                     "text-xs font-black uppercase tracking-wider py-2.5 rounded-md transition-all",
                     strategyType === 'cycling' 
@@ -333,7 +342,7 @@ export default function Nutrition() {
                                 </span>
                             )}
                             
-                            {strategyType === 'cycling' && (
+                            {strategyType === 'cycling' && variants.length > 2 && (
                                 <button onClick={() => removeVariant(idx)} className="text-zinc-600 hover:text-red-500">
                                     <X className="h-4 w-4" />
                                 </button>
