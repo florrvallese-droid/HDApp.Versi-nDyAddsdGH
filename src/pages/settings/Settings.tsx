@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, UserCircle, CreditCard, LogOut } from "lucide-react";
+import { ChevronLeft, UserCircle, CreditCard, LogOut, Database } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { ProfileForm } from "@/components/settings/ProfileForm";
 import { BillingSettings } from "@/components/settings/BillingSettings";
+import { DataManagement } from "@/components/settings/DataManagement";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ export default function Settings() {
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "billing" || tab === "profile") {
+    if (tab && ['profile', 'billing', 'data'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -46,12 +47,15 @@ export default function Settings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="w-full grid grid-cols-2 bg-zinc-900 border border-zinc-800 p-1 h-12">
-          <TabsTrigger value="profile" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-xs tracking-wider h-full">
-            <UserCircle className="mr-2 h-4 w-4" /> Perfil
+        <TabsList className="w-full grid grid-cols-3 bg-zinc-900 border border-zinc-800 p-1 h-12">
+          <TabsTrigger value="profile" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-[10px] sm:text-xs tracking-wider h-full">
+            <UserCircle className="mr-1 sm:mr-2 h-4 w-4" /> Perfil
           </TabsTrigger>
-          <TabsTrigger value="billing" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-xs tracking-wider h-full">
-            <CreditCard className="mr-2 h-4 w-4" /> Suscripción
+          <TabsTrigger value="billing" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-[10px] sm:text-xs tracking-wider h-full">
+            <CreditCard className="mr-1 sm:mr-2 h-4 w-4" /> Plan
+          </TabsTrigger>
+          <TabsTrigger value="data" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-[10px] sm:text-xs tracking-wider h-full">
+            <Database className="mr-1 sm:mr-2 h-4 w-4" /> Datos
           </TabsTrigger>
         </TabsList>
 
@@ -61,6 +65,10 @@ export default function Settings() {
 
         <TabsContent value="billing" className="focus-visible:outline-none">
           <BillingSettings />
+        </TabsContent>
+
+        <TabsContent value="data" className="focus-visible:outline-none">
+          <DataManagement />
         </TabsContent>
       </Tabs>
       
