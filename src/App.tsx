@@ -14,6 +14,11 @@ import PostWorkout from "./pages/workout/PostWorkout";
 import Checkin from "./pages/checkin/Checkin";
 import NotFound from "./pages/NotFound";
 
+// Admin
+import AdminLayout from "./layouts/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import PromptManager from "./pages/admin/PromptManager";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -23,6 +28,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Public / User Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
@@ -31,6 +37,14 @@ const App = () => (
           <Route path="/workout/analysis" element={<PostWorkout />} />
           <Route path="/checkin" element={<Checkin />} />
           
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="prompts" element={<PromptManager />} />
+            <Route path="users" element={<div className="p-4">Users Management Coming Soon</div>} />
+            <Route path="logs" element={<div className="p-4">AI Logs Viewer Coming Soon</div>} />
+          </Route>
+
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
         </Routes>
