@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dumbbell, Camera, Brain, ChevronRight, LogOut, TrendingUp, Utensils, Syringe, Settings as SettingsIcon } from "lucide-react";
+import { Dumbbell, Camera, Brain, ChevronRight, TrendingUp, Utensils, Syringe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,10 +13,33 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { profile, loading } = useProfile();
   const [showPreWorkout, setShowPreWorkout] = useState(false);
+  const [weeklySessions, setWeeklySessions] = useState(0);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
+  useEffect(() => {
+    if (profile) {
+      fetchWeeklyStats();
+    }
+  }, [profile]);
+
+  const fetchWeeklyStats = async () => {
+    if (!profile) return;
+    
+    // Calculate start of current week (Monday)
+    const now = new Date();
+    const day = now.getDay() || 7; // Get current day number, make Sunday (0) become 7
+    if (day !== 1) {
+      now.setHours(-24 * (day - 1));
+    }
+    now.setHours(0, 0, 0, 0);
+    
+    const { count } = await supabase
+        .from('logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', profile.user_id)
+        .eq('type', 'workout')
+        .gte('created_at', now.toISOString());
+        
+    setWeeklySessions(count || 0);
   };
 
   if (loading) {
@@ -162,7 +185,7 @@ const Dashboard = () => {
             <div className="text-sm">
               <p className="text-muted-foreground mb-1">Sesiones completadas</p>
               <div className="flex items-baseline gap-2">
-                <p className="text-2xl font-bold">0</p>
+                <p className="text-2xl font-bold">{weeklySessions}</p>
                 <span className="text-xs text-muted-foreground">/ 5 objetivo</span>
               </div>
             </div>

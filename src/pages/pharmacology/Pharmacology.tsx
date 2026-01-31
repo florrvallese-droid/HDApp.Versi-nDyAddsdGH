@@ -14,6 +14,8 @@ import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { Compound, PharmaCycle } from "@/types";
 import { format } from "date-fns";
+import { LockedFeature } from "@/components/shared/LockedFeature";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Pharmacology() {
   const navigate = useNavigate();
@@ -134,6 +136,29 @@ export default function Pharmacology() {
       fetchCycles();
     }
   };
+
+  // Loading State
+  if (profileLoading) {
+    return <div className="p-8 space-y-4">
+      <Skeleton className="h-8 w-40" />
+      <Skeleton className="h-40 w-full" />
+    </div>;
+  }
+
+  // Premium Check
+  if (profile && !profile.is_premium) {
+    return (
+      <div className="min-h-screen bg-zinc-950 p-4 pb-20 max-w-md mx-auto relative">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="absolute top-4 left-4 z-10 text-white hover:bg-zinc-800">
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <LockedFeature 
+          title="Bóveda de Farmacología" 
+          description="Registro privado y seguro para tus protocolos avanzados. Exclusivo para usuarios PRO." 
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4 pb-20 max-w-md mx-auto space-y-6">
@@ -340,12 +365,6 @@ export default function Pharmacology() {
             </div>
           )}
         </div>
-      )}
-
-      {accepted && (
-         <div className="text-center text-[10px] text-zinc-600 mt-10">
-            End-to-end encryption enabled. Your data is safe.
-         </div>
       )}
 
     </div>

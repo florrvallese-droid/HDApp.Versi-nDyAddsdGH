@@ -14,6 +14,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { NutritionConfig, Supplement, DayType } from "@/types";
+import { LockedFeature } from "@/components/shared/LockedFeature";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Nutrition() {
   const navigate = useNavigate();
@@ -126,6 +128,29 @@ export default function Nutrition() {
       setSuppsTaken([...suppsTaken, id]);
     }
   };
+
+  // Loading State
+  if (profileLoading) {
+    return <div className="p-8 space-y-4">
+      <Skeleton className="h-8 w-40" />
+      <Skeleton className="h-40 w-full" />
+    </div>;
+  }
+
+  // Premium Check
+  if (profile && !profile.is_premium) {
+    return (
+      <div className="min-h-screen bg-background p-4 pb-20 max-w-md mx-auto relative">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="absolute top-4 left-4 z-10">
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <LockedFeature 
+          title="Módulo de Nutrición" 
+          description="Planifica tu dieta, cicla calorías y trackea tu suplementación con precisión profesional." 
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-4 pb-20 max-w-md mx-auto space-y-6">
