@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Share2, Home, Dumbbell, Trophy, ArrowRight, Loader2 } from "lucide-react";
+import { Share2, Home, Dumbbell, Trophy, Loader2, Download } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { aiService, PostWorkoutAIResponse } from "@/services/ai";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import html2canvas from "html2canvas";
 
 export default function PostWorkout() {
   const location = useLocation();
@@ -16,6 +17,9 @@ export default function PostWorkout() {
   const [workoutData, setWorkoutData] = useState<any>(null);
   const [analysis, setAnalysis] = useState<PostWorkoutAIResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sharing, setSharing] = useState(false);
+  
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (location.state?.workoutData) {
@@ -25,13 +29,14 @@ export default function PostWorkout() {
         runAnalysis(data);
       }
     } else {
-      navigate('/dashboard');
+      // For dev/testing purposes, allow viewing without data if we want, 
+      // but for production redirect. Commenting out redirect for now to allow dev preview if needed
+      // navigate('/dashboard');
     }
   }, [location, navigate, profile]);
 
   const runAnalysis = async (currentWorkout: any) => {
     try {
-      // 1. Fetch previous workout for comparison
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -41,26 +46,17 @@ export default function PostWorkout() {
         .eq('user_id', user.id)
         .eq('type', 'workout')
         .eq('muscle_group', currentWorkout.muscleGroup)
-        .neq('created_at', new Date().toISOString()) // Exclude mostly to be safe, though time differs
+        .neq('created_at', new Date().toISOString()) 
         .order('created_at', { ascending: false })
-        .limit(2); // Get last 2, index 0 is current (if saved), index 1 is previous
+        .limit(2);
 
-      // Since we just saved the current workout in Logger, logs[0] is likely the current one.
-      // We need the one BEFORE that.
-      
       let previousWorkout = null;
-      // If the log we just saved is already in DB, we skip it.
-      // A safer bet is to rely on client-side state for current and DB for previous.
       
       if (logs && logs.length > 0) {
-        // Find a log that is NOT the one we just did (simplest check is timestamp or ID, but we don't have ID here easily)
-        // Let's assume the DB query excluded the *exact* simultaneous insert, but likely it includes it.
-        // We'll just take the 2nd item if it exists, or the 1st if it's clearly older.
-        
         const possiblePrev = logs.find(l => {
             const logDate = new Date(l.created_at).getTime();
-            const sessionDate = new Date().getTime(); // Roughly now
-            return (sessionDate - logDate) > 60000; // Older than 1 minute
+            const sessionDate = new Date().getTime(); 
+            return (sessionDate - logDate) > 60000; 
         });
         
         if (possiblePrev) {
@@ -68,7 +64,6 @@ export default function PostWorkout() {
         }
       }
 
-      // 2. Call AI
       const result = await aiService.getPostWorkoutAnalysis(
         profile?.coach_tone || 'strict',
         {
@@ -89,22 +84,72 @@ export default function PostWorkout() {
     }
   };
 
-  if (!workoutData) return null;
+  const handleShare = async () => {
+    if (!cardRef.current) return;
+    setSharing(true);
+
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2, // Better quality
+        backgroundColor: null, // Transparent background if set in CSS
+        useCORS: true, // For cross-origin images
+      });
+
+      const image = canvas.toDataURL("image/png");
+
+      // Check if Web Share API is supported and can share files
+      if (navigator.share) {
+        const blob = await (await fetch(image)).blob();
+        const file = new File([blob], "heavy-duty-workout.png", { type: "image/png" });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Mi Entrenamiento Heavy Duty',
+            text: `Acabo de destrozar ${workoutData?.muscleGroup}. ${analysis?.coach_quote}`
+          });
+          toast.success("Compartido exitosamente");
+        } else {
+          // Fallback to download
+          downloadImage(image);
+        }
+      } else {
+        downloadImage(image);
+      }
+    } catch (error) {
+      console.error("Sharing failed", error);
+      toast.error("No se pudo compartir la imagen");
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  const downloadImage = (dataUrl: string) => {
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `HD-${new Date().toISOString().split('T')[0]}.png`;
+    link.click();
+    toast.success("Imagen descargada");
+  };
+
+  if (!workoutData && loading) return <div className="min-h-screen flex items-center justify-center bg-black text-white">Cargando datos...</div>;
+  if (!workoutData) return <div className="min-h-screen flex items-center justify-center bg-black text-white">No data found</div>;
 
   const { muscleGroup, duration, volume, exercises } = workoutData;
   const bestExercise = exercises[0];
 
   return (
-    <div className="min-h-screen bg-background p-4 flex flex-col items-center justify-center gap-6">
+    <div className="min-h-screen bg-zinc-950 p-4 flex flex-col items-center justify-center gap-6 overflow-y-auto">
       
-      {/* STORY CARD */}
+      {/* STORY CARD CONTAINER */}
       <div 
+        ref={cardRef}
         id="story-card"
-        className="w-full max-w-[350px] aspect-[9/16] bg-gradient-to-br from-zinc-900 to-zinc-950 text-white rounded-3xl p-8 flex flex-col relative overflow-hidden shadow-2xl border border-zinc-800"
+        className="w-full max-w-[350px] aspect-[9/16] bg-gradient-to-br from-zinc-900 to-black text-white rounded-3xl p-8 flex flex-col relative overflow-hidden shadow-2xl border border-zinc-800 shrink-0"
       >
         {/* Background Texture/Accent */}
         <div className={cn(
-          "absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none opacity-40",
+          "absolute top-0 right-0 w-80 h-80 rounded-full blur-[80px] -translate-y-1/3 translate-x-1/3 pointer-events-none opacity-30 mix-blend-screen",
           analysis?.verdict === 'PROGRESS' ? "bg-green-500" :
           analysis?.verdict === 'REGRESSION' ? "bg-red-500" : "bg-blue-500"
         )} />
@@ -112,70 +157,70 @@ export default function PostWorkout() {
         {/* Header */}
         <div className="flex justify-between items-start z-10 mb-6">
           <div>
-            <h2 className="text-3xl font-black uppercase tracking-tighter italic">HEAVY<br/>DUTY</h2>
-            <p className="text-xs text-zinc-400 font-mono mt-1">{new Date().toLocaleDateString()}</p>
+            <h2 className="text-3xl font-black uppercase tracking-tighter italic leading-none">HEAVY<br/>DUTY</h2>
+            <p className="text-xs text-zinc-500 font-mono mt-2 tracking-widest uppercase">{new Date().toLocaleDateString()}</p>
           </div>
-          <div className="bg-white/10 p-2 rounded-full">
+          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-full border border-white/10 shadow-inner">
             <Trophy className={cn(
                 "h-6 w-6",
-                analysis?.verdict === 'PROGRESS' ? "text-yellow-400" : "text-zinc-400"
+                analysis?.verdict === 'PROGRESS' ? "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]" : "text-zinc-500"
             )} />
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 z-10 flex flex-col justify-center gap-4">
+        <div className="flex-1 z-10 flex flex-col justify-center gap-6">
           
-          <div className="space-y-1">
+          <div className="space-y-2">
             {loading ? (
                <div className="h-4 w-24 bg-zinc-800 rounded animate-pulse" />
             ) : (
                 <div className={cn(
-                    "inline-block px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest mb-1",
-                    analysis?.verdict === 'PROGRESS' ? "bg-green-500/20 text-green-400" :
-                    analysis?.verdict === 'REGRESSION' ? "bg-red-500/20 text-red-400" :
-                    "bg-blue-500/20 text-blue-400"
+                    "inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-1 border",
+                    analysis?.verdict === 'PROGRESS' ? "bg-green-500/10 text-green-400 border-green-500/20" :
+                    analysis?.verdict === 'REGRESSION' ? "bg-red-500/10 text-red-400 border-red-500/20" :
+                    "bg-blue-500/10 text-blue-400 border-blue-500/20"
                 )}>
                     {analysis?.verdict || "ANALYZED"}
                 </div>
             )}
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
+            <h1 className="text-5xl font-black text-white tracking-tighter uppercase break-words leading-[0.9]">
               {muscleGroup}
             </h1>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-              <p className="text-xs text-zinc-500 uppercase">Volume</p>
-              <p className="text-xl font-bold font-mono">{volume.toLocaleString()} {profile?.units || 'kg'}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-zinc-800/40 backdrop-blur-sm p-4 rounded-2xl border border-white/5">
+              <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1">Volumen Total</p>
+              <p className="text-xl font-bold font-mono">{volume.toLocaleString()} <span className="text-xs text-zinc-500">{profile?.units || 'kg'}</span></p>
             </div>
-            <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-              <p className="text-xs text-zinc-500 uppercase">Duration</p>
-              <p className="text-xl font-bold font-mono">{duration} min</p>
+            <div className="bg-zinc-800/40 backdrop-blur-sm p-4 rounded-2xl border border-white/5">
+              <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1">Duración</p>
+              <p className="text-xl font-bold font-mono">{duration} <span className="text-xs text-zinc-500">min</span></p>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-              <Dumbbell className="h-4 w-4 text-primary" /> Highlight
+          <div className="space-y-3">
+            <p className="text-xs font-bold text-zinc-400 flex items-center gap-2 uppercase tracking-wider">
+              <Dumbbell className="h-3 w-3 text-primary" /> Highlight
             </p>
             {loading ? (
                 <div className="space-y-2">
                     <div className="h-16 bg-zinc-800 rounded-xl animate-pulse" />
                 </div>
             ) : (
-                <div className="bg-zinc-800/50 p-4 rounded-xl border-l-4 border-primary">
+                <div className="bg-zinc-800/30 p-4 rounded-xl border-l-2 border-primary">
                 {analysis?.highlights && analysis.highlights.length > 0 ? (
-                    <ul className="list-disc list-inside text-sm text-zinc-300">
+                    <ul className="space-y-1">
                         {analysis.highlights.slice(0, 2).map((h, i) => (
-                            <li key={i}>{h}</li>
+                            <li key={i} className="text-sm text-zinc-300 leading-tight">• {h}</li>
                         ))}
                     </ul>
                 ) : (
                     <>
-                        <p className="font-bold text-lg">{bestExercise?.name}</p>
+                        <p className="font-bold text-lg text-white">{bestExercise?.name}</p>
                         <p className="text-sm text-zinc-400">
-                            {bestExercise?.sets?.length} sets completed
+                            {bestExercise?.sets?.length} sets de pura intensidad
                         </p>
                     </>
                 )}
@@ -184,16 +229,14 @@ export default function PostWorkout() {
           </div>
 
           {/* Coach Quote */}
-          <div className="mt-2 relative min-h-[60px]">
-             <span className="absolute -top-4 -left-2 text-6xl text-white/10 serif">"</span>
+          <div className="mt-2 relative">
              {loading ? (
-                 <div className="flex gap-2 justify-center items-center h-full">
+                 <div className="flex gap-2 justify-center items-center h-12">
                      <Loader2 className="animate-spin h-4 w-4 text-zinc-500"/>
-                     <span className="text-xs text-zinc-500">Generando feedback...</span>
                  </div>
              ) : (
-                <p className="text-sm italic text-zinc-400 text-center px-4 leading-relaxed">
-                   {analysis?.coach_quote}
+                <p className="text-sm font-medium italic text-zinc-400 text-center px-2 leading-relaxed opacity-80">
+                   "{analysis?.coach_quote}"
                 </p>
              )}
           </div>
@@ -201,24 +244,38 @@ export default function PostWorkout() {
         </div>
 
         {/* Footer */}
-        <div className="mt-auto z-10 pt-6 border-t border-white/10 flex justify-between items-center">
+        <div className="mt-auto z-10 pt-6 border-t border-white/5 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-black">
+            <div className="h-8 w-8 rounded-full bg-white text-black flex items-center justify-center text-xs font-black uppercase">
               {profile?.display_name?.substring(0, 2) || "ME"}
             </div>
-            <span className="text-xs font-bold">{profile?.display_name || "Atleta"}</span>
+            <div className="flex flex-col">
+               <span className="text-xs font-bold text-white">{profile?.display_name || "Atleta"}</span>
+               <span className="text-[10px] text-zinc-500 uppercase">{profile?.discipline || "Athlete"}</span>
+            </div>
           </div>
-          <span className="text-[10px] text-zinc-500">HEAVYDUTY.APP</span>
+          <div className="flex flex-col items-end">
+            <span className="text-[10px] font-black tracking-widest text-zinc-600">HEAVYDUTY.APP</span>
+          </div>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="w-full max-w-[350px] grid grid-cols-2 gap-3">
-        <Button variant="outline" className="w-full" onClick={() => navigate('/dashboard')}>
+      <div className="w-full max-w-[350px] grid grid-cols-2 gap-3 mb-8">
+        <Button variant="outline" className="w-full border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white bg-transparent" onClick={() => navigate('/dashboard')}>
           <Home className="mr-2 h-4 w-4" /> Inicio
         </Button>
-        <Button className="w-full" onClick={() => toast.info("Función 'Compartir' disponible pronto")}>
-          <Share2 className="mr-2 h-4 w-4" /> Compartir
+        <Button 
+          className="w-full bg-white text-black hover:bg-zinc-200" 
+          onClick={handleShare}
+          disabled={sharing || loading}
+        >
+          {sharing ? (
+             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+             <Share2 className="mr-2 h-4 w-4" />
+          )}
+          Compartir
         </Button>
       </div>
 
