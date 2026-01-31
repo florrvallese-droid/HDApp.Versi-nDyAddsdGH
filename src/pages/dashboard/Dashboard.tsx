@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dumbbell, Camera, Brain, ChevronRight, LogOut, TrendingUp } from "lucide-react";
+import { Dumbbell, Camera, Brain, ChevronRight, LogOut, TrendingUp, Utensils } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -109,26 +109,31 @@ const Dashboard = () => {
             <span className="font-semibold">Check-in</span>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Global Analysis Card (New) */}
-      <Card 
-        className="border-dashed border-2 hover:border-solid hover:border-purple-500/50 cursor-pointer transition-all"
-        onClick={() => navigate('/analysis')}
-      >
-        <CardContent className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="h-10 w-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+        <Card 
+          className="hover:bg-accent/50 cursor-pointer transition-all hover:scale-[1.02]" 
+          onClick={() => navigate('/nutrition')}
+        >
+          <CardContent className="flex flex-col items-center justify-center p-6 gap-3">
+            <div className="h-12 w-12 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
+              <Utensils className="h-6 w-6 text-orange-600 dark:text-orange-400" />
             </div>
-            <div>
-              <p className="font-bold text-sm">Auditoría Global</p>
-              <p className="text-xs text-muted-foreground">Detectar patrones y tendencias</p>
+            <span className="font-semibold">Nutrición</span>
+          </CardContent>
+        </Card>
+
+         <Card 
+          className="hover:bg-accent/50 cursor-pointer transition-all hover:scale-[1.02]" 
+          onClick={() => navigate('/analysis')}
+        >
+          <CardContent className="flex flex-col items-center justify-center p-6 gap-3">
+            <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+              <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
-          </div>
-          <ChevronRight className="text-muted-foreground h-5 w-5" />
-        </CardContent>
-      </Card>
+            <span className="font-semibold">Auditoría</span>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Weekly Summary */}
       <div className="space-y-4 pt-2">

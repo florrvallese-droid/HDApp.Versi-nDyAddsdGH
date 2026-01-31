@@ -31,7 +31,26 @@ export interface UserProfile {
     last_cycle_start?: string;
     language?: 'es' | 'en';
     theme?: 'dark' | 'light';
+    nutrition?: NutritionConfig;
   };
+}
+
+// Nutrition Specifics
+export type DietType = 'fixed' | 'cycling';
+export type DayType = 'high' | 'low' | 'medium' | 'refeed';
+
+export interface Supplement {
+  id: string;
+  name: string;
+  timing: 'fasted' | 'pre' | 'intra' | 'post' | 'night' | 'meal';
+  dosage: string;
+}
+
+export interface NutritionConfig {
+  diet_type: DietType;
+  calories_target?: number;
+  macros?: { p: number; c: number; f: number };
+  supplements_stack: Supplement[];
 }
 
 export type LogType = 'preworkout' | 'workout' | 'nutrition' | 'checkin' | 'rest' | 'cardio' | 'pharmacology' | 'globalanalysis';
@@ -93,6 +112,14 @@ export interface CheckinData {
   weight: number;
   weight_delta: number;
   photos: string[];
+  notes?: string;
+}
+
+export interface NutritionLogData {
+  day_type: DayType;
+  adherence_score: number; // 1-10
+  calories_consumed?: number;
+  supplements_taken: string[]; // IDs of taken supplements
   notes?: string;
 }
 
