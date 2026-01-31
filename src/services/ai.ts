@@ -17,51 +17,60 @@ export interface PostWorkoutAIResponse {
 export const aiService = {
   async getPreWorkoutAdvice(
     tone: string, 
-    data: { sleep: number; stress: number; sensation: number; pain: boolean; painDescription?: string }
+    data: any
   ): Promise<AIResponse> {
     
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data: response, error } = await supabase.functions.invoke('ai-coach', {
         body: {
           action: 'preworkout',
           tone: tone,
-          data: data
+          data: data,
+          userId: user?.id
         }
       });
 
       if (error) {
-        console.error("AI Service Error:", error);
-        throw error;
+        console.error("AI Service Error Details:", error);
+        throw new Error(error.message || "Error conectando con IA");
+      }
+
+      if (!response) {
+        throw new Error("Respuesta vacía del servidor");
       }
 
       return response as AIResponse;
       
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to call AI Coach:", err);
+      // Fallback seguro
       return {
         decision: 'TRAIN_LIGHT',
-        rationale: "No pude conectar con el cerebro digital (AI Error). Por seguridad, entrena ligero hoy.",
-        recommendations: ["Escucha a tu cuerpo", "Prioriza la técnica"]
+        rationale: `Error de conexión (${err.message}). Por seguridad, entrena ligero o descansa.`,
+        recommendations: ["Revisar conexión a internet", "Intentar nuevamente en unos minutos"]
       };
     }
   },
 
   async getPostWorkoutAnalysis(
     tone: string,
-    data: { current: any; previous: any; discipline: string; muscleGroup: string }
+    data: any
   ): Promise<PostWorkoutAIResponse> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { data: response, error } = await supabase.functions.invoke('ai-coach', {
         body: {
           action: 'postworkout',
           tone: tone,
-          data: data
+          data: data,
+          userId: user?.id
         }
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       return response as PostWorkoutAIResponse;
     } catch (err) {
@@ -80,11 +89,14 @@ export const aiService = {
     summaryData: any
   ): Promise<GlobalAnalysisResponse> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { data: response, error } = await supabase.functions.invoke('ai-coach', {
         body: {
           action: 'globalanalysis',
           tone: tone,
-          data: summaryData
+          data: summaryData,
+          userId: user?.id
         }
       });
 
@@ -95,7 +107,7 @@ export const aiService = {
       // Fallback
       return {
         top_patterns: [
-          { pattern: "Insuficientes datos", evidence: "N/A", action: "Registra más entrenamientos" }
+          { pattern: "Error de análisis", evidence: "N/A", action: "Intenta más tarde" }
         ],
         performance_insights: {
           best_performing_conditions: "Desconocido",
@@ -104,7 +116,7 @@ export const aiService = {
         },
         next_14_days_plan: ["Continuar rutina actual", "Priorizar sueño"],
         red_flags: [],
-        overall_assessment: "Necesito más datos históricos para generar un análisis profundo. Sigue registrando tus sesiones."
+        overall_assessment: "Hubo un error al procesar tus datos con la IA. Asegúrate de tener conexión estable."
       };
     }
   }
