@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Star, Zap, Shield, Loader2 } from "lucide-react";
+import { Check, Star, Zap, Shield, Loader2, ExternalLink } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
@@ -10,70 +10,43 @@ import { toast } from "sonner";
 export function BillingSettings() {
   const { profile, hasProAccess, daysLeftInTrial, loading: profileLoading } = useProfile();
   const [isLoading, setIsLoading] = useState(false);
-  const [isPortalLoading, setIsPortalLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
-
-  // TODO: Replace with your actual Stripe Price IDs
-  const PRICE_IDS = {
-    monthly: 'price_monthly_placeholder', 
-    yearly: 'price_yearly_placeholder' 
-  };
 
   const handleSubscribe = async () => {
     setIsLoading(true);
     try {
-      const priceId = billingCycle === 'monthly' ? PRICE_IDS.monthly : PRICE_IDS.yearly;
-      
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Debes iniciar sesión");
+      if (!user || !user.email) throw new Error("Debes iniciar sesión con email");
 
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+      const { data, error } = await supabase.functions.invoke('create-mp-subscription', {
         body: {
-          priceId,
+          planType: billingCycle,
           userId: user.id,
-          returnUrl: window.location.origin + '/settings?tab=billing'
+          email: user.email,
+          backUrl: window.location.href // Volver a esta misma página
         }
       });
 
       if (error) throw error;
       if (data?.url) {
+        // Redirigir a Mercado Pago
         window.location.href = data.url;
       } else {
-        throw new Error("No se pudo iniciar el checkout");
+        throw new Error("No se pudo generar el link de pago");
       }
     } catch (err: any) {
       console.error(err);
-      toast.error("Error al conectar con Stripe. (Asegúrate de configurar los Price IDs)");
+      toast.error("Error conectando con Mercado Pago: " + err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleManageSubscription = async () => {
-    setIsPortalLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user");
-
-      const { data, error } = await supabase.functions.invoke('create-portal-session', {
-        body: {
-          userId: user.id,
-          returnUrl: window.location.origin + '/settings?tab=billing'
-        }
-      });
-
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error("No se encontró una suscripción activa.");
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Error abriendo el portal");
-    } finally {
-      setIsPortalLoading(false);
-    }
+  const handleManageSubscription = () => {
+    // Mercado Pago no tiene portal de cliente "self-service" tan directo como Stripe.
+    // Generalmente se envía al usuario a su cuenta de MP o se implementa cancelación vía API.
+    // Por simplicidad en MVP, redirigimos a la sección de suscripciones de MP.
+    window.open("https://www.mercadopago.com.ar/subscriptions", "_blank");
   };
 
   if (profileLoading) return <div className="p-8"><Loader2 className="animate-spin h-6 w-6"/></div>;
@@ -88,7 +61,7 @@ export function BillingSettings() {
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               Estado de Suscripción
               {hasProAccess ? (
-                 <Badge className="bg-gradient-to-r from-yellow-600 to-amber-600 border-0">PRO ACTIVO</Badge>
+                 <Badge className="bg-gradient-to-r from-blue-600 to-blue-400 border-0">PRO ACTIVO</Badge>
               ) : (
                  <Badge variant="outline">FREE PLAN</Badge>
               )}
@@ -97,7 +70,7 @@ export function BillingSettings() {
               {hasProAccess 
                 ? daysLeftInTrial > 0 
                   ? `Periodo de prueba. Quedan ${daysLeftInTrial} días gratis.`
-                  : "Membresía activa. Acceso total desbloqueado."
+                  : "Membresía activa vía Mercado Pago."
                 : "Estás usando la versión gratuita limitada."}
             </p>
           </div>
@@ -106,10 +79,8 @@ export function BillingSettings() {
                 variant="outline" 
                 onClick={handleManageSubscription} 
                 className="border-zinc-700"
-                disabled={isPortalLoading}
              >
-               {isPortalLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-               Gestionar Suscripción
+               Gestionar en Mercado Pago <ExternalLink className="ml-2 h-3 w-3" />
              </Button>
           )}
         </CardContent>
@@ -138,15 +109,16 @@ export function BillingSettings() {
              </div>
           </div>
 
-          <Card className="relative overflow-hidden border-yellow-500/30 bg-gradient-to-b from-yellow-500/5 to-zinc-950">
+          <Card className="relative overflow-hidden border-blue-500/30 bg-gradient-to-b from-blue-900/10 to-zinc-950">
             {billingCycle === 'yearly' && (
-                <div className="absolute top-0 right-0 bg-yellow-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
+                <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
                     Mejor Valor
                 </div>
             )}
             <CardHeader>
               <CardTitle className="flex items-baseline gap-2">
                  <span className="text-4xl font-black text-white">
+                    {/* Ajustar símbolo de moneda según la configuración en Edge Function */}
                     ${billingCycle === 'monthly' ? '9.99' : '7.49'}
                  </span>
                  <span className="text-zinc-500 text-sm font-medium">/ mes</span>
@@ -162,28 +134,27 @@ export function BillingSettings() {
                <Benefit>Módulo de Nutrición & Farmacología</Benefit>
                <Benefit>Check-ins ilimitados</Benefit>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex-col gap-3">
                <Button 
-                 className="w-full h-12 bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700 text-white font-black uppercase tracking-wider shadow-lg shadow-yellow-900/20"
+                 className="w-full h-12 bg-[#009EE3] hover:bg-[#008ED3] text-white font-black uppercase tracking-wider shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2"
                  onClick={handleSubscribe}
                  disabled={isLoading}
                >
                  {isLoading ? (
                     <>
-                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...
+                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Conectando...
                     </>
                  ) : (
                     <>
-                       <Star className="mr-2 h-4 w-4 fill-current" /> Comenzar Trial de 7 Días
+                       Suscribirse con Mercado Pago
                     </>
                  )}
                </Button>
+               <p className="text-[10px] text-zinc-500">
+                  Serás redirigido a Mercado Pago para completar la suscripción segura.
+               </p>
             </CardFooter>
           </Card>
-
-          <p className="text-center text-xs text-zinc-600">
-             Garantía de satisfacción. Puedes cancelar en cualquier momento durante el periodo de prueba sin cargo.
-          </p>
         </div>
       )}
 
@@ -218,8 +189,8 @@ export function BillingSettings() {
 
 const Benefit = ({ children }: { children: React.ReactNode }) => (
   <div className="flex items-center gap-3">
-    <div className="bg-green-500/20 p-1 rounded-full shrink-0">
-      <Check className="w-3.5 h-3.5 text-green-500" />
+    <div className="bg-blue-500/20 p-1 rounded-full shrink-0">
+      <Check className="w-3.5 h-3.5 text-blue-500" />
     </div>
     <span className="text-sm text-zinc-300">{children}</span>
   </div>
