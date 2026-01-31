@@ -4,13 +4,15 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Clock, ChevronLeft, Trophy, History, Timer, RefreshCw } from "lucide-react";
+import { Trash2, Plus, Clock, ChevronLeft, Trophy, History, PlayCircle, StopCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { WorkoutExercise, WorkoutSet } from "@/types";
 import { useProfile } from "@/hooks/useProfile";
 import { Badge } from "@/components/ui/badge";
+import { calculateTotalVolume } from "@/utils/calculations";
+import { formatDuration } from "@/utils/formatting";
 
 const MUSCLE_GROUPS = [
   "Pecho", "Espalda", "Piernas", "Hombros", "Bíceps", "Tríceps", "Full Body"
@@ -26,7 +28,7 @@ export default function WorkoutLogger() {
   const [muscleGroup, setMuscleGroup] = useState<string>("");
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [loading, setLoading] = useState(false);
-  const [timer, setTimer] = useState(0); // Elapsed minutes
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   
   // Previous Data
   const [previousWorkout, setPreviousWorkout] = useState<any>(null);
@@ -38,8 +40,8 @@ export default function WorkoutLogger() {
     let interval: any;
     if (started) {
       interval = setInterval(() => {
-        setTimer(prev => prev + 1);
-      }, 60000); // Update every minute
+        setElapsedSeconds(prev => prev + 1);
+      }, 1000); // Update every second
     }
     return () => clearInterval(interval);
   }, [started]);
@@ -167,14 +169,7 @@ export default function WorkoutLogger() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      // Calculate totals
-      let totalVolume = 0;
-      exercises.forEach(ex => {
-        ex.sets.forEach(set => {
-          totalVolume += (Number(set.weight) * Number(set.reps));
-        });
-      });
-
+      const totalVolume = calculateTotalVolume(exercises);
       const duration = startTime ? Math.round((new Date().getTime() - startTime.getTime()) / 60000) : 0;
 
       const logData = {
@@ -221,15 +216,18 @@ export default function WorkoutLogger() {
         <Button variant="ghost" className="self-start mb-4" onClick={() => navigate(-1)}>
           <ChevronLeft className="mr-2 h-4 w-4" /> Volver
         </Button>
-        <Card className="border-2">
+        <Card className="border-2 border-primary/20 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-2xl">Iniciar Entrenamiento</CardTitle>
+            <div className="mx-auto bg-primary/10 p-4 rounded-full mb-2">
+              <PlayCircle className="w-10 h-10 text-primary" />
+            </div>
+            <CardTitle className="text-2xl text-center">Iniciar Entrenamiento</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label>Grupo Muscular Principal</Label>
               <Select onValueChange={setMuscleGroup}>
-                <SelectTrigger className="h-12 text-lg">
+                <SelectTrigger className="h-14 text-lg">
                   <SelectValue placeholder="Seleccionar..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -239,8 +237,8 @@ export default function WorkoutLogger() {
                 </SelectContent>
               </Select>
             </div>
-            <Button size="lg" className="w-full text-lg font-bold" onClick={startWorkout} disabled={!muscleGroup || loading}>
-              {loading ? "Cargando historial..." : "COMENZAR"}
+            <Button size="lg" className="w-full h-14 text-lg font-bold" onClick={startWorkout} disabled={!muscleGroup || loading}>
+              {loading ? "Cargando historial..." : "COMENZAR SESIÓN"}
             </Button>
           </CardContent>
         </Card>
@@ -257,18 +255,18 @@ export default function WorkoutLogger() {
           <div className="flex items-center text-xs font-mono text-primary gap-2">
             <Badge variant="outline" className="rounded-sm border-primary/20 text-primary bg-primary/5">
               <Clock className="h-3 w-3 mr-1" />
-              {String(Math.floor(timer / 60)).padStart(2, '0')}:{String(timer % 60).padStart(2, '0')}
+              {formatDuration(elapsedSeconds)}
             </Badge>
           </div>
         </div>
-        <Button size="sm" onClick={finishWorkout} disabled={loading} className="font-bold">
-          {loading ? "Guardando..." : "Finalizar"}
+        <Button size="sm" onClick={finishWorkout} disabled={loading} className="font-bold gap-2">
+          {loading ? "Guardando..." : <><StopCircle className="h-4 w-4"/> Finalizar</>}
         </Button>
       </div>
 
       <div className="space-y-6">
         {exercises.map((exercise, exIndex) => (
-          <Card key={exIndex} className="relative overflow-hidden border-l-4 border-l-primary shadow-lg">
+          <Card key={exIndex} className="relative overflow-hidden border-l-4 border-l-primary shadow-lg animate-in slide-in-from-bottom-2">
             
             {/* Exercise Header */}
             <CardHeader className="py-3 px-4 bg-muted/30 flex flex-row justify-between items-center space-y-0">
