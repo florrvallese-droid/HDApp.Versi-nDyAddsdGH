@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { Save, RefreshCw } from "lucide-react";
+import { Save, RefreshCw, PlusCircle } from "lucide-react";
 
 export default function PromptManager() {
   const [prompts, setPrompts] = useState<any[]>([]);
@@ -26,7 +26,7 @@ export default function PromptManager() {
   }, []);
 
   useEffect(() => {
-    if (prompts.length > 0) {
+    if (prompts.length >= 0) {
       const found = prompts.find(p => p.action === selectedAction && p.coach_tone === selectedTone);
       if (found) {
         setCurrentPrompt(found);
@@ -43,6 +43,7 @@ export default function PromptManager() {
     const { data, error } = await supabase
       .from('ai_prompts')
       .select('*')
+      .eq('is_active', true)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -58,9 +59,6 @@ export default function PromptManager() {
     setSaving(true);
 
     try {
-      // Logic: Update the current one directly for MVP simplicity.
-      // In a real robust system, we would insert a NEW version and set old ones to is_active=false.
-      
       const { error } = await supabase
         .from('ai_prompts')
         .update({ 
@@ -72,9 +70,31 @@ export default function PromptManager() {
       if (error) throw error;
 
       toast.success("Prompt actualizado correctamente");
-      fetchPrompts(); // Refresh
+      fetchPrompts();
     } catch (err: any) {
       toast.error("Error al guardar: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCreate = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('ai_prompts').insert({
+        action: selectedAction,
+        coach_tone: selectedTone,
+        system_instruction: "Escribe aquí las instrucciones del sistema...",
+        version: "v1.0",
+        is_active: true
+      });
+
+      if (error) throw error;
+
+      toast.success("Prompt creado correctamente");
+      fetchPrompts();
+    } catch (err: any) {
+      toast.error("Error al crear: " + err.message);
     } finally {
       setSaving(false);
     }
@@ -158,9 +178,12 @@ export default function PromptManager() {
                 </div>
               </>
             ) : (
-              <div className="flex items-center justify-center h-[400px] border-2 border-dashed rounded-lg text-muted-foreground">
-                No existe prompt para esta combinación.
-                {/* Need Create functionality here ideally */}
+              <div className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed rounded-lg text-muted-foreground gap-4">
+                <p>No existe prompt activo para esta combinación.</p>
+                <Button onClick={handleCreate} disabled={saving}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Crear Prompt v1.0
+                </Button>
               </div>
             )}
           </CardContent>

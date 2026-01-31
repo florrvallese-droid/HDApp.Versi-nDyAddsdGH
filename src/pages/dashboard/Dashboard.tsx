@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dumbbell, Camera, Brain, ChevronRight, LogOut, TrendingUp, Utensils, Syringe } from "lucide-react";
+import { Dumbbell, Camera, Brain, ChevronRight, LogOut, TrendingUp, Utensils, Syringe, Settings as SettingsIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,7 +41,7 @@ const Dashboard = () => {
   return (
     <div className="p-4 pb-20 max-w-md mx-auto min-h-screen space-y-6">
       <header className="flex justify-between items-center mb-2">
-        <div>
+        <div onClick={() => navigate('/settings')} className="cursor-pointer">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             Hola, {profile?.display_name?.split(" ")[0] || "Atleta"}
             {profile?.is_premium && <Badge variant="secondary" className="text-[10px] bg-yellow-500/20 text-yellow-600">PRO</Badge>}
@@ -54,10 +54,10 @@ const Dashboard = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" size="icon" onClick={handleLogout}>
-            <LogOut className="h-5 w-5" />
-          </Button>
-          <div className="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold uppercase">
+           <div 
+             className="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold uppercase cursor-pointer hover:opacity-80 transition-opacity"
+             onClick={() => navigate('/settings')}
+           >
             {profile?.display_name ? profile.display_name.substring(0, 2) : "JD"}
           </div>
         </div>
