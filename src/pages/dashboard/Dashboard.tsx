@@ -9,7 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
 import { CardioModal } from "@/components/dashboard/CardioModal";
 import { RestDayModal } from "@/components/dashboard/RestDayModal";
+import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/services/supabase";
+import { differenceInDays } from "date-fns";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +22,44 @@ const Dashboard = () => {
   const [showPreWorkout, setShowPreWorkout] = useState(false);
   const [showCardio, setShowCardio] = useState(false);
   const [showRest, setShowRest] = useState(false);
+  
+  // Reminder State
+  const [showReminder, setShowReminder] = useState(false);
+  const [daysSinceCheckin, setDaysSinceCheckin] = useState(0);
+
+  useEffect(() => {
+    if (profile) {
+      checkLastCheckin();
+    }
+  }, [profile]);
+
+  const checkLastCheckin = async () => {
+    try {
+      const { data } = await supabase
+        .from('logs')
+        .select('created_at')
+        .eq('user_id', profile!.user_id)
+        .eq('type', 'checkin')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data) {
+        const lastDate = new Date(data.created_at);
+        const days = differenceInDays(new Date(), lastDate);
+        setDaysSinceCheckin(days);
+        
+        if (days > 15) {
+          setShowReminder(true);
+        }
+      } else {
+        // If never checked in, maybe remind after a few days of joining? 
+        // For now, ignoring fresh users to avoid spamming on day 1
+      }
+    } catch (err) {
+      console.error("Error checking last checkin:", err);
+    }
+  };
 
   const loading = profileLoading || flagsLoading;
 
@@ -122,9 +163,15 @@ const Dashboard = () => {
 
           <Button 
             variant="outline" 
-            className="h-14 bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white uppercase font-bold text-xs tracking-wide flex items-center gap-2 justify-center"
+            className="h-14 bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white uppercase font-bold text-xs tracking-wide flex items-center gap-2 justify-center relative"
             onClick={() => navigate('/checkin')}
           >
+            {daysSinceCheckin > 15 && (
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+            )}
             <Camera className="h-4 w-4" /> Check Físico
           </Button>
         
@@ -154,6 +201,12 @@ const Dashboard = () => {
 
       <CardioModal open={showCardio} onOpenChange={setShowCardio} />
       <RestDayModal open={showRest} onOpenChange={setShowRest} />
+      
+      <CheckinReminderDialog 
+        open={showReminder} 
+        onOpenChange={setShowReminder}
+        daysSince={daysSinceCheckin} 
+      />
     </div>
   );
 };

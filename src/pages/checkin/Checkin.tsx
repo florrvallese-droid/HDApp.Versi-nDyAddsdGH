@@ -5,13 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Upload, Camera, Scale, Save, Loader2, Lock, Calendar } from "lucide-react";
+import { ChevronLeft, Upload, Camera, Scale, Save, Loader2, Lock, Calendar, Clock } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { uploadCheckinPhoto } from "@/services/storage";
 import { useProfile } from "@/hooks/useProfile";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { Badge } from "@/components/ui/badge";
 
@@ -29,6 +29,7 @@ export default function Checkin() {
   // Previous data
   const [prevWeight, setPrevWeight] = useState<number | null>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [daysSinceLast, setDaysSinceLast] = useState<number | null>(null);
 
   // Photos
   const [frontPhoto, setFrontPhoto] = useState<File | null>(null);
@@ -71,6 +72,13 @@ export default function Checkin() {
         if (lastEntry.data.weight) {
             setPrevWeight(lastEntry.data.weight);
         }
+
+        // Calculate days since last
+        const lastDate = new Date(lastEntry.created_at);
+        const diff = differenceInDays(new Date(), lastDate);
+        setDaysSinceLast(diff);
+      } else {
+        setDaysSinceLast(null); // No history
       }
     } catch (err) {
       console.log("Error fetching history:", err);
@@ -182,6 +190,16 @@ export default function Checkin() {
           </Badge>
         )}
       </div>
+
+      {/* Days Since Counter */}
+      {daysSinceLast !== null && (
+        <div className={`flex items-center justify-center p-3 rounded-lg border ${daysSinceLast > 15 ? 'bg-red-950/30 border-red-900/50 text-red-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400'}`}>
+          <Clock className="w-4 h-4 mr-2" />
+          <span className="text-sm font-bold uppercase tracking-wide">
+            {daysSinceLast === 0 ? "Último check: Hoy" : `Último check: Hace ${daysSinceLast} días`}
+          </span>
+        </div>
+      )}
 
       {/* Date Picker */}
       <div className="space-y-2">
