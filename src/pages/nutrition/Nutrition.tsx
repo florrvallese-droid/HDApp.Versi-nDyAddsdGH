@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, ChevronLeft, Lock, Syringe, Calendar, Scale, Activity, X, ShieldAlert, Pill } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, Lock, Syringe, Calendar, Scale, Activity, X, ArrowUp, ArrowDown, ShieldAlert, Pill } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { DietVariant, NutritionConfig, PhaseGoal, Supplement, Compound, PharmaCycle } from "@/types";
+import { DietVariant, NutritionConfig, PhaseGoal, Supplement, Compound } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +42,7 @@ export default function Nutrition() {
   const [pharmaCycles, setPharmaCycles] = useState<any[]>([]);
   const [newCompName, setNewCompName] = useState("");
   const [newCompDosage, setNewCompDosage] = useState("");
-  const [newCompDate, setNewCompDate] = useState(""); // Screenshot shows date
+  const [newCompDate, setNewCompDate] = useState("");
   const [newCompType, setNewCompType] = useState<'injectable'|'oral'|'ancillary'>('injectable');
   const [isPharmaLoading, setIsPharmaLoading] = useState(false);
 
@@ -61,7 +61,7 @@ export default function Nutrition() {
         setCurrentWeight(profile.settings.current_weight);
       }
       if (profile.settings?.nutrition) {
-        const config = profile.settings.nutrition;
+        const config = profile.settings.nutrition as NutritionConfig & { timing_order?: string[] };
         setPhaseGoal(config.phase_goal || "maintenance");
         setStrategyType(config.strategy_type || "single");
         
@@ -79,14 +79,18 @@ export default function Nutrition() {
         const loadedSupps = config.supplements_stack || [];
         setSupplements(loadedSupps);
 
-        const usedTimings = new Set(loadedSupps.map(s => s.timing));
-        if (usedTimings.size === 0) {
-           setVisibleTimings(['fasted', 'pre', 'intra', 'post', 'night']);
+        // Load timing order preference if exists, otherwise default logic
+        if (config.timing_order && config.timing_order.length > 0) {
+            setVisibleTimings(config.timing_order);
         } else {
-           const standardSet = new Set(['fasted', 'pre', 'intra', 'post', 'night']);
-           const merged = Array.from(new Set([...usedTimings, ...standardSet]));
-           const validKeys = merged.filter(k => timingLabels.find(t => t.key === k));
-           setVisibleTimings(validKeys as string[]);
+            const usedTimings = new Set(loadedSupps.map(s => s.timing));
+            // Default Requested Order: Fasted, Pre, Intra, Post, Night
+            const defaultOrder = ['fasted', 'pre', 'intra', 'post', 'night'];
+            
+            // If user has 'meal' or others not in default, append them
+            const extraTimings = Array.from(usedTimings).filter(t => !defaultOrder.includes(t));
+            
+            setVisibleTimings([...defaultOrder, ...extraTimings]);
         }
 
       } else {
@@ -170,11 +174,12 @@ export default function Nutrition() {
         variantsToSave[0].name = "Dieta Única"; 
     }
 
-    const newConfig: NutritionConfig = {
+    const newConfig: NutritionConfig & { timing_order?: string[] } = {
       phase_goal: phaseGoal,
       strategy_type: strategyType,
       diet_variants: variantsToSave,
-      supplements_stack: supplements
+      supplements_stack: supplements,
+      timing_order: visibleTimings // Persist order
     };
 
     const newSettings = {
@@ -266,10 +271,19 @@ export default function Nutrition() {
     }
   };
 
+  const moveTiming = (index: number, direction: 'up' | 'down') => {
+    const newTimings = [...visibleTimings];
+    if (direction === 'up' && index > 0) {
+      [newTimings[index], newTimings[index - 1]] = [newTimings[index - 1], newTimings[index]];
+    } else if (direction === 'down' && index < newTimings.length - 1) {
+      [newTimings[index], newTimings[index + 1]] = [newTimings[index + 1], newTimings[index]];
+    }
+    setVisibleTimings(newTimings);
+  };
+
   const availableHiddenTimings = timingLabels.filter(t => !visibleTimings.includes(t.key));
 
   // --- Pharma Logic ---
-
   const addPharmaCompound = async (cycleId: string) => {
     if (!newCompName || !newCompDosage) {
         toast.error("Ingresa compuesto y dosis");
@@ -286,11 +300,7 @@ export default function Nutrition() {
         type: newCompType
     };
 
-    // Assuming we also store date in the compound object for this UI view, 
-    // though the type definition might need extension or we shove it in for now.
-    // The previous `Compound` type doesn't have date, but we can extend it locally or in data.
     const compoundWithDate = { ...newCompound, date: newCompDate || format(new Date(), 'yyyy-MM-dd') };
-
     const updatedCompounds = [...(cycle.data.compounds || []), compoundWithDate];
     const updatedData = { ...cycle.data, compounds: updatedCompounds };
 
@@ -314,18 +324,12 @@ export default function Nutrition() {
         setShowUpgradeModal(true);
         return;
     }
-
     const name = `Ciclo ${format(new Date(), 'MMM yyyy')}`;
     const { error } = await supabase.from('logs').insert({
         user_id: profile?.user_id,
         type: 'pharmacology',
-        data: {
-            name,
-            start_date: new Date().toISOString(),
-            compounds: []
-        }
+        data: { name, start_date: new Date().toISOString(), compounds: [] }
     });
-
     if (error) toast.error("Error al crear ciclo");
     else {
         toast.success("Nuevo ciclo creado");
@@ -336,10 +340,8 @@ export default function Nutrition() {
   const removePharmaCompound = async (cycleId: string, compoundId: string) => {
       const cycle = pharmaCycles.find(c => c.id === cycleId);
       if (!cycle) return;
-
       const updatedCompounds = cycle.data.compounds.filter((c: any) => c.id !== compoundId);
       const updatedData = { ...cycle.data, compounds: updatedCompounds };
-
       const { error } = await supabase.from('logs').update({ data: updatedData }).eq('id', cycleId);
       if (error) toast.error("Error al eliminar");
       else fetchPharmaCycles();
@@ -351,7 +353,6 @@ export default function Nutrition() {
       if (error) toast.error("Error eliminando ciclo");
       else fetchPharmaCycles();
   }
-
 
   if (profileLoading) {
     return <div className="min-h-screen bg-black flex items-center justify-center"><Skeleton className="h-12 w-12 rounded-full" /></div>;
@@ -557,7 +558,7 @@ export default function Nutrition() {
 
         <div className="grid gap-4">
             {/* Render Visible Timing Cards */}
-            {visibleTimings.map((timingKey) => {
+            {visibleTimings.map((timingKey, idx) => {
                 const timingLabel = timingLabels.find(t => t.key === timingKey)?.label || timingKey;
                 const groupedSups = getSupplementsByTiming(timingKey);
                 const inputState = suppInputs[timingKey] || { name: "", dosage: "" };
@@ -567,15 +568,26 @@ export default function Nutrition() {
                         <CardContent className="p-0">
                             {/* Card Header */}
                             <div className="flex justify-between items-center p-3 border-b border-zinc-900 bg-zinc-900/50">
-                                <span className="font-black uppercase text-xs tracking-wider text-white">
-                                    {timingLabel}
-                                </span>
-                                <button 
-                                    onClick={() => toggleTimingVisibility(timingKey)}
-                                    className="text-zinc-600 hover:text-red-500 transition-colors"
-                                >
-                                    <X className="h-3.5 w-3.5" />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-black uppercase text-xs tracking-wider text-white">
+                                        {timingLabel}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <button onClick={() => moveTiming(idx, 'up')} disabled={idx === 0} className="p-1 text-zinc-600 hover:text-zinc-300 disabled:opacity-30">
+                                        <ArrowUp className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button onClick={() => moveTiming(idx, 'down')} disabled={idx === visibleTimings.length - 1} className="p-1 text-zinc-600 hover:text-zinc-300 disabled:opacity-30">
+                                        <ArrowDown className="h-3.5 w-3.5" />
+                                    </button>
+                                    <div className="w-px h-3 bg-zinc-800 mx-1"></div>
+                                    <button 
+                                        onClick={() => toggleTimingVisibility(timingKey)}
+                                        className="text-zinc-600 hover:text-red-500 transition-colors p-1"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
+                                </div>
                             </div>
                             
                             {/* Supplements List */}
@@ -628,8 +640,8 @@ export default function Nutrition() {
             {availableHiddenTimings.length > 0 && (
                 <div className="relative group">
                     <Select onValueChange={(val) => toggleTimingVisibility(val)}>
-                        <SelectTrigger className="w-full h-12 border border-dashed border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10 hover:border-yellow-500/50 transition-all flex flex-col items-center justify-center gap-2">
-                             <span className="text-yellow-500 font-black uppercase tracking-widest text-xs">
+                        <SelectTrigger className="w-full h-24 border-2 border-dashed border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10 hover:border-yellow-500/50 transition-all flex flex-col items-center justify-center gap-2">
+                             <span className="text-yellow-500 font-black uppercase tracking-widest text-sm">
                                 + Agregar Momento
                              </span>
                         </SelectTrigger>
