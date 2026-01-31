@@ -33,8 +33,14 @@ export const aiService = {
       });
 
       if (error) {
-        console.error("AI Service Error Details:", error);
-        throw new Error(error.message || "Error conectando con IA");
+        console.error("AI Service Network Error:", error);
+        throw new Error(error.message || "Error de red al conectar con IA");
+      }
+
+      // Handle soft error from Edge Function (Status 200 but error body)
+      if (response && response.error) {
+        console.error("AI Service Logical Error:", response.message);
+        throw new Error(response.message || "Error interno del servidor IA");
       }
 
       if (!response) {
@@ -48,8 +54,8 @@ export const aiService = {
       // Fallback seguro
       return {
         decision: 'TRAIN_LIGHT',
-        rationale: `Error de conexión (${err.message}). Por seguridad, entrena ligero o descansa.`,
-        recommendations: ["Revisar conexión a internet", "Intentar nuevamente en unos minutos"]
+        rationale: `⚠️ Error: ${err.message}. Por seguridad, entrena ligero o descansa.`,
+        recommendations: ["Verificar API Keys", "Revisar conexión a internet"]
       };
     }
   },
@@ -71,6 +77,7 @@ export const aiService = {
       });
 
       if (error) throw error;
+      if (response && response.error) throw new Error(response.message);
 
       return response as PostWorkoutAIResponse;
     } catch (err) {
@@ -101,8 +108,10 @@ export const aiService = {
       });
 
       if (error) throw error;
+      if (response && response.error) throw new Error(response.message);
+
       return response as GlobalAnalysisResponse;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to call AI Coach (Global):", err);
       // Fallback
       return {
@@ -116,7 +125,7 @@ export const aiService = {
         },
         next_14_days_plan: ["Continuar rutina actual", "Priorizar sueño"],
         red_flags: [],
-        overall_assessment: "Hubo un error al procesar tus datos con la IA. Asegúrate de tener conexión estable."
+        overall_assessment: `Hubo un error al procesar tus datos: ${err.message}`
       };
     }
   }
