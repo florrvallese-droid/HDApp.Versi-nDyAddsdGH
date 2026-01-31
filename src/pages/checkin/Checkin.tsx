@@ -15,7 +15,7 @@ import { format } from "date-fns";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ComparisonGallery } from "@/components/ComparisonGallery";
+import { ComparisonGallery } from "@/components/checkin/ComparisonGallery";
 
 export default function Checkin() {
   const navigate = useNavigate();
