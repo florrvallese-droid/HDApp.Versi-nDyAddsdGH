@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     console.log(`[ai-coach] Request: ${action} (${tone})`);
 
     // 1. Fetch Prompt
-    let systemInstruction = "You are a helpful fitness coach. Analyze the data and return valid JSON.";
+    let systemInstruction = "You are a helpful fitness coach.";
     let knowledgeContext = "";
     let promptVersion = "fallback";
 
@@ -55,15 +55,45 @@ Deno.serve(async (req) => {
       console.error("[ai-coach] DB Error (non-fatal):", dbErr);
     }
 
+    // Define strict schemas to ensure UI always receives data
+    const schemas = {
+      preworkout: `
+      {
+        "decision": "TRAIN_HEAVY" | "TRAIN_LIGHT" | "REST",
+        "rationale": "Detailed explanation of why this decision was made based on sleep, stress and recovery.",
+        "recommendations": ["Actionable tip 1", "Actionable tip 2"]
+      }`,
+      postworkout: `
+      {
+        "verdict": "PROGRESS" | "PLATEAU" | "REGRESSION",
+        "highlights": ["Specific achievement 1"],
+        "corrections": ["Correction 1"],
+        "coach_quote": "Motivational quote"
+      }`,
+      globalanalysis: `
+      {
+        "top_patterns": [{"pattern": "Description", "evidence": "Data proof", "action": "What to do"}],
+        "performance_insights": {"best_performing_conditions": "...", "worst_performing_conditions": "...", "optimal_frequency": "..."},
+        "red_flags": ["Warning 1"],
+        "next_14_days_plan": ["Step 1"],
+        "overall_assessment": "Markdown supported analysis"
+      }`
+    };
+
+    const targetSchema = schemas[action] || "{}";
+
     const finalPrompt = `
       ROLE:
       ${systemInstruction}
 
-      STRICT INSTRUCTIONS:
+      STRICT OUTPUT INSTRUCTIONS:
       1. Analyze the USER DATA provided below.
       2. Consult the KNOWLEDGE BASE if provided.
       3. Think step-by-step before deciding.
-      4. Output ONLY valid JSON. No markdown formatting.
+      4. You MUST output ONLY valid JSON matching exactly this structure:
+      ${targetSchema}
+
+      NO markdown formatting (no \`\`\`json). Just the raw JSON object.
 
       ${knowledgeContext ? `### KNOWLEDGE BASE ###\n${knowledgeContext}\n` : ''}
 
@@ -94,7 +124,7 @@ Deno.serve(async (req) => {
     };
 
     // 3. Select Strategy based on Action (Strictly Gemini 3)
-    let usedModel = 'gemini-3-flash-preview'; // Default fast for pre/post workout
+    let usedModel = 'gemini-3-flash-preview'; // Default fast
 
     if (action === 'globalanalysis') {
       usedModel = 'gemini-3-pro-preview'; // Smart for audit
