@@ -52,7 +52,9 @@ export function ExerciseSelector({ onSelect, value }: ExerciseSelectorProps) {
       console.error("Error fetching exercises:", error);
       toast.error("Error cargando ejercicios");
     } else {
-      setExercises(data || []);
+      // Client-side deduplication just in case
+      const uniqueExercises = data ? Array.from(new Map(data.map(item => [item.name, item])).values()) : [];
+      setExercises(uniqueExercises);
     }
     setLoading(false);
   };
@@ -68,12 +70,18 @@ export function ExerciseSelector({ onSelect, value }: ExerciseSelectorProps) {
       // Capitalize first letter
       const formattedName = searchTerm.charAt(0).toUpperCase() + searchTerm.slice(1);
 
+      // Check if it already exists locally to avoid DB duplicate error
+      if (exercises.some(e => e.name.toLowerCase() === formattedName.toLowerCase())) {
+        toast.error("Este ejercicio ya existe");
+        setCreating(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("exercises")
         .insert({
           name: formattedName,
           user_id: user.id,
-          // We don't ask for muscle group to keep it fast, can be optional or inferred later
         })
         .select()
         .single();
@@ -84,6 +92,7 @@ export function ExerciseSelector({ onSelect, value }: ExerciseSelectorProps) {
         setExercises((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
         onSelect(data.name);
         setOpen(false);
+        setSearchTerm(""); // Clear search
         toast.success(`Ejercicio "${data.name}" creado`);
       }
     } catch (error: any) {
@@ -149,7 +158,7 @@ export function ExerciseSelector({ onSelect, value }: ExerciseSelectorProps) {
                     key={exercise.id}
                     value={exercise.name}
                     onSelect={(currentValue) => {
-                      onSelect(currentValue);
+                      onSelect(exercise.name); // Pass the exact name from the object
                       setOpen(false);
                     }}
                     className="data-[selected=true]:bg-zinc-800 cursor-pointer text-zinc-300 data-[selected=true]:text-white"
