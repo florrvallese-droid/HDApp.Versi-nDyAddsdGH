@@ -7,6 +7,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
+import { CardioModal } from "@/components/dashboard/CardioModal";
+import { RestDayModal } from "@/components/dashboard/RestDayModal";
 import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
@@ -15,6 +17,8 @@ const Dashboard = () => {
   const { flags, loading: flagsLoading } = useFeatureFlags();
   
   const [showPreWorkout, setShowPreWorkout] = useState(false);
+  const [showCardio, setShowCardio] = useState(false);
+  const [showRest, setShowRest] = useState(false);
 
   const loading = profileLoading || flagsLoading;
 
@@ -35,12 +39,12 @@ const Dashboard = () => {
     <div className="p-4 pb-20 max-w-md mx-auto min-h-screen space-y-8 bg-black">
       
       {/* USER HEADER CARD */}
-      <Card className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden">
-        <CardContent className="p-4 flex items-center justify-between" onClick={() => navigate('/settings')}>
+      <Card className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden cursor-pointer hover:border-zinc-700 transition-colors" onClick={() => navigate('/settings')}>
+        <CardContent className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
               {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover rounded-full" />
+                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
                 <User className="h-6 w-6 text-zinc-400" />
               )}
@@ -51,7 +55,7 @@ const Dashboard = () => {
                   {profile?.display_name || "ATLETA SIN NOMBRE"}
                 </h2>
                 {profile?.is_premium && (
-                  <Badge variant="default" className="bg-red-600 hover:bg-red-700 text-white text-[10px] px-1.5 py-0 h-5">PRO</Badge>
+                  <Badge variant="default" className="bg-red-600 hover:bg-red-700 text-white text-[10px] px-1.5 py-0 h-5 border-0">PRO</Badge>
                 )}
               </div>
               <p className="text-xs text-zinc-500 font-mono">
@@ -84,7 +88,7 @@ const Dashboard = () => {
         {/* BIG RED BUTTON */}
         <Button 
           className="w-full h-20 text-xl font-black italic uppercase tracking-wider bg-red-600 hover:bg-red-700 text-white shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98] border border-red-500/20"
-          onClick={() => setShowPreWorkout(true)} // Opens Modal first
+          onClick={() => setShowPreWorkout(true)} 
         >
           INICIAR SESIÓN DE PESAS
         </Button>
@@ -95,7 +99,7 @@ const Dashboard = () => {
           <Button 
             variant="outline" 
             className="h-14 bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white uppercase font-bold text-xs tracking-wide flex items-center gap-2 justify-center"
-            onClick={() => {}} // Placeholder for Cardio
+            onClick={() => setShowCardio(true)}
           >
             <Zap className="h-4 w-4" /> Cardio
           </Button>
@@ -103,7 +107,7 @@ const Dashboard = () => {
           <Button 
             variant="outline" 
             className="h-14 bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white uppercase font-bold text-xs tracking-wide flex items-center gap-2 justify-center"
-            onClick={() => {}} // Placeholder for Rest Day
+            onClick={() => setShowRest(true)}
           >
             <Moon className="h-4 w-4" /> Día de Descanso
           </Button>
@@ -126,7 +130,7 @@ const Dashboard = () => {
         
         </div>
         
-        {/* ANALYSIS LINK (Keep it subtle) */}
+        {/* ANALYSIS LINK */}
         {flags['global_analysis'] !== false && (
             <div className="pt-2">
                 <Button 
@@ -147,6 +151,9 @@ const Dashboard = () => {
         coachTone={profile?.coach_tone || 'strict'}
         hasProAccess={hasProAccess}
       />
+
+      <CardioModal open={showCardio} onOpenChange={setShowCardio} />
+      <RestDayModal open={showRest} onOpenChange={setShowRest} />
     </div>
   );
 };
