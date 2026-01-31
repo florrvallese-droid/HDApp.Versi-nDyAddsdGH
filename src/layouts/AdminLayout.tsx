@@ -14,34 +14,31 @@ export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate('/admin/login'); 
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile?.is_admin) {
+        setIsAdmin(true);
+      } else {
+        toast.error("Acceso no autorizado. Área restringida.");
+        navigate('/dashboard');
+      }
+      setLoading(false);
+    };
+
     checkAdmin();
-  }, []);
-
-  const checkAdmin = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    // Si no hay usuario logueado, mandar al login de ADMIN, no al de la app
-    if (!user) {
-      navigate('/admin/login'); 
-      return;
-    }
-
-    // Verificar si es admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('user_id', user.id)
-      .single();
-
-    if (profile?.is_admin) {
-      setIsAdmin(true);
-    } else {
-      // Si está logueado pero NO es admin, sacarlo de aquí
-      toast.error("Acceso no autorizado. Área restringida.");
-      navigate('/dashboard'); // O logout
-    }
-    setLoading(false);
-  };
+  }, [navigate]);
 
   if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-400">Verificando credenciales...</div>;
   if (!isAdmin) return null;

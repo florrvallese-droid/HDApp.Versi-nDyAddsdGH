@@ -32,49 +32,51 @@ import FeatureFlags from "./pages/admin/FeatureFlags";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/onboarding" element={<Onboarding />} />
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding />} />
 
-          {/* User App Routes (With Bottom Nav) */}
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/workout" element={<WorkoutLogger />} />
-            <Route path="/nutrition" element={<Nutrition />} />
-            <Route path="/checkin" element={<Checkin />} />
-            <Route path="/analysis" element={<GlobalAnalysis />} />
-            <Route path="/pharmacology" element={<Pharmacology />} />
-            <Route path="/settings" element={<Settings />} />
-          </Route>
-          
-          {/* Standalone User Pages (No Bottom Nav to focus) */}
-          <Route path="/workout/analysis" element={<PostWorkout />} />
+            {/* User App Routes (With Bottom Nav) */}
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/workout" element={<WorkoutLogger />} />
+              <Route path="/nutrition" element={<Nutrition />} />
+              <Route path="/checkin" element={<Checkin />} />
+              <Route path="/analysis" element={<GlobalAnalysis />} />
+              <Route path="/pharmacology" element={<Pharmacology />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+            
+            {/* Standalone User Pages (No Bottom Nav to focus) */}
+            <Route path="/workout/analysis" element={<PostWorkout />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="prompts" element={<PromptManager />} />
-            <Route path="users" element={<UserManagement />} />
-            <Route path="logs" element={<AILogs />} />
-            <Route path="flags" element={<FeatureFlags />} />
-          </Route>
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="prompts" element={<PromptManager />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="logs" element={<AILogs />} />
+              <Route path="flags" element={<FeatureFlags />} />
+            </Route>
 
-          {/* Catch-all */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+            {/* Catch-all */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
