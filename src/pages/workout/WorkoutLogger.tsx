@@ -1,22 +1,34 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Trash2, ChevronLeft, MoreHorizontal, Check, AlertTriangle } from "lucide-react";
+import { Trash2, ChevronLeft, Calendar, Dumbbell, Clock, Plus, History } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { WorkoutExercise, WorkoutSet } from "@/types";
 import { useProfile } from "@/hooks/useProfile";
 import { calculateTotalVolume } from "@/utils/calculations";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { WorkoutDetailDialog } from "@/components/WorkoutDetailDialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function WorkoutLogger() {
   const navigate = useNavigate();
   const { profile } = useProfile();
   
-  // States
-  const [started, setStarted] = useState(false);
+  // View State: 'history' | 'setup' | 'active'
+  const [view, setView] = useState<'history' | 'setup' | 'active'>('history');
+
+  // History State
+  const [historyLogs, setHistoryLogs] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
+  const [showDetail, setShowDetail] = useState(false);
+
+  // Active Workout State
   const [muscleGroupInput, setMuscleGroupInput] = useState("");
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,24 +36,47 @@ export default function WorkoutLogger() {
   // New Exercise Input
   const [newExerciseName, setNewExerciseName] = useState("");
   
-  // New Set Inputs (Temporary state for adding a set)
+  // New Set Inputs
   const [tempWeight, setTempWeight] = useState("");
   const [tempReps, setTempReps] = useState("");
   const [tempTempo, setTempTempo] = useState("3-0-1");
   const [tempRest, setTempRest] = useState("2");
 
-  // History loaded
-  const [prevExercises, setPrevExercises] = useState<any[]>([]);
+  useEffect(() => {
+    if (view === 'history') {
+      fetchHistory();
+    }
+  }, [view]);
+
+  const fetchHistory = async () => {
+    setLoadingHistory(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('type', 'workout')
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (!error && data) {
+      setHistoryLogs(data);
+    }
+    setLoadingHistory(false);
+  };
+
+  const handleStartSetup = () => {
+    setView('setup');
+  };
 
   const startWorkout = async () => {
     if (!muscleGroupInput) {
       toast.error("Ingresa un grupo muscular");
       return;
     }
-    setLoading(true);
-    // Fetch history (simplified for now)
-    setStarted(true);
-    setLoading(false);
+    setView('active');
   };
 
   const addExercise = () => {
@@ -53,7 +88,6 @@ export default function WorkoutLogger() {
     };
     setExercises([...exercises, newEx]);
     setNewExerciseName("");
-    // Reset set inputs
     setTempWeight("");
     setTempReps("");
   };
@@ -66,11 +100,10 @@ export default function WorkoutLogger() {
       weight: parseFloat(tempWeight),
       reps: parseFloat(tempReps),
       tempo: tempTempo,
-      rest_seconds: parseFloat(tempRest) * 60 // Convert min to sec
+      rest_seconds: parseFloat(tempRest) * 60
     });
     
     setExercises(updatedExercises);
-    // Keep values for next set as they are likely similar
   };
 
   const removeSet = (exerciseIndex: number, setIndex: number) => {
@@ -91,7 +124,6 @@ export default function WorkoutLogger() {
         return;
     }
     setLoading(true);
-    // Save logic same as before...
     try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("No user");
@@ -103,7 +135,7 @@ export default function WorkoutLogger() {
             type: 'workout',
             muscle_group: muscleGroupInput,
             workout_date: new Date().toISOString(),
-            data: { exercises, total_volume: totalVolume, duration_minutes: 45 }, // simplified duration
+            data: { exercises, total_volume: totalVolume, duration_minutes: 45 },
             discipline: profile?.discipline || 'general'
         });
 
@@ -116,8 +148,77 @@ export default function WorkoutLogger() {
     }
   };
 
-  // STEP 1: SETUP
-  if (!started) {
+  // VIEW 1: HISTORY (LOGBOOK)
+  if (view === 'history') {
+    return (
+      <div className="min-h-screen bg-black text-white pb-24">
+        <WorkoutDetailDialog 
+            open={showDetail} 
+            onOpenChange={setShowDetail} 
+            workout={selectedWorkout} 
+        />
+
+        <div className="p-4 border-b border-zinc-900 bg-black/50 backdrop-blur sticky top-0 z-10 flex justify-between items-center">
+             <h1 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2">
+                <History className="h-5 w-5 text-red-600" /> Bitácora
+             </h1>
+             <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold" onClick={handleStartSetup}>
+                <Plus className="h-4 w-4 mr-1" /> Nuevo
+             </Button>
+        </div>
+
+        <div className="p-4 space-y-4">
+            {loadingHistory ? (
+                <div className="space-y-3">
+                    <Skeleton className="h-24 w-full bg-zinc-900 rounded-xl" />
+                    <Skeleton className="h-24 w-full bg-zinc-900 rounded-xl" />
+                    <Skeleton className="h-24 w-full bg-zinc-900 rounded-xl" />
+                </div>
+            ) : historyLogs.length === 0 ? (
+                <div className="text-center py-20 opacity-50 space-y-4">
+                    <Dumbbell className="h-12 w-12 mx-auto text-zinc-600" />
+                    <p>No hay entrenamientos registrados aún.</p>
+                    <Button variant="outline" onClick={handleStartSetup}>Comenzar el primero</Button>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {historyLogs.map((log) => (
+                        <Card 
+                            key={log.id} 
+                            className="bg-zinc-900 border-zinc-800 active:scale-[0.98] transition-transform cursor-pointer hover:border-zinc-700"
+                            onClick={() => {
+                                setSelectedWorkout(log);
+                                setShowDetail(true);
+                            }}
+                        >
+                            <CardContent className="p-4 flex justify-between items-center">
+                                <div>
+                                    <div className="flex items-center gap-2 text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">
+                                        <Calendar className="h-3 w-3" />
+                                        {format(new Date(log.created_at), "d MMM", { locale: es })}
+                                    </div>
+                                    <h3 className="text-lg font-black italic text-white uppercase">{log.muscle_group || "Entrenamiento"}</h3>
+                                    <div className="flex gap-3 mt-2 text-xs text-zinc-400">
+                                        <span className="flex items-center gap-1"><Dumbbell className="h-3 w-3" /> {log.data.exercises?.length || 0} Ejercicios</span>
+                                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {log.data.duration_minutes || '-'} min</span>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-2xl font-black text-zinc-800">{log.data.total_volume ? (log.data.total_volume / 1000).toFixed(1) : '0'}</div>
+                                    <div className="text-[10px] text-zinc-600 uppercase font-bold">Ton</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
+        </div>
+      </div>
+    );
+  }
+
+  // VIEW 2: SETUP
+  if (view === 'setup') {
     return (
       <div className="p-4 max-w-md mx-auto min-h-screen bg-black text-white space-y-6">
         <div className="flex justify-between items-center pt-2">
@@ -149,7 +250,7 @@ export default function WorkoutLogger() {
             </div>
         </div>
 
-        <div className="pt-8">
+        <div className="pt-8 space-y-3">
              <Button 
                 className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-wide border border-red-500/20"
                 onClick={startWorkout}
@@ -158,17 +259,17 @@ export default function WorkoutLogger() {
             </Button>
             <Button 
                 variant="ghost" 
-                className="w-full mt-2 text-zinc-500 hover:text-white"
-                onClick={() => navigate('/dashboard')}
+                className="w-full text-zinc-500 hover:text-white"
+                onClick={() => setView('history')}
             >
-                Cancelar
+                Cancelar y Volver
             </Button>
         </div>
       </div>
     );
   }
 
-  // STEP 2: LOGGER
+  // VIEW 3: ACTIVE LOGGER
   return (
     <div className="p-4 pb-28 max-w-md mx-auto min-h-screen bg-black text-white space-y-6">
       
@@ -187,7 +288,7 @@ export default function WorkoutLogger() {
       {/* EXERCISES LIST */}
       <div className="space-y-6">
         {exercises.map((ex, i) => (
-            <div key={i} className="space-y-3">
+            <div key={i} className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
                 <div className="flex justify-between items-center">
                     <h3 className="text-red-500 font-black uppercase text-lg">{ex.name}</h3>
                     <Button variant="ghost" size="icon" onClick={() => removeExercise(i)}>
@@ -293,7 +394,7 @@ export default function WorkoutLogger() {
         <Button 
             variant="outline" 
             className="h-12 bg-black border-zinc-800 text-zinc-400 font-bold uppercase"
-            onClick={() => setStarted(false)}
+            onClick={() => setView('setup')}
         >
             Cancelar
         </Button>
