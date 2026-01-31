@@ -9,18 +9,20 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, Save, Plus, Trash2, Utensils, Pill, PieChart } from "lucide-react";
+import { ChevronLeft, Save, Plus, Trash2, Utensils, Pill, PieChart, Lock } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { NutritionConfig, Supplement, DayType } from "@/types";
-import { LockedFeature } from "@/components/shared/LockedFeature";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UpgradeModal } from "@/components/shared/UpgradeModal";
+import { Badge } from "@/components/ui/badge";
 
 export default function Nutrition() {
   const navigate = useNavigate();
   const { profile, hasProAccess, loading: profileLoading } = useProfile();
   const [loading, setLoading] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Config State
   const [dietType, setDietType] = useState<"fixed" | "cycling">("fixed");
@@ -51,6 +53,10 @@ export default function Nutrition() {
   }, [profile]);
 
   const saveConfig = async () => {
+    if (!hasProAccess) {
+      setShowUpgradeModal(true);
+      return;
+    }
     if (!profile) return;
     setLoading(true);
     
@@ -77,6 +83,11 @@ export default function Nutrition() {
   };
 
   const addSupplement = () => {
+    if (!hasProAccess) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     if (!newSuppName) return;
     const newSupp: Supplement = {
       id: crypto.randomUUID(),
@@ -90,10 +101,19 @@ export default function Nutrition() {
   };
 
   const removeSupplement = (id: string) => {
+    if (!hasProAccess) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setSupplements(supplements.filter(s => s.id !== id));
   };
 
   const logDay = async () => {
+    if (!hasProAccess) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     if (!profile) return;
     setLoading(true);
 
@@ -137,30 +157,28 @@ export default function Nutrition() {
     </div>;
   }
 
-  // Premium Check (using hasProAccess which includes trial)
-  if (!hasProAccess) {
-    return (
-      <div className="min-h-screen bg-background p-4 pb-20 max-w-md mx-auto relative">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="absolute top-4 left-4 z-10">
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <LockedFeature 
-          title="Módulo de Nutrición" 
-          description="Planifica tu dieta, cicla calorías y trackea tu suplementación con precisión profesional." 
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background p-4 pb-20 max-w-md mx-auto space-y-6">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Utensils className="text-primary" /> Nutrición
-        </h1>
+      <UpgradeModal 
+        open={showUpgradeModal} 
+        onOpenChange={setShowUpgradeModal} 
+        featureName="Nutrición"
+      />
+
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Utensils className="text-primary" /> Nutrición
+          </h1>
+        </div>
+        {!hasProAccess && (
+          <Badge variant="outline" className="border-yellow-500 text-yellow-600 gap-1">
+            <Lock className="w-3 h-3" /> Vista Previa
+          </Badge>
+        )}
       </div>
 
       <Tabs defaultValue="log" className="w-full">
@@ -254,7 +272,8 @@ export default function Nutrition() {
                 />
               </div>
 
-              <Button className="w-full h-12" onClick={logDay} disabled={loading}>
+              <Button className="w-full h-12 relative overflow-hidden" onClick={logDay} disabled={loading}>
+                {!hasProAccess && <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px] flex items-center justify-center z-10"><Lock className="w-4 h-4 mr-2"/> Requiere PRO</div>}
                 {loading ? "Guardando..." : "Registrar Día"}
               </Button>
 
@@ -354,7 +373,8 @@ export default function Nutrition() {
             </CardContent>
           </Card>
 
-          <Button className="w-full" onClick={saveConfig} disabled={loading}>
+          <Button className="w-full relative overflow-hidden" onClick={saveConfig} disabled={loading}>
+            {!hasProAccess && <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px] flex items-center justify-center z-10"><Lock className="w-4 h-4 mr-2"/> Requiere PRO</div>}
             <Save className="mr-2 h-4 w-4" /> Guardar Estrategia
           </Button>
         </TabsContent>

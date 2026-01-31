@@ -14,8 +14,9 @@ import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { Compound, PharmaCycle } from "@/types";
 import { format } from "date-fns";
-import { LockedFeature } from "@/components/shared/LockedFeature";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UpgradeModal } from "@/components/shared/UpgradeModal";
+import { Badge } from "@/components/ui/badge";
 
 export default function Pharmacology() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function Pharmacology() {
   // Disclaimer State
   const [showDisclaimer, setShowDisclaimer] = useState(true);
   const [accepted, setAccepted] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Data State
   const [cycles, setCycles] = useState<any[]>([]);
@@ -90,6 +92,11 @@ export default function Pharmacology() {
   };
 
   const saveCycle = async () => {
+    if (!hasProAccess) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     if (!cycleName || !profile) return;
     
     setLoading(true);
@@ -127,6 +134,11 @@ export default function Pharmacology() {
   };
 
   const deleteCycle = async (id: string) => {
+    if (!hasProAccess) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     if (!confirm("¿Estás seguro de eliminar este registro? Esta acción es irreversible.")) return;
     
     const { error } = await supabase.from('logs').delete().eq('id', id);
@@ -145,23 +157,13 @@ export default function Pharmacology() {
     </div>;
   }
 
-  // Premium Check (using hasProAccess)
-  if (!hasProAccess) {
-    return (
-      <div className="min-h-screen bg-zinc-950 p-4 pb-20 max-w-md mx-auto relative">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="absolute top-4 left-4 z-10 text-white hover:bg-zinc-800">
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <LockedFeature 
-          title="Bóveda de Farmacología" 
-          description="Registro privado y seguro para tus protocolos avanzados. Exclusivo para usuarios PRO." 
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4 pb-20 max-w-md mx-auto space-y-6">
+      <UpgradeModal 
+        open={showUpgradeModal} 
+        onOpenChange={setShowUpgradeModal} 
+        featureName="Farmacología"
+      />
       
       {/* Disclaimer Modal */}
       <Dialog open={showDisclaimer} onOpenChange={(open) => { if(!open && !accepted) handleDecline(); }}>
@@ -193,18 +195,25 @@ export default function Pharmacology() {
       </Dialog>
 
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-zinc-800 pb-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-zinc-400 hover:text-white">
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-red-500">
-            <Syringe className="h-6 w-6" /> Farmacología
-          </h1>
-          <p className="text-xs text-zinc-500 flex items-center gap-1">
-            <Lock className="h-3 w-3" /> Bóveda Privada
-          </p>
+      <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-zinc-400 hover:text-white">
+            <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2 text-red-500">
+                <Syringe className="h-6 w-6" /> Farmacología
+            </h1>
+            <p className="text-xs text-zinc-500 flex items-center gap-1">
+                <Lock className="h-3 w-3" /> Bóveda Privada
+            </p>
+            </div>
         </div>
+        {!hasProAccess && (
+          <Badge variant="outline" className="border-yellow-500 text-yellow-600 gap-1">
+            <Lock className="w-3 h-3" /> Vista Previa
+          </Badge>
+        )}
       </div>
 
       {/* Persistent Medical Alert */}
@@ -321,7 +330,8 @@ export default function Pharmacology() {
               <Button variant="outline" className="flex-1 border-zinc-800 text-zinc-400" onClick={() => setIsCreating(false)}>
                 Cancelar
               </Button>
-              <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white" onClick={saveCycle} disabled={loading}>
+              <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white relative overflow-hidden" onClick={saveCycle} disabled={loading}>
+                 {!hasProAccess && <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-10"><Lock className="w-4 h-4 mr-2"/> PRO</div>}
                 {loading ? "Guardando..." : "Guardar Registro"}
               </Button>
             </div>
