@@ -32,10 +32,15 @@ Deno.serve(async (req) => {
 
     console.log(`[ai-coach] Request: ${action} (${tone})`);
 
-    // 1. Fetch Prompt
-    let systemInstruction = "You are a helpful fitness coach.";
+    // 1. Fetch Prompt from DB
+    // Default fallback to the specific personality requested
+    let systemInstruction = `Sos un cuaderno de anotaciones inteligente y un entrenador experto en High Intensity Training (HIT) y Heavy Duty. 
+Tu filosofía es: Calidad sobre Cantidad. El volumen es el enemigo de la intensidad. 
+Solo importan las series efectivas al fallo real. 
+Habla siempre de "vos". Sé directo, técnico y motivador pero estricto.`;
+
     let knowledgeContext = "";
-    let promptVersion = "fallback";
+    let promptVersion = "fallback-hit";
 
     try {
       const { data: promptData } = await supabase
