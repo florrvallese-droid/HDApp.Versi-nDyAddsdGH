@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/services/supabase";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, MessageSquare, Activity, Users, LogOut, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Activity, Users, LogOut, ShieldAlert, Flag } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminLayout() {
@@ -49,6 +49,7 @@ export default function AdminLayout() {
     { label: "Prompts IA", icon: MessageSquare, path: "/admin/prompts" },
     { label: "Logs IA", icon: Activity, path: "/admin/logs" },
     { label: "Usuarios", icon: Users, path: "/admin/users" },
+    { label: "Feature Flags", icon: Flag, path: "/admin/flags" },
   ];
 
   const handleLogout = async () => {
