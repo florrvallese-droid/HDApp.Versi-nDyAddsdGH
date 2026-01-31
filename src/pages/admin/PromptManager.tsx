@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { Save, RefreshCw, PlusCircle } from "lucide-react";
+import { Save, RefreshCw, PlusCircle, BookOpen } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function PromptManager() {
   const [prompts, setPrompts] = useState<any[]>([]);
@@ -19,6 +20,7 @@ export default function PromptManager() {
   // Editor state
   const [currentPrompt, setCurrentPrompt] = useState<any>(null);
   const [editedInstruction, setEditedInstruction] = useState("");
+  const [editedContext, setEditedContext] = useState(""); // New state for Book/Source
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -30,10 +32,12 @@ export default function PromptManager() {
       const found = prompts.find(p => p.action === selectedAction && p.coach_tone === selectedTone);
       if (found) {
         setCurrentPrompt(found);
-        setEditedInstruction(found.system_instruction);
+        setEditedInstruction(found.system_instruction || "");
+        setEditedContext(found.knowledge_context || ""); // Load context
       } else {
         setCurrentPrompt(null);
         setEditedInstruction("");
+        setEditedContext("");
       }
     }
   }, [selectedAction, selectedTone, prompts]);
@@ -63,14 +67,15 @@ export default function PromptManager() {
         .from('ai_prompts')
         .update({ 
           system_instruction: editedInstruction,
+          knowledge_context: editedContext, // Save context
           updated_at: new Date().toISOString()
         })
         .eq('id', currentPrompt.id);
 
       if (error) throw error;
 
-      toast.success("Prompt actualizado correctamente");
-      fetchPrompts();
+      toast.success("Prompt y Fuentes actualizados correctamente");
+      fetchPrompts(); // Refresh to ensure sync
     } catch (err: any) {
       toast.error("Error al guardar: " + err.message);
     } finally {
@@ -85,6 +90,7 @@ export default function PromptManager() {
         action: selectedAction,
         coach_tone: selectedTone,
         system_instruction: "Escribe aquí las instrucciones del sistema...",
+        knowledge_context: "", 
         version: "v1.0",
         is_active: true
       });
@@ -157,26 +163,54 @@ export default function PromptManager() {
         {/* Editor */}
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Editor de Instrucciones del Sistema</CardTitle>
+            <CardTitle>Configuración de IA</CardTitle>
             <CardDescription>
-              Define cómo debe comportarse la IA para {selectedAction} ({selectedTone}).
+              Define el comportamiento y el conocimiento base para {selectedAction} ({selectedTone}).
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {currentPrompt ? (
-              <>
-                <Textarea 
-                  className="min-h-[400px] font-mono text-sm leading-relaxed"
-                  value={editedInstruction}
-                  onChange={(e) => setEditedInstruction(e.target.value)}
-                />
-                <div className="flex justify-end">
+              <Tabs defaultValue="instruction" className="w-full">
+                <TabsList className="w-full grid grid-cols-2">
+                  <TabsTrigger value="instruction">Instrucción (Rol)</TabsTrigger>
+                  <TabsTrigger value="source">Fuente / Libro</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="instruction" className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label>Instrucciones del Sistema</Label>
+                    <p className="text-xs text-muted-foreground">Define CÓMO debe responder la IA (JSON structure, tono, reglas lógicas).</p>
+                    <Textarea 
+                      className="min-h-[400px] font-mono text-sm leading-relaxed"
+                      value={editedInstruction}
+                      onChange={(e) => setEditedInstruction(e.target.value)}
+                      placeholder="Eres un entrenador experto..."
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="source" className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" /> Fuente de Conocimiento (RAG Simplificado)
+                    </Label>
+                    <p className="text-xs text-muted-foreground">Pega aquí el contenido del libro, principios o metodologías. La IA usará esto como su "cerebro".</p>
+                    <Textarea 
+                      className="min-h-[400px] font-mono text-sm leading-relaxed bg-muted/30"
+                      value={editedContext}
+                      onChange={(e) => setEditedContext(e.target.value)}
+                      placeholder="Pegar aquí los capítulos clave de Heavy Duty..."
+                    />
+                  </div>
+                </TabsContent>
+
+                <div className="flex justify-end pt-4 border-t mt-4">
                   <Button onClick={handleSave} disabled={saving}>
                     <Save className="mr-2 h-4 w-4" />
                     {saving ? "Guardando..." : "Guardar Cambios"}
                   </Button>
                 </div>
-              </>
+              </Tabs>
             ) : (
               <div className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed rounded-lg text-muted-foreground gap-4">
                 <p>No existe prompt activo para esta combinación.</p>

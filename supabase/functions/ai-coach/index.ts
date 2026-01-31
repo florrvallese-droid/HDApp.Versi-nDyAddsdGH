@@ -8,100 +8,97 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // 1. Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // 2. Setup & Validation
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')?.trim();
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!GEMINI_API_KEY) {
-      throw new Error("Configuration Error: GEMINI_API_KEY is missing or empty.");
-    }
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error("Configuration Error: Supabase credentials missing.");
-    }
+    if (!GEMINI_API_KEY) throw new Error("Configuration Error: GEMINI_API_KEY missing.");
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) throw new Error("Configuration Error: Supabase credentials missing.");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // 3. Parse Request
     const { action, tone, data, userId } = await req.json();
 
-    if (!action || !data) {
-      throw new Error("Bad Request: Missing 'action' or 'data'.");
-    }
+    if (!action || !data) throw new Error("Bad Request: Missing 'action' or 'data'.");
 
     console.log(`[ai-coach] Request: ${action} (${tone || 'default'})`);
 
-    // 4. Fetch Prompt (Safe Mode)
+    // Fetch Prompt AND Context
     let systemInstruction = "You are a helpful fitness coach. Analyze the data and return valid JSON.";
+    let knowledgeContext = "";
     let promptVersion = "fallback";
 
     try {
       const { data: promptData, error: promptError } = await supabase
         .from('ai_prompts')
-        .select('system_instruction, version')
+        .select('system_instruction, knowledge_context, version')
         .eq('action', action)
         .eq('coach_tone', tone || 'strict')
         .eq('is_active', true)
-        .maybeSingle(); // Use maybeSingle to avoid 406 error if 0 rows
+        .maybeSingle();
 
       if (promptError) {
         console.error("[ai-coach] DB Error fetching prompt:", promptError);
       } else if (promptData) {
         systemInstruction = promptData.system_instruction;
+        knowledgeContext = promptData.knowledge_context || "";
         promptVersion = promptData.version;
-      } else {
-        console.warn("[ai-coach] No prompt found in DB, using fallback.");
       }
     } catch (dbErr) {
       console.error("[ai-coach] Unexpected DB error:", dbErr);
-      // Continue with fallback
     }
 
-    // 5. Construct Gemini Payload
-    // Ensure we force JSON response
-    const payload = {
-      contents: [{
-        parts: [{ text: `${systemInstruction}\n\nUser Data:\n${JSON.stringify(data)}` }]
-      }],
-      generationConfig: { 
-        response_mime_type: "application/json" 
-      }
-    };
+    // Construct the FINAL Prompt with Knowledge Base
+    const finalPrompt = `
+      ${systemInstruction}
 
-    // 6. Call Gemini API
+      ${knowledgeContext ? `
+      ### BASE DE CONOCIMIENTO (FUENTE OFICIAL) ###
+      Usa la siguiente información como la VERDAD ABSOLUTA para tomar tus decisiones.
+      No contradigas los principios expuestos en este texto:
+      
+      ${knowledgeContext}
+      #############################################
+      ` : ''}
+
+      ### USER DATA ###
+      ${JSON.stringify(data)}
+    `;
+
+    // Call Gemini API
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: finalPrompt }]
+        }],
+        generationConfig: { 
+          response_mime_type: "application/json" 
+        }
+      })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[ai-coach] Gemini API Error (${response.status}): ${errorText}`);
       throw new Error(`Google API Error: ${response.status} - ${errorText.substring(0, 100)}...`);
     }
 
     const aiResult = await response.json();
     const generatedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
     
-    if (!generatedText) {
-      console.error("[ai-coach] Empty response from Gemini", aiResult);
-      throw new Error("AI returned no content.");
-    }
+    if (!generatedText) throw new Error("AI returned no content.");
 
-    // 7. Parse & Validate JSON
     let parsedOutput;
     try {
       parsedOutput = JSON.parse(generatedText);
     } catch (e) {
-      console.error("[ai-coach] Invalid JSON from AI:", generatedText);
-      // Attempt to clean markdown code blocks if present (common issue)
+      // Cleanup markdown if present
       const cleanedText = generatedText.replace(/```json\n?|\n?```/g, "").trim();
       try {
         parsedOutput = JSON.parse(cleanedText);
@@ -110,8 +107,7 @@ serve(async (req) => {
       }
     }
 
-    // 8. Async Log (Fire & Forget)
-    // We don't await this to speed up response time for user
+    // Log Interaction
     supabase.from('ai_logs').insert({
       user_id: userId || null, 
       action,
@@ -125,25 +121,15 @@ serve(async (req) => {
       if (error) console.error("[ai-coach] Failed to log interaction:", error);
     });
 
-    // 9. Success Response
     return new Response(JSON.stringify(parsedOutput), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
-    console.error(`[ai-coach] CRITICAL FAILURE: ${error.message}`);
-    
-    // Return a 200 OK with an error field instead of 500, 
-    // so the client can handle it gracefully without crashing "functions.invoke"
-    // or return 500 with detailed message if client expects it.
-    // Let's stick to 500 but with JSON body so client can read it.
-    
+    console.error(`[ai-coach] ERROR: ${error.message}`);
     return new Response(
-      JSON.stringify({ error: error.message, details: "Check Supabase Edge Function Logs for more info." }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 })
