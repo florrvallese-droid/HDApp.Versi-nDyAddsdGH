@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { Save, RefreshCw, PlusCircle, BookOpen } from "lucide-react";
+import { Save, RefreshCw, PlusCircle, BookOpen, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function PromptManager() {
@@ -20,11 +20,16 @@ export default function PromptManager() {
   // Editor state
   const [currentPrompt, setCurrentPrompt] = useState<any>(null);
   const [editedInstruction, setEditedInstruction] = useState("");
-  const [editedContext, setEditedContext] = useState(""); // New state for Book/Source
   const [saving, setSaving] = useState(false);
+
+  // Global Knowledge State
+  const [knowledgeContent, setKnowledgeContent] = useState("");
+  const [knowledgeId, setKnowledgeId] = useState<string | null>(null);
+  const [loadingKnowledge, setLoadingKnowledge] = useState(false);
 
   useEffect(() => {
     fetchPrompts();
+    fetchKnowledgeBase();
   }, []);
 
   useEffect(() => {
@@ -33,11 +38,9 @@ export default function PromptManager() {
       if (found) {
         setCurrentPrompt(found);
         setEditedInstruction(found.system_instruction || "");
-        setEditedContext(found.knowledge_context || ""); // Load context
       } else {
         setCurrentPrompt(null);
         setEditedInstruction("");
-        setEditedContext("");
       }
     }
   }, [selectedAction, selectedTone, prompts]);
@@ -50,15 +53,27 @@ export default function PromptManager() {
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      toast.error("Error cargando prompts");
-    } else {
-      setPrompts(data || []);
-    }
+    if (error) toast.error("Error cargando prompts");
+    else setPrompts(data || []);
     setLoading(false);
   };
 
-  const handleSave = async () => {
+  const fetchKnowledgeBase = async () => {
+    setLoadingKnowledge(true);
+    const { data, error } = await supabase
+      .from('ai_knowledge_base')
+      .select('*')
+      .limit(1)
+      .maybeSingle();
+
+    if (data) {
+      setKnowledgeContent(data.content || "");
+      setKnowledgeId(data.id);
+    }
+    setLoadingKnowledge(false);
+  };
+
+  const handleSavePrompt = async () => {
     if (!currentPrompt) return;
     setSaving(true);
 
@@ -67,37 +82,61 @@ export default function PromptManager() {
         .from('ai_prompts')
         .update({ 
           system_instruction: editedInstruction,
-          knowledge_context: editedContext, // Save context
           updated_at: new Date().toISOString()
         })
         .eq('id', currentPrompt.id);
 
       if (error) throw error;
 
-      toast.success("Prompt y Fuentes actualizados correctamente");
-      fetchPrompts(); // Refresh to ensure sync
+      toast.success("Prompt actualizado");
+      fetchPrompts();
     } catch (err: any) {
-      toast.error("Error al guardar: " + err.message);
+      toast.error("Error: " + err.message);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleCreate = async () => {
+  const handleSaveKnowledge = async () => {
+    setSaving(true);
+    try {
+      if (knowledgeId) {
+        const { error } = await supabase
+          .from('ai_knowledge_base')
+          .update({ 
+            content: knowledgeContent,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', knowledgeId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('ai_knowledge_base')
+          .insert({ content: knowledgeContent });
+        if (error) throw error;
+        fetchKnowledgeBase();
+      }
+      toast.success("Base de Conocimiento Global actualizada");
+    } catch (err: any) {
+      toast.error("Error guardando conocimiento: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCreatePrompt = async () => {
     setSaving(true);
     try {
       const { error } = await supabase.from('ai_prompts').insert({
         action: selectedAction,
         coach_tone: selectedTone,
         system_instruction: "Escribe aquí las instrucciones del sistema...",
-        knowledge_context: "", 
         version: "v1.0",
         is_active: true
       });
 
       if (error) throw error;
-
-      toast.success("Prompt creado correctamente");
+      toast.success("Prompt creado");
       fetchPrompts();
     } catch (err: any) {
       toast.error("Error al crear: " + err.message);
@@ -109,120 +148,121 @@ export default function PromptManager() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold tracking-tight">Gestión de Prompts</h2>
-        <Button variant="outline" onClick={fetchPrompts} disabled={loading}>
+        <h2 className="text-3xl font-bold tracking-tight">Gestión de IA</h2>
+        <Button variant="outline" onClick={() => { fetchPrompts(); fetchKnowledgeBase(); }} disabled={loading}>
           <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Recargar
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Sidebar / Filters */}
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle>Selector</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Acción</Label>
-              <Select value={selectedAction} onValueChange={setSelectedAction}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="preworkout">Pre-Workout</SelectItem>
-                  <SelectItem value="postworkout">Post-Workout</SelectItem>
-                  <SelectItem value="globalanalysis">Global Analysis</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <Tabs defaultValue="prompts" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+          <TabsTrigger value="prompts">Prompts por Personalidad</TabsTrigger>
+          <TabsTrigger value="knowledge">Conocimiento Global</TabsTrigger>
+        </TabsList>
 
-            <div className="space-y-2">
-              <Label>Tono del Coach</Label>
-              <Select value={selectedTone} onValueChange={setSelectedTone}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="strict">Strict</SelectItem>
-                  <SelectItem value="motivational">Motivational</SelectItem>
-                  <SelectItem value="analytical">Analytical</SelectItem>
-                  <SelectItem value="friendly">Friendly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        {/* --- TAB: PROMPTS --- */}
+        <TabsContent value="prompts" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Sidebar */}
+            <Card className="h-fit">
+              <CardHeader>
+                <CardTitle>Selector</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Acción</Label>
+                  <Select value={selectedAction} onValueChange={setSelectedAction}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="preworkout">Pre-Workout</SelectItem>
+                      <SelectItem value="postworkout">Post-Workout</SelectItem>
+                      <SelectItem value="globalanalysis">Global Analysis</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Tono del Coach</Label>
+                  <Select value={selectedTone} onValueChange={setSelectedTone}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="strict">Strict</SelectItem>
+                      <SelectItem value="motivational">Motivational</SelectItem>
+                      <SelectItem value="analytical">Analytical</SelectItem>
+                      <SelectItem value="friendly">Friendly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
 
-            <div className="pt-4 text-xs text-muted-foreground">
-              <p>ID: {currentPrompt?.id || "N/A"}</p>
-              <p>Version: {currentPrompt?.version || "N/A"}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Editor */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Configuración de IA</CardTitle>
-            <CardDescription>
-              Define el comportamiento y el conocimiento base para {selectedAction} ({selectedTone}).
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {currentPrompt ? (
-              <Tabs defaultValue="instruction" className="w-full">
-                <TabsList className="w-full grid grid-cols-2">
-                  <TabsTrigger value="instruction">Instrucción (Rol)</TabsTrigger>
-                  <TabsTrigger value="source">Fuente / Libro</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="instruction" className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label>Instrucciones del Sistema</Label>
-                    <p className="text-xs text-muted-foreground">Define CÓMO debe responder la IA (JSON structure, tono, reglas lógicas).</p>
+            {/* Editor */}
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>Editor de Personalidad</CardTitle>
+                <CardDescription>Define CÓMO habla el coach. El conocimiento técnico (Heavy Duty) viene de la pestaña Global.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {currentPrompt ? (
+                  <div className="space-y-4">
                     <Textarea 
                       className="min-h-[400px] font-mono text-sm leading-relaxed"
                       value={editedInstruction}
                       onChange={(e) => setEditedInstruction(e.target.value)}
-                      placeholder="Eres un entrenador experto..."
+                      placeholder="Instrucciones del sistema..."
                     />
+                    <div className="flex justify-end">
+                      <Button onClick={handleSavePrompt} disabled={saving}>
+                        <Save className="mr-2 h-4 w-4" /> Guardar Prompt
+                      </Button>
+                    </div>
                   </div>
-                </TabsContent>
-
-                <TabsContent value="source" className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4" /> Fuente de Conocimiento (RAG Simplificado)
-                    </Label>
-                    <p className="text-xs text-muted-foreground">Pega aquí el contenido del libro, principios o metodologías. La IA usará esto como su "cerebro".</p>
-                    <Textarea 
-                      className="min-h-[400px] font-mono text-sm leading-relaxed bg-muted/30"
-                      value={editedContext}
-                      onChange={(e) => setEditedContext(e.target.value)}
-                      placeholder="Pegar aquí los capítulos clave de Heavy Duty..."
-                    />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed rounded-lg text-muted-foreground gap-4">
+                    <p>No existe prompt activo.</p>
+                    <Button onClick={handleCreatePrompt} disabled={saving}>
+                      <PlusCircle className="mr-2 h-4 w-4" /> Crear Prompt
+                    </Button>
                   </div>
-                </TabsContent>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
-                <div className="flex justify-end pt-4 border-t mt-4">
-                  <Button onClick={handleSave} disabled={saving}>
-                    <Save className="mr-2 h-4 w-4" />
-                    {saving ? "Guardando..." : "Guardar Cambios"}
-                  </Button>
-                </div>
-              </Tabs>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed rounded-lg text-muted-foreground gap-4">
-                <p>No existe prompt activo para esta combinación.</p>
-                <Button onClick={handleCreate} disabled={saving}>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Crear Prompt v1.0
+        {/* --- TAB: GLOBAL KNOWLEDGE --- */}
+        <TabsContent value="knowledge" className="mt-6">
+          <Card className="border-blue-500/20 bg-blue-500/5">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Database className="h-6 w-6 text-blue-500" />
+                <CardTitle>Base de Conocimiento Heavy Duty</CardTitle>
+              </div>
+              <CardDescription>
+                Este texto será inyectado en el contexto de la IA para TODAS las acciones y TODOS los tonos. 
+                Pega aquí el libro, principios o reglas técnicas.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {loadingKnowledge ? (
+                <div className="h-[500px] flex items-center justify-center">Cargando...</div>
+              ) : (
+                <Textarea 
+                  className="min-h-[500px] font-mono text-sm leading-relaxed bg-zinc-950/50 border-blue-500/20 focus:border-blue-500"
+                  value={knowledgeContent}
+                  onChange={(e) => setKnowledgeContent(e.target.value)}
+                  placeholder="Pega aquí el contenido completo del libro o manual..."
+                />
+              )}
+              <div className="flex justify-end">
+                <Button onClick={handleSaveKnowledge} disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Save className="mr-2 h-4 w-4" /> Guardar Conocimiento Global
                 </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

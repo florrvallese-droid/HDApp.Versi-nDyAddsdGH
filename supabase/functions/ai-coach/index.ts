@@ -32,20 +32,14 @@ Deno.serve(async (req) => {
 
     console.log(`[ai-coach] Request: ${action} (${tone})`);
 
-    // 1. Fetch Prompt from DB
-    // Default fallback to the specific personality requested
-    let systemInstruction = `Sos un cuaderno de anotaciones inteligente y un entrenador experto en High Intensity Training (HIT) y Heavy Duty. 
-Tu filosofía es: Calidad sobre Cantidad. El volumen es el enemigo de la intensidad. 
-Solo importan las series efectivas al fallo real. 
-Habla siempre de "vos". Sé directo, técnico y motivador pero estricto.`;
-
-    let knowledgeContext = "";
-    let promptVersion = "fallback-hit";
+    // 1. Fetch Prompt (Personality)
+    let systemInstruction = `Sos un entrenador experto en Heavy Duty.`;
+    let promptVersion = "fallback";
 
     try {
       const { data: promptData } = await supabase
         .from('ai_prompts')
-        .select('system_instruction, knowledge_context, version')
+        .select('system_instruction, version')
         .eq('action', action)
         .eq('coach_tone', tone || 'strict')
         .eq('is_active', true)
@@ -53,35 +47,51 @@ Habla siempre de "vos". Sé directo, técnico y motivador pero estricto.`;
 
       if (promptData) {
         systemInstruction = promptData.system_instruction;
-        knowledgeContext = promptData.knowledge_context || "";
         promptVersion = promptData.version;
       }
     } catch (dbErr) {
-      console.error("[ai-coach] DB Error (non-fatal):", dbErr);
+      console.error("[ai-coach] DB Prompt Error:", dbErr);
     }
 
-    // Define strict schemas to ensure UI always receives data
+    // 2. Fetch Shared Knowledge Base (The Book/Principles)
+    let knowledgeContext = "";
+    try {
+      const { data: kbData } = await supabase
+        .from('ai_knowledge_base')
+        .select('content')
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle(); // Get the first active knowledge base
+
+      if (kbData && kbData.content) {
+        knowledgeContext = kbData.content;
+      }
+    } catch (kbErr) {
+      console.error("[ai-coach] DB Knowledge Error:", kbErr);
+    }
+
+    // Define strict schemas
     const schemas = {
       preworkout: `
       {
         "decision": "TRAIN_HEAVY" | "TRAIN_LIGHT" | "REST",
-        "rationale": "Detailed explanation of why this decision was made based on sleep, stress and recovery.",
-        "recommendations": ["Actionable tip 1", "Actionable tip 2"]
+        "rationale": "Detailed explanation...",
+        "recommendations": ["Tip 1", "Tip 2"]
       }`,
       postworkout: `
       {
         "verdict": "PROGRESS" | "PLATEAU" | "REGRESSION",
-        "highlights": ["Specific achievement 1"],
+        "highlights": ["Achievement 1"],
         "corrections": ["Correction 1"],
         "coach_quote": "Motivational quote"
       }`,
       globalanalysis: `
       {
-        "top_patterns": [{"pattern": "Description", "evidence": "Data proof", "action": "What to do"}],
+        "top_patterns": [{"pattern": "...", "evidence": "...", "action": "..."}],
         "performance_insights": {"best_performing_conditions": "...", "worst_performing_conditions": "...", "optimal_frequency": "..."},
-        "red_flags": ["Warning 1"],
-        "next_14_days_plan": ["Step 1"],
-        "overall_assessment": "Markdown supported analysis"
+        "red_flags": ["..."],
+        "next_14_days_plan": ["..."],
+        "overall_assessment": "..."
       }`
     };
 
@@ -93,22 +103,20 @@ Habla siempre de "vos". Sé directo, técnico y motivador pero estricto.`;
 
       STRICT OUTPUT INSTRUCTIONS:
       1. Analyze the USER DATA provided below.
-      2. Consult the KNOWLEDGE BASE if provided.
-      3. Think step-by-step before deciding.
-      4. You MUST output ONLY valid JSON matching exactly this structure:
+      2. Consult the KNOWLEDGE BASE provided. Use it as the absolute truth for training methodology.
+      3. Output ONLY valid JSON matching this structure:
       ${targetSchema}
 
-      NO markdown formatting (no \`\`\`json). Just the raw JSON object.
+      NO markdown formatting. Just raw JSON.
 
-      ${knowledgeContext ? `### KNOWLEDGE BASE ###\n${knowledgeContext}\n` : ''}
+      ${knowledgeContext ? `### KNOWLEDGE BASE (HEAVY DUTY PRINCIPLES) ###\n${knowledgeContext}\n` : ''}
 
       ### USER DATA ###
       ${JSON.stringify(data)}
     `;
 
-    // 2. Helper to call Gemini
+    // 3. Call Gemini
     const callGemini = async (model: string) => {
-      console.log(`[ai-coach] Attempting with model: ${model}`);
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -128,20 +136,17 @@ Habla siempre de "vos". Sé directo, técnico y motivador pero estricto.`;
       return response.json();
     };
 
-    // 3. Select Strategy based on Action (Strictly Gemini 3)
-    let usedModel = 'gemini-3-flash-preview'; // Default fast
+    // Model selection
+    let usedModel = 'gemini-2.0-flash'; // Fast & good context
+    if (action === 'globalanalysis') usedModel = 'gemini-2.0-pro-exp-02-05'; // Smarter for deep analysis
 
-    if (action === 'globalanalysis') {
-      usedModel = 'gemini-3-pro-preview'; // Smart for audit
-    }
-
-    // 4. Execution (No Fallback)
+    // Execute
     const aiResult = await callGemini(usedModel);
-
     const generatedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
+    
     if (!generatedText) throw new Error("AI returned no content.");
 
-    // 5. Parse
+    // Parse
     let parsedOutput;
     try {
       const cleanedText = generatedText.replace(/```json\n?|\n?```/g, "").trim();
@@ -151,7 +156,7 @@ Habla siempre de "vos". Sé directo, técnico y motivador pero estricto.`;
       throw new Error("AI response was not valid JSON.");
     }
 
-    // 6. Log
+    // Log
     supabase.from('ai_logs').insert({
       user_id: userId || null, 
       action,
