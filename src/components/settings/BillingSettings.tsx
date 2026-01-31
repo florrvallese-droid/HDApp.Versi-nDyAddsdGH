@@ -10,6 +10,7 @@ import { toast } from "sonner";
 export function BillingSettings() {
   const { profile, hasProAccess, daysLeftInTrial, loading: profileLoading } = useProfile();
   const [isLoading, setIsLoading] = useState(false);
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
 
   // TODO: Replace with your actual Stripe Price IDs
@@ -49,12 +50,30 @@ export function BillingSettings() {
   };
 
   const handleManageSubscription = async () => {
-    // In a real app, this calls create-portal-session
-    toast.info("Redirigiendo al Portal de Cliente...");
-    // Mock implementation for MVP
-    setTimeout(() => {
-        toast.warning("Función de Portal de Cliente no configurada en MVP");
-    }, 1000);
+    setIsPortalLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user");
+
+      const { data, error } = await supabase.functions.invoke('create-portal-session', {
+        body: {
+          userId: user.id,
+          returnUrl: window.location.origin + '/settings?tab=billing'
+        }
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No se encontró una suscripción activa.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Error abriendo el portal");
+    } finally {
+      setIsPortalLoading(false);
+    }
   };
 
   if (profileLoading) return <div className="p-8"><Loader2 className="animate-spin h-6 w-6"/></div>;
@@ -83,7 +102,13 @@ export function BillingSettings() {
             </p>
           </div>
           {hasProAccess && (
-             <Button variant="outline" onClick={handleManageSubscription} className="border-zinc-700">
+             <Button 
+                variant="outline" 
+                onClick={handleManageSubscription} 
+                className="border-zinc-700"
+                disabled={isPortalLoading}
+             >
+               {isPortalLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
                Gestionar Suscripción
              </Button>
           )}
