@@ -129,7 +129,10 @@ export function NutritionLogger() {
     return <div className="text-center text-zinc-500 py-8">Configura tu estrategia primero.</div>;
   }
 
-  const currentVariant = config.diet_variants.find(v => v.id === selectedDayVariantId);
+  // Safe access to variants
+  const variants = config.diet_variants || [];
+  const currentVariant = variants.find(v => v.id === selectedDayVariantId);
+  
   const groupedSupplements = (config.supplements_stack || []).reduce((acc, supp) => {
     const timing = supp.timing || 'other';
     if (!acc[timing]) acc[timing] = [];
@@ -169,7 +172,7 @@ export function NutritionLogger() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                {config.diet_variants.map(v => (
+                {variants.map(v => (
                   <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -222,7 +225,7 @@ export function NutritionLogger() {
       </div>
 
       {/* 3. SUPPLEMENT CHECKLIST */}
-      {config.supplements_stack.length > 0 && (
+      {config.supplements_stack && config.supplements_stack.length > 0 && (
         <Card className="bg-zinc-950 border-zinc-800">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-400">Stack Diario</CardTitle>
