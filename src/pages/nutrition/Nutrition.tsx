@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, ChevronLeft, Lock, Syringe, Calendar, Scale, Activity, X, ArrowUp, ArrowDown, ShieldAlert, Pill } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, Lock, Syringe, Calendar, Scale, Activity, X, ArrowUp, ArrowDown } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { DietVariant, NutritionConfig, PhaseGoal, Supplement, Compound } from "@/types";
+import { DietVariant, NutritionConfig, PhaseGoal, Supplement } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { Badge } from "@/components/ui/badge";
@@ -37,14 +37,6 @@ export default function Nutrition() {
   // State for inputs within each timing card
   const [suppInputs, setSuppInputs] = useState<Record<string, { name: string; dosage: string }>>({});
   const [visibleTimings, setVisibleTimings] = useState<string[]>([]);
-
-  // Pharma State
-  const [pharmaCycles, setPharmaCycles] = useState<any[]>([]);
-  const [newCompName, setNewCompName] = useState("");
-  const [newCompDosage, setNewCompDosage] = useState("");
-  const [newCompDate, setNewCompDate] = useState("");
-  const [newCompType, setNewCompType] = useState<'injectable'|'oral'|'ancillary'>('injectable');
-  const [isPharmaLoading, setIsPharmaLoading] = useState(false);
 
   const timingLabels: { key: Supplement['timing'], label: string }[] = [
     { key: 'fasted', label: 'Ayunas' },
@@ -102,8 +94,6 @@ export default function Nutrition() {
         }]);
         setVisibleTimings(['fasted', 'pre', 'intra', 'post', 'night']);
       }
-
-      fetchPharmaCycles();
     }
   }, [profile]);
 
@@ -121,22 +111,6 @@ export default function Nutrition() {
         }
     }
   }, [strategyType]);
-
-  const fetchPharmaCycles = async () => {
-    if (!profile) return;
-    setIsPharmaLoading(true);
-    const { data, error } = await supabase
-      .from('logs')
-      .select('*')
-      .eq('user_id', profile.user_id)
-      .eq('type', 'pharmacology')
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setPharmaCycles(data);
-    }
-    setIsPharmaLoading(false);
-  };
 
   const handleStrategyChange = (newType: 'single' | 'cycling') => {
     setStrategyType(newType);
@@ -282,77 +256,6 @@ export default function Nutrition() {
   };
 
   const availableHiddenTimings = timingLabels.filter(t => !visibleTimings.includes(t.key));
-
-  // --- Pharma Logic ---
-  const addPharmaCompound = async (cycleId: string) => {
-    if (!newCompName || !newCompDosage) {
-        toast.error("Ingresa compuesto y dosis");
-        return;
-    }
-    
-    const cycle = pharmaCycles.find(c => c.id === cycleId);
-    if (!cycle) return;
-
-    const newCompound: Compound = {
-        id: crypto.randomUUID(),
-        name: newCompName,
-        dosage: newCompDosage,
-        type: newCompType
-    };
-
-    const compoundWithDate = { ...newCompound, date: newCompDate || format(new Date(), 'yyyy-MM-dd') };
-    const updatedCompounds = [...(cycle.data.compounds || []), compoundWithDate];
-    const updatedData = { ...cycle.data, compounds: updatedCompounds };
-
-    const { error } = await supabase
-        .from('logs')
-        .update({ data: updatedData })
-        .eq('id', cycleId);
-
-    if (error) {
-        toast.error("Error al actualizar ciclo");
-    } else {
-        toast.success("Compuesto agregado");
-        setNewCompName("");
-        setNewCompDosage("");
-        fetchPharmaCycles();
-    }
-  };
-
-  const createNewPharmaCycle = async () => {
-    if (!hasProAccess) {
-        setShowUpgradeModal(true);
-        return;
-    }
-    const name = `Ciclo ${format(new Date(), 'MMM yyyy')}`;
-    const { error } = await supabase.from('logs').insert({
-        user_id: profile?.user_id,
-        type: 'pharmacology',
-        data: { name, start_date: new Date().toISOString(), compounds: [] }
-    });
-    if (error) toast.error("Error al crear ciclo");
-    else {
-        toast.success("Nuevo ciclo creado");
-        fetchPharmaCycles();
-    }
-  };
-
-  const removePharmaCompound = async (cycleId: string, compoundId: string) => {
-      const cycle = pharmaCycles.find(c => c.id === cycleId);
-      if (!cycle) return;
-      const updatedCompounds = cycle.data.compounds.filter((c: any) => c.id !== compoundId);
-      const updatedData = { ...cycle.data, compounds: updatedCompounds };
-      const { error } = await supabase.from('logs').update({ data: updatedData }).eq('id', cycleId);
-      if (error) toast.error("Error al eliminar");
-      else fetchPharmaCycles();
-  };
-  
-  const deleteCycle = async (cycleId: string) => {
-      if(!confirm("¿Eliminar este ciclo completo?")) return;
-      const { error } = await supabase.from('logs').delete().eq('id', cycleId);
-      if (error) toast.error("Error eliminando ciclo");
-      else fetchPharmaCycles();
-  }
 
   if (profileLoading) {
     return <div className="min-h-screen bg-black flex items-center justify-center"><Skeleton className="h-12 w-12 rounded-full" /></div>;
@@ -640,8 +543,8 @@ export default function Nutrition() {
             {availableHiddenTimings.length > 0 && (
                 <div className="relative group">
                     <Select onValueChange={(val) => toggleTimingVisibility(val)}>
-                        <SelectTrigger className="w-full h-24 border-2 border-dashed border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10 hover:border-yellow-500/50 transition-all flex flex-col items-center justify-center gap-2">
-                             <span className="text-yellow-500 font-black uppercase tracking-widest text-sm">
+                        <SelectTrigger className="w-full h-12 border border-dashed border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10 hover:border-yellow-500/50 transition-all flex flex-col items-center justify-center gap-2">
+                             <span className="text-yellow-500 font-black uppercase tracking-widest text-xs">
                                 + Agregar Momento
                              </span>
                         </SelectTrigger>
@@ -656,109 +559,18 @@ export default function Nutrition() {
         </div>
       </div>
 
-      {/* PHARMACOLOGY SECTION - REDESIGNED */}
+      {/* PHARMACOLOGY LINK */}
       <div className="space-y-4 pt-6 border-t border-zinc-900">
-        <div className="flex items-center gap-2 mb-2">
-           <h3 className="text-sm font-black uppercase tracking-tighter text-white">FARMACOLOGÍA / QUÍMICA</h3>
-           <Badge variant="destructive" className="text-[9px] h-4 px-1 rounded-sm bg-red-900/50 text-red-500 hover:bg-red-900/50 border border-red-900">PRIVADO</Badge>
-        </div>
-
-        {isPharmaLoading ? (
-            <Skeleton className="h-32 w-full bg-zinc-900" />
-        ) : (
-            <div className="space-y-4">
-                {pharmaCycles.length > 0 ? (
-                    <Card className="bg-zinc-950 border-red-900/30 shadow-[0_0_20px_rgba(220,38,38,0.05)]">
-                        <CardContent className="p-0">
-                            {/* Card Header */}
-                            <div className="flex justify-between items-center p-3 border-b border-zinc-900">
-                                <span className="font-black uppercase text-xs tracking-wider text-white">
-                                    {pharmaCycles[0].data.name || "CICLO ACTUAL"}
-                                </span>
-                                <button onClick={() => deleteCycle(pharmaCycles[0].id)} className="text-zinc-600 hover:text-red-500">
-                                    <X className="h-4 w-4" />
-                                </button>
-                            </div>
-
-                            {/* List */}
-                            <div className="p-4 space-y-2 min-h-[60px]">
-                                {(!pharmaCycles[0].data.compounds || pharmaCycles[0].data.compounds.length === 0) ? (
-                                    <p className="text-zinc-600 text-xs italic text-center py-2">Sin compuestos registrados.</p>
-                                ) : (
-                                    pharmaCycles[0].data.compounds.map((c: any, i: number) => (
-                                        <div key={i} className="flex justify-between items-center text-sm border-b border-zinc-900 last:border-0 pb-2 last:pb-0">
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-zinc-300 flex items-center gap-2">
-                                                    {c.type === 'injectable' ? <Syringe className="h-3 w-3 text-red-500" /> : 
-                                                     c.type === 'oral' ? <Pill className="h-3 w-3 text-blue-500" /> : 
-                                                     <ShieldAlert className="h-3 w-3 text-yellow-500" />}
-                                                    {c.name}
-                                                </span>
-                                                <span className="text-[10px] text-zinc-500">{c.date ? format(new Date(c.date), 'dd/MM/yyyy') : '-'}</span>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-zinc-400 font-mono text-xs">{c.dosage}</span>
-                                                <Trash2 className="h-3.5 w-3.5 text-zinc-700 hover:text-red-500 cursor-pointer" onClick={() => removePharmaCompound(pharmaCycles[0].id, c.id)} />
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-
-                            {/* Add Row */}
-                            <div className="p-3 border-t border-zinc-900 grid grid-cols-[1.5fr_1fr_110px_60px_100px] gap-2 items-center bg-zinc-900/20">
-                                <Input 
-                                    placeholder="Compuesto" 
-                                    className="h-9 text-xs bg-zinc-950 border-zinc-800 focus:border-red-900/50"
-                                    value={newCompName}
-                                    onChange={(e) => setNewCompName(e.target.value)}
-                                />
-                                <Input 
-                                    placeholder="Dosis (ej. 500mg)" 
-                                    className="h-9 text-xs bg-zinc-950 border-zinc-800 focus:border-red-900/50"
-                                    value={newCompDosage}
-                                    onChange={(e) => setNewCompDosage(e.target.value)}
-                                />
-                                <Input 
-                                    type="date"
-                                    className="h-9 text-xs bg-zinc-950 border-zinc-800 focus:border-red-900/50 px-2"
-                                    value={newCompDate}
-                                    onChange={(e) => setNewCompDate(e.target.value)}
-                                />
-                                <Select value={newCompType} onValueChange={(v: any) => setNewCompType(v)}>
-                                    <SelectTrigger className="h-9 text-[10px] bg-zinc-950 border-zinc-800 px-2">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="injectable">Inj.</SelectItem>
-                                        <SelectItem value="oral">Oral</SelectItem>
-                                        <SelectItem value="ancillary">Anc.</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <Button 
-                                    className="h-9 bg-red-900/20 text-red-500 hover:bg-red-900/40 border border-red-900/30 text-[10px] font-bold"
-                                    onClick={() => addPharmaCompound(pharmaCycles[0].id)}
-                                >
-                                    + AGREGAR
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <div className="text-center p-6 border border-dashed border-zinc-800 rounded-lg text-zinc-500 text-xs">
-                        No hay ciclos activos.
-                    </div>
-                )}
-
-                <Button 
-                    variant="outline"
-                    className="w-full border-dashed border-zinc-800 text-red-800 hover:text-red-500 hover:bg-red-950/10 hover:border-red-900/30 uppercase font-bold text-xs h-10"
-                    onClick={createNewPharmaCycle}
-                >
-                    + Nuevo Grupo / Fase
-                </Button>
-            </div>
-        )}
+         <Button 
+            className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-bold uppercase tracking-wide flex items-center justify-between px-4 group"
+            onClick={() => navigate('/pharmacology')}
+         >
+            <span className="flex items-center gap-2">
+               <Syringe className="h-4 w-4 text-red-600 group-hover:text-red-500 transition-colors" />
+               Farmacología (Privado)
+            </span>
+            <ChevronLeft className="h-4 w-4 rotate-180" />
+         </Button>
       </div>
 
       <Button 
