@@ -93,35 +93,15 @@ Deno.serve(async (req) => {
       return response.json();
     };
 
-    // 3. Select Strategy based on Action (Gemini 3 Preview Architecture)
-    // Default to FASTEST model for day-to-day operations
-    let primaryModel = 'gemini-3-flash-preview'; 
-    let fallbackModel = 'gemini-1.5-flash'; // Fallback to stable
+    // 3. Select Strategy based on Action (Strictly Gemini 3)
+    let usedModel = 'gemini-3-flash-preview'; // Default fast for pre/post workout
 
     if (action === 'globalanalysis') {
-      // For audits, force SMARTEST model
-      primaryModel = 'gemini-3-pro-preview';
-      fallbackModel = 'gemini-1.5-pro'; // Fallback to stable pro
+      usedModel = 'gemini-3-pro-preview'; // Smart for audit
     }
 
-    // 4. Execution
-    let aiResult;
-    let usedModel = primaryModel;
-
-    try {
-      aiResult = await callGemini(primaryModel);
-    } catch (err: any) {
-      console.warn(`[ai-coach] Primary model ${primaryModel} failed: ${err.message}`);
-      
-      // Fallback
-      console.log(`[ai-coach] Falling back to ${fallbackModel}`);
-      usedModel = fallbackModel;
-      try {
-        aiResult = await callGemini(fallbackModel);
-      } catch (fallbackErr: any) {
-        throw new Error(`All AI models failed. Primary: ${err.message}. Fallback: ${fallbackErr.message}`);
-      }
-    }
+    // 4. Execution (No Fallback)
+    const aiResult = await callGemini(usedModel);
 
     const generatedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!generatedText) throw new Error("AI returned no content.");
