@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 
 // Admin
 import AdminLayout from "./layouts/AdminLayout";
+import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import PromptManager from "./pages/admin/PromptManager";
 import AILogs from "./pages/admin/AILogs";
@@ -40,6 +41,8 @@ const App = () => (
           <Route path="/checkin" element={<Checkin />} />
           
           {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="prompts" element={<PromptManager />} />

@@ -17,11 +17,14 @@ export default function AdminLayout() {
 
   const checkAdmin = async () => {
     const { data: { user } } = await supabase.auth.getUser();
+    
+    // Si no hay usuario logueado, mandar al login de ADMIN, no al de la app
     if (!user) {
-      navigate('/auth');
+      navigate('/admin/login'); 
       return;
     }
 
+    // Verificar si es admin
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_admin')
@@ -31,13 +34,14 @@ export default function AdminLayout() {
     if (profile?.is_admin) {
       setIsAdmin(true);
     } else {
-      toast.error("Acceso no autorizado");
-      navigate('/dashboard');
+      // Si está logueado pero NO es admin, sacarlo de aquí
+      toast.error("Acceso no autorizado. Área restringida.");
+      navigate('/dashboard'); // O logout
     }
     setLoading(false);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Verificando credenciales...</div>;
+  if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-400">Verificando credenciales...</div>;
   if (!isAdmin) return null;
 
   const navItems = [
@@ -46,6 +50,11 @@ export default function AdminLayout() {
     { label: "Logs IA", icon: Activity, path: "/admin/logs" },
     { label: "Usuarios", icon: Users, path: "/admin/users" },
   ];
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/admin/login');
+  };
 
   return (
     <div className="min-h-screen bg-muted/20 flex">
@@ -71,8 +80,8 @@ export default function AdminLayout() {
           ))}
         </nav>
         <div className="p-4 border-t">
-          <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => navigate('/dashboard')}>
-            <LogOut className="h-4 w-4 mr-2" /> Salir a App
+          <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50" onClick={handleLogout}>
+            <LogOut className="h-4 w-4 mr-2" /> Cerrar Sesión
           </Button>
         </div>
       </aside>
@@ -80,7 +89,7 @@ export default function AdminLayout() {
       {/* Mobile Nav (Top) */}
       <div className="md:hidden fixed top-0 left-0 right-0 bg-background border-b z-50 p-4 flex justify-between items-center">
         <span className="font-bold">Admin Panel</span>
-        <Button size="sm" variant="outline" onClick={() => navigate('/dashboard')}>Salir</Button>
+        <Button size="sm" variant="outline" onClick={handleLogout}>Salir</Button>
       </div>
 
       {/* Main Content */}
