@@ -93,14 +93,15 @@ Deno.serve(async (req) => {
       return response.json();
     };
 
-    // 3. Select Strategy based on Action
-    let primaryModel = 'gemini-1.5-flash'; // Default fast
-    let fallbackModel = 'gemini-pro';      // Stable fallback
+    // 3. Select Strategy based on Action (Gemini 3 Preview Architecture)
+    // Default to FASTEST model for day-to-day operations
+    let primaryModel = 'gemini-3-flash-preview'; 
+    let fallbackModel = 'gemini-1.5-flash'; // Fallback to stable
 
     if (action === 'globalanalysis') {
-      // For audits, prefer Intelligence over Speed
-      primaryModel = 'gemini-1.5-pro';
-      fallbackModel = 'gemini-1.5-flash';
+      // For audits, force SMARTEST model
+      primaryModel = 'gemini-3-pro-preview';
+      fallbackModel = 'gemini-1.5-pro'; // Fallback to stable pro
     }
 
     // 4. Execution
