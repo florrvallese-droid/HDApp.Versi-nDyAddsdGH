@@ -18,6 +18,8 @@ import NotFound from "./pages/NotFound";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import PromptManager from "./pages/admin/PromptManager";
+import AILogs from "./pages/admin/AILogs";
+import UserManagement from "./pages/admin/UserManagement";
 
 const queryClient = new QueryClient();
 
@@ -41,8 +43,8 @@ const App = () => (
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="prompts" element={<PromptManager />} />
-            <Route path="users" element={<div className="p-4">Users Management Coming Soon</div>} />
-            <Route path="logs" element={<div className="p-4">AI Logs Viewer Coming Soon</div>} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="logs" element={<AILogs />} />
           </Route>
 
           {/* Catch-all */}
