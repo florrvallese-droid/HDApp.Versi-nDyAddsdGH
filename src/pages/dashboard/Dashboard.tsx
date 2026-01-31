@@ -15,15 +15,26 @@ import {
   Settings, 
   User, 
   Zap,
-  Camera
+  Camera,
+  Moon,
+  Footprints
 } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
+import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
+import { CardioModal } from "@/components/dashboard/CardioModal";
+import { RestDayModal } from "@/components/dashboard/RestDayModal";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { profile, loading } = useProfile();
+  const { profile, loading, hasProAccess } = useProfile();
   const [userName, setUserName] = useState("");
+  
+  // Modals State
+  const [showPreWorkout, setShowPreWorkout] = useState(false);
+  const [showCardio, setShowCardio] = useState(false);
+  const [showRest, setShowRest] = useState(false);
   
   // Check-in Reminder State
   const [showCheckinReminder, setShowCheckinReminder] = useState(false);
@@ -31,10 +42,10 @@ export default function Dashboard() {
   const [daysSinceLastCheckin, setDaysSinceLastCheckin] = useState(0);
 
   useEffect(() => {
-    // Temporary fix: Cast profile to any to access first_name if missing in UserProfile type
+    // Cast to access properties that might not be in the strict type definition yet
     const userProfile = profile as any;
-    if (userProfile?.first_name) {
-      setUserName(userProfile.first_name);
+    if (userProfile?.first_name || userProfile?.display_name) {
+      setUserName(userProfile.first_name || userProfile.display_name);
     }
     
     if (profile?.user_id) {
@@ -53,7 +64,7 @@ export default function Dashboard() {
         .limit(1)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows found"
+      if (error && error.code !== 'PGRST116') {
         console.error("Error fetching last checkin", error);
         return;
       }
@@ -66,13 +77,12 @@ export default function Dashboard() {
         
         if (diff >= 15) {
           setIsCheckinOverdue(true);
-          // Only show dialog if it hasn't been dismissed in this session (optional logic, simplified here)
+          // Only show dialog if significant time passed
           setShowCheckinReminder(true);
         }
       } else {
         // No checkins ever
         setIsCheckinOverdue(true);
-        // setShowCheckinReminder(true); // Uncomment to prompt new users immediately
       }
       
     } catch (err) {
@@ -86,11 +96,11 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-black flex items-center justify-center text-white">Cargando...</div>;
+    return <div className="min-h-screen bg-black flex items-center justify-center text-white">Cargando perfil...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 pb-24 max-w-md mx-auto relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white p-6 pb-24 max-w-md mx-auto relative overflow-hidden animate-in fade-in duration-500">
       {/* Background Gradients */}
       <div className="absolute top-[-10%] left-[-20%] w-[300px] h-[300px] bg-red-600/20 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-20%] w-[200px] h-[200px] bg-blue-600/10 rounded-full blur-[80px] pointer-events-none" />
@@ -101,62 +111,88 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold tracking-tighter">
             Hola, <span className="text-red-500">{userName || "Atleta"}</span>
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">¿Listo para entrenar hoy?</p>
+          <p className="text-zinc-400 text-sm mt-1">¿Qué toca destruir hoy?</p>
         </div>
-        <div className="bg-zinc-900 p-2 rounded-full border border-zinc-800">
-          <User className="w-6 h-6 text-zinc-300" />
+        <div 
+          className="bg-zinc-900 p-2 rounded-full border border-zinc-800 cursor-pointer hover:bg-zinc-800 transition-colors"
+          onClick={() => navigate('/settings')}
+        >
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+          ) : (
+            <User className="w-6 h-6 text-zinc-300" />
+          )}
         </div>
       </header>
 
       {/* Main Actions Grid */}
       <div className="grid grid-cols-2 gap-4 mb-8 relative z-10">
+        
+        {/* ENTRENAR - Opens PreWorkout Modal */}
         <Card 
-          className="bg-zinc-900/80 border-zinc-800 hover:bg-zinc-800/80 transition-colors cursor-pointer group backdrop-blur-sm"
-          onClick={() => navigate('/workout/new')}
+          className="bg-zinc-900/80 border-zinc-800 hover:bg-zinc-800/80 transition-colors cursor-pointer group backdrop-blur-sm col-span-2 border-l-4 border-l-red-600"
+          onClick={() => setShowPreWorkout(true)}
         >
-          <CardContent className="p-6 flex flex-col items-center justify-center gap-3 text-center h-full">
-            <div className="p-3 bg-red-500/10 rounded-full group-hover:bg-red-500/20 transition-colors">
-              <Dumbbell className="w-8 h-8 text-red-500" />
+          <CardContent className="p-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-red-500/10 rounded-full group-hover:bg-red-500/20 transition-colors">
+                <Dumbbell className="w-8 h-8 text-red-500" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="font-bold text-xl uppercase italic tracking-wider">Entrenar</span>
+                <span className="text-xs text-zinc-400">Consultar al Coach IA</span>
+              </div>
             </div>
-            <span className="font-semibold">Entrenar</span>
+            <ChevronRight className="w-6 h-6 text-zinc-600 group-hover:text-white transition-colors" />
           </CardContent>
         </Card>
 
+        {/* CARDIO */}
+        <Card 
+          className="bg-zinc-900/80 border-zinc-800 hover:bg-zinc-800/80 transition-colors cursor-pointer group backdrop-blur-sm"
+          onClick={() => setShowCardio(true)}
+        >
+          <CardContent className="p-4 flex flex-col items-center justify-center gap-2 text-center h-full">
+            <Zap className="w-6 h-6 text-yellow-500 mb-1" />
+            <span className="font-semibold text-sm">Cardio</span>
+          </CardContent>
+        </Card>
+
+        {/* REST */}
+        <Card 
+          className="bg-zinc-900/80 border-zinc-800 hover:bg-zinc-800/80 transition-colors cursor-pointer group backdrop-blur-sm"
+          onClick={() => setShowRest(true)}
+        >
+          <CardContent className="p-4 flex flex-col items-center justify-center gap-2 text-center h-full">
+            <Moon className="w-6 h-6 text-blue-500 mb-1" />
+            <span className="font-semibold text-sm">Descanso</span>
+          </CardContent>
+        </Card>
+
+        {/* CHECK-IN */}
         <Card 
           className="bg-zinc-900/80 border-zinc-800 hover:bg-zinc-800/80 transition-colors cursor-pointer group backdrop-blur-sm relative overflow-hidden"
           onClick={() => navigate('/checkin')}
         >
-          <CardContent className="p-6 flex flex-col items-center justify-center gap-3 text-center h-full">
-            <div className="p-3 bg-blue-500/10 rounded-full group-hover:bg-blue-500/20 transition-colors relative">
-              <Camera className="w-8 h-8 text-blue-500" />
+          <CardContent className="p-4 flex flex-col items-center justify-center gap-2 text-center h-full">
+            <div className="relative">
+              <Camera className="w-6 h-6 text-purple-500 mb-1" />
               {isCheckinOverdue && (
-                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-zinc-900 animate-pulse" />
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-zinc-900 animate-pulse" />
               )}
             </div>
-            <span className="font-semibold">Check-in</span>
-            {isCheckinOverdue && (
-              <span className="text-[10px] text-red-400 font-medium absolute bottom-2">
-                ¡Pendiente!
-              </span>
-            )}
+            <span className="font-semibold text-sm">Check-in</span>
           </CardContent>
         </Card>
 
+        {/* PROGRESS */}
         <Card 
-          className="bg-zinc-900/80 border-zinc-800 hover:bg-zinc-800/80 transition-colors cursor-pointer group backdrop-blur-sm col-span-2"
+          className="bg-zinc-900/80 border-zinc-800 hover:bg-zinc-800/80 transition-colors cursor-pointer group backdrop-blur-sm"
           onClick={() => navigate('/analysis')}
         >
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-500/10 rounded-full group-hover:bg-green-500/20 transition-colors">
-                <LineChart className="w-6 h-6 text-green-500" />
-              </div>
-              <div className="flex flex-col text-left">
-                <span className="font-semibold">Mi Progreso</span>
-                <span className="text-xs text-zinc-400">Ver estadísticas y análisis</span>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-zinc-300" />
+          <CardContent className="p-4 flex flex-col items-center justify-center gap-2 text-center h-full">
+            <LineChart className="w-6 h-6 text-green-500 mb-1" />
+            <span className="font-semibold text-sm">Progreso</span>
           </CardContent>
         </Card>
       </div>
@@ -168,48 +204,56 @@ export default function Dashboard() {
         <Button 
           variant="ghost" 
           className="w-full justify-start gap-3 h-14 text-zinc-300 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-zinc-800 rounded-xl"
-          onClick={() => navigate('/logs')}
+          onClick={() => navigate('/analysis')} // Goes to Global Analysis / Logs tab
         >
-          <Calendar className="w-5 h-5 text-purple-500" />
+          <Calendar className="w-5 h-5 text-zinc-500" />
           <div className="flex flex-col items-start">
-            <span className="text-sm font-medium">Historial</span>
-            <span className="text-[10px] text-zinc-500">Revisar bitácora</span>
+            <span className="text-sm font-medium">Bitácora</span>
+            <span className="text-[10px] text-zinc-500">Historial de actividad</span>
           </div>
         </Button>
 
         <Button 
           variant="ghost" 
           className="w-full justify-start gap-3 h-14 text-zinc-300 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-zinc-800 rounded-xl"
-          onClick={() => navigate('/profile')}
+          onClick={() => navigate('/settings')}
         >
-          <Settings className="w-5 h-5 text-orange-500" />
+          <Settings className="w-5 h-5 text-zinc-500" />
           <div className="flex flex-col items-start">
             <span className="text-sm font-medium">Configuración</span>
-            <span className="text-[10px] text-zinc-500">Ajustar perfil y preferencias</span>
+            <span className="text-[10px] text-zinc-500">Perfil y suscripción</span>
           </div>
-        </Button>
-
-        <Button 
-          variant="ghost" 
-          className="w-full justify-start gap-3 h-14 text-red-400 hover:text-red-300 hover:bg-red-950/30 border border-transparent hover:border-red-900/50 rounded-xl mt-4"
-          onClick={handleLogout}
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="text-sm font-medium">Cerrar Sesión</span>
         </Button>
       </div>
 
-      {/* Floating Action Button (New Log) */}
-      <div className="fixed bottom-6 right-6 z-50">
+      {/* Floating Action Button */}
+      <div className="fixed bottom-24 right-6 z-50">
         <Button 
           className="h-14 w-14 rounded-full bg-red-600 hover:bg-red-500 shadow-lg shadow-red-900/20 p-0"
-          onClick={() => navigate('/log/new')}
+          onClick={() => setShowPreWorkout(true)}
         >
           <Plus className="w-8 h-8" />
         </Button>
       </div>
 
-      {/* Alerts */}
+      {/* MODALS */}
+      <PreWorkoutModal 
+        open={showPreWorkout} 
+        onOpenChange={setShowPreWorkout} 
+        coachTone={profile?.coach_tone || 'strict'} 
+        hasProAccess={hasProAccess}
+      />
+      
+      <CardioModal 
+        open={showCardio} 
+        onOpenChange={setShowCardio} 
+      />
+      
+      <RestDayModal 
+        open={showRest} 
+        onOpenChange={setShowRest} 
+      />
+      
       <CheckinReminderDialog 
         open={showCheckinReminder} 
         onOpenChange={setShowCheckinReminder}
