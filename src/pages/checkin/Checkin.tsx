@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Upload, Camera, Scale, Save, Loader2, Lock } from "lucide-react";
+import { ChevronLeft, Upload, Camera, Scale, Save, Loader2, Lock, Calendar } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { uploadCheckinPhoto } from "@/services/storage";
@@ -22,6 +22,7 @@ export default function Checkin() {
   const [loading, setLoading] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
+  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [weight, setWeight] = useState<string>("");
   const [notes, setNotes] = useState("");
   
@@ -136,11 +137,16 @@ export default function Checkin() {
         notes: notes
       };
 
+      // Construct final date with current time to preserve order if multiple entries per day
+      const now = new Date();
+      const timeString = now.toTimeString().split(' ')[0]; // HH:MM:SS
+      const finalDate = new Date(`${date}T${timeString}`).toISOString();
+
       const { error } = await supabase.from('logs').insert({
         user_id: user.id,
         type: 'checkin',
         data: logData,
-        created_at: new Date().toISOString()
+        created_at: finalDate
       });
 
       if (error) throw error;
@@ -163,7 +169,7 @@ export default function Checkin() {
         featureName="Check-in y Fotos" 
       />
       
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ChevronLeft className="h-5 w-5" />
@@ -175,6 +181,19 @@ export default function Checkin() {
             <Lock className="w-3 h-3" /> Vista Previa
           </Badge>
         )}
+      </div>
+
+      {/* Date Picker */}
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2 text-zinc-400 text-xs font-bold uppercase tracking-wider">
+            <Calendar className="h-4 w-4" /> Fecha del Registro
+        </Label>
+        <Input 
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="bg-zinc-900 border-zinc-800 h-12 font-medium"
+        />
       </div>
 
       {/* Weight Section */}
@@ -192,7 +211,7 @@ export default function Checkin() {
             <Input 
               type="number" 
               placeholder="0.0" 
-              className="text-2xl h-14 w-32 text-center"
+              className="text-2xl h-14 w-32 text-center bg-zinc-950 border-zinc-800"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               step="0.1"
