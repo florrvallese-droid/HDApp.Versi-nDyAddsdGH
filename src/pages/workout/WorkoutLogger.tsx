@@ -120,7 +120,19 @@ export default function WorkoutLogger() {
       if (error) throw error;
 
       toast.success("Entrenamiento guardado");
-      navigate('/dashboard'); // In future: Redirect to Post-Workout Analysis
+      
+      // Redirect to Post Workout Analysis
+      navigate('/workout/analysis', { 
+        state: { 
+          workoutData: {
+            muscleGroup,
+            duration,
+            volume: totalVolume,
+            exercises
+          }
+        } 
+      });
+
     } catch (error: any) {
       toast.error("Error al guardar: " + error.message);
     } finally {
@@ -180,7 +192,7 @@ export default function WorkoutLogger() {
         {exercises.map((exercise, exIndex) => (
           <Card key={exIndex} className="relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
-            <CardHeader className="py-3 px-4 bg-muted/20">
+            <CardHeader className="py-3 px-4 bg-muted/20 flex flex-row justify-between items-center space-y-0">
               <CardTitle className="text-base font-medium">{exercise.name}</CardTitle>
             </CardHeader>
             <CardContent className="p-3 space-y-3">
