@@ -15,6 +15,7 @@ import { es } from "date-fns/locale";
 import { WorkoutDetailDialog } from "@/components/workout/WorkoutDetailDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RestTimer } from "@/components/workout/RestTimer";
+import { ExerciseSelector } from "@/components/workout/ExerciseSelector";
 
 export default function WorkoutLogger() {
   const navigate = useNavigate();
@@ -75,8 +76,6 @@ export default function WorkoutLogger() {
       toast.error("Ingresa un grupo muscular");
       return;
     }
-    // Try to find previous workout for this muscle group to auto-load exercises?
-    // For MVP, we start blank but could offer "Load Last".
     setView('active');
   };
 
@@ -84,9 +83,6 @@ export default function WorkoutLogger() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    // We have to search inside the JSONB data. Ideally we'd have an exercises table, 
-    // but for this JSON structure, we fetch recent logs and filter in code (or use arrow operators in SQL if indexed)
-    // We'll fetch last 10 workouts and look for the exercise.
     const { data } = await supabase
       .from('logs')
       .select('data')
@@ -197,7 +193,7 @@ export default function WorkoutLogger() {
             type: 'workout',
             muscle_group: muscleGroupInput,
             workout_date: new Date().toISOString(),
-            data: { exercises, total_volume: totalVolume, duration_minutes: 45 }, // Duration mocked for now
+            data: { exercises, total_volume: totalVolume, duration_minutes: 45 }, 
             discipline: profile?.discipline || 'general'
         });
 
@@ -453,14 +449,13 @@ export default function WorkoutLogger() {
         {/* ADD EXERCISE */}
         <div className="pt-4 border-t border-zinc-900">
             <Label className="text-zinc-500 font-bold uppercase text-xs mb-2 block">Agregar Ejercicio</Label>
-            <div className="flex gap-2">
-                <Input 
-                    placeholder="Ej: Press Banca Inclinado" 
-                    className="bg-zinc-900/50 border-zinc-800 text-white h-12 font-medium"
-                    value={newExerciseName}
-                    onChange={(e) => setNewExerciseName(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && addExercise()}
-                />
+            <div className="flex gap-2 w-full">
+                <div className="flex-1">
+                  <ExerciseSelector 
+                    value={newExerciseName} 
+                    onSelect={(name) => setNewExerciseName(name)} 
+                  />
+                </div>
                 <Button className="h-12 w-12 bg-zinc-800 hover:bg-zinc-700 text-white shrink-0" onClick={addExercise} disabled={loadingPrevious || !newExerciseName}>
                     <Plus className="h-6 w-6" />
                 </Button>
