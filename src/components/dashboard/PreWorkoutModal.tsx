@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { differenceInDays, format, isValid, parseISO } from "date-fns";
+import { MarkdownRenderer } from "@/components/shared/MarkdownRenderer";
 
 interface PreWorkoutModalProps {
   open: boolean;
@@ -347,9 +348,10 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess = 
                   <div className="absolute -top-3 left-4 bg-zinc-950 px-2 text-xs font-bold text-zinc-500 uppercase tracking-wider">
                     Análisis
                   </div>
-                  <p className="text-sm text-zinc-300 leading-relaxed italic">
-                    "{result.rationale}"
-                  </p>
+                  {/* Markdown Renderer for Rationale */}
+                  <div className="text-sm text-zinc-300">
+                    <MarkdownRenderer content={result.rationale} />
+                  </div>
                 </div>
 
                 {result.recommendations && result.recommendations.length > 0 && (

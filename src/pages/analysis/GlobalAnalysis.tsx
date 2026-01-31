@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
+import { MarkdownRenderer } from "@/components/shared/MarkdownRenderer";
 
 export default function GlobalAnalysis() {
   const navigate = useNavigate();
@@ -155,14 +156,13 @@ export default function GlobalAnalysis() {
 
       {analysis && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <Card className="border-l-4 border-l-primary shadow-lg">
+          <Card className="border-l-4 border-l-primary shadow-lg bg-zinc-950/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Evaluación General</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {analysis.overall_assessment}
-              </p>
+              {/* Using the new Markdown Renderer here */}
+              <MarkdownRenderer content={analysis.overall_assessment} />
             </CardContent>
           </Card>
 
