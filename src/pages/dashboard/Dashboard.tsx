@@ -1,214 +1,220 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, ChevronRight, Zap, Moon, Utensils, Camera, Dumbbell } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
-import { useFeatureFlags } from "@/hooks/useFeatureFlags";
-import { Skeleton } from "@/components/ui/skeleton";
-import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
-import { CardioModal } from "@/components/dashboard/CardioModal";
-import { RestDayModal } from "@/components/dashboard/RestDayModal";
-import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/services/supabase";
+import { 
+  Activity, 
+  Calendar, 
+  ChevronRight, 
+  Dumbbell, 
+  LineChart, 
+  LogOut, 
+  Plus, 
+  Settings, 
+  User, 
+  Zap,
+  Camera
+} from "lucide-react";
 import { differenceInDays } from "date-fns";
+import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
 
-const Dashboard = () => {
+export default function Dashboard() {
   const navigate = useNavigate();
-  const { profile, hasProAccess, loading: profileLoading } = useProfile();
-  const { flags, loading: flagsLoading } = useFeatureFlags();
+  const { profile, loading } = useProfile();
+  const [userName, setUserName] = useState("");
   
-  const [showPreWorkout, setShowPreWorkout] = useState(false);
-  const [showCardio, setShowCardio] = useState(false);
-  const [showRest, setShowRest] = useState(false);
-  
-  // Reminder State
-  const [showReminder, setShowReminder] = useState(false);
-  const [daysSinceCheckin, setDaysSinceCheckin] = useState(0);
+  // Check-in Reminder State
+  const [showCheckinReminder, setShowCheckinReminder] = useState(false);
+  const [isCheckinOverdue, setIsCheckinOverdue] = useState(false);
+  const [daysSinceLastCheckin, setDaysSinceLastCheckin] = useState(0);
 
   useEffect(() => {
-    if (profile) {
+    // Temporary fix: Cast profile to any to access first_name if missing in UserProfile type
+    const userProfile = profile as any;
+    if (userProfile?.first_name) {
+      setUserName(userProfile.first_name);
+    }
+    
+    if (profile?.user_id) {
       checkLastCheckin();
     }
   }, [profile]);
 
   const checkLastCheckin = async () => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('logs')
         .select('created_at')
-        .eq('user_id', profile!.user_id)
+        .eq('user_id', profile?.user_id)
         .eq('type', 'checkin')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
-      if (data) {
-        const lastDate = new Date(data.created_at);
-        const days = differenceInDays(new Date(), lastDate);
-        setDaysSinceCheckin(days);
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows found"
+        console.error("Error fetching last checkin", error);
+        return;
+      }
+
+      const lastDate = data ? new Date(data.created_at) : null;
+      
+      if (lastDate) {
+        const diff = differenceInDays(new Date(), lastDate);
+        setDaysSinceLastCheckin(diff);
         
-        if (days > 15) {
-          setShowReminder(true);
+        if (diff >= 15) {
+          setIsCheckinOverdue(true);
+          // Only show dialog if it hasn't been dismissed in this session (optional logic, simplified here)
+          setShowCheckinReminder(true);
         }
       } else {
-        // If never checked in, maybe remind after a few days of joining? 
-        // For now, ignoring fresh users to avoid spamming on day 1
+        // No checkins ever
+        setIsCheckinOverdue(true);
+        // setShowCheckinReminder(true); // Uncomment to prompt new users immediately
       }
+      
     } catch (err) {
-      console.error("Error checking last checkin:", err);
+      console.error("Failed to check checkin status", err);
     }
   };
 
-  const loading = profileLoading || flagsLoading;
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
 
   if (loading) {
-    return (
-      <div className="p-4 max-w-md mx-auto space-y-6 min-h-screen bg-black">
-        <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-12 w-12 rounded-full" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-40 w-full" />
-      </div>
-    );
+    return <div className="min-h-screen bg-black flex items-center justify-center text-white">Cargando...</div>;
   }
 
   return (
-    <div className="p-4 pb-20 max-w-md mx-auto min-h-screen space-y-8 bg-black">
-      
-      {/* USER HEADER CARD */}
-      <Card className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden cursor-pointer hover:border-zinc-700 transition-colors" onClick={() => navigate('/settings')}>
-        <CardContent className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center overflow-hidden">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <User className="h-6 w-6 text-zinc-400" />
+    <div className="min-h-screen bg-black text-white p-6 pb-24 max-w-md mx-auto relative overflow-hidden">
+      {/* Background Gradients */}
+      <div className="absolute top-[-10%] left-[-20%] w-[300px] h-[300px] bg-red-600/20 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-20%] w-[200px] h-[200px] bg-blue-600/10 rounded-full blur-[80px] pointer-events-none" />
+
+      {/* Header */}
+      <header className="flex justify-between items-center mb-8 relative z-10">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tighter">
+            Hola, <span className="text-red-500">{userName || "Atleta"}</span>
+          </h1>
+          <p className="text-zinc-400 text-sm mt-1">¿Listo para entrenar hoy?</p>
+        </div>
+        <div className="bg-zinc-900 p-2 rounded-full border border-zinc-800">
+          <User className="w-6 h-6 text-zinc-300" />
+        </div>
+      </header>
+
+      {/* Main Actions Grid */}
+      <div className="grid grid-cols-2 gap-4 mb-8 relative z-10">
+        <Card 
+          className="bg-zinc-900/80 border-zinc-800 hover:bg-zinc-800/80 transition-colors cursor-pointer group backdrop-blur-sm"
+          onClick={() => navigate('/workout/new')}
+        >
+          <CardContent className="p-6 flex flex-col items-center justify-center gap-3 text-center h-full">
+            <div className="p-3 bg-red-500/10 rounded-full group-hover:bg-red-500/20 transition-colors">
+              <Dumbbell className="w-8 h-8 text-red-500" />
+            </div>
+            <span className="font-semibold">Entrenar</span>
+          </CardContent>
+        </Card>
+
+        <Card 
+          className="bg-zinc-900/80 border-zinc-800 hover:bg-zinc-800/80 transition-colors cursor-pointer group backdrop-blur-sm relative overflow-hidden"
+          onClick={() => navigate('/checkin')}
+        >
+          <CardContent className="p-6 flex flex-col items-center justify-center gap-3 text-center h-full">
+            <div className="p-3 bg-blue-500/10 rounded-full group-hover:bg-blue-500/20 transition-colors relative">
+              <Camera className="w-8 h-8 text-blue-500" />
+              {isCheckinOverdue && (
+                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-zinc-900 animate-pulse" />
               )}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-bold text-white uppercase tracking-tight text-sm sm:text-base">
-                  {profile?.display_name || "ATLETA SIN NOMBRE"}
-                </h2>
-                {profile?.is_premium && (
-                  <Badge variant="default" className="bg-red-600 hover:bg-red-700 text-white text-[10px] px-1.5 py-0 h-5 border-0">PRO</Badge>
-                )}
-              </div>
-              <p className="text-xs text-zinc-500 font-mono">
-                {profile?.sex === 'male' ? 'HOMBRE' : 'MUJER'} | {profile?.units.toUpperCase()}
-              </p>
-            </div>
-          </div>
-          <ChevronRight className="text-zinc-600 h-5 w-5" />
-        </CardContent>
-      </Card>
-
-      {/* LOGO AREA */}
-      <div className="flex justify-center py-4 animate-in fade-in duration-700">
-        <div className="text-center">
-          <h1 className="text-4xl sm:text-5xl font-black italic tracking-tighter uppercase text-white">
-            Di Iorio <span className="text-red-600">GYM</span>
-          </h1>
-          <div className="h-1 w-full bg-gradient-to-r from-transparent via-red-900/50 to-transparent mt-2 rounded-full" />
-        </div>
-      </div>
-
-      {/* WORKOUT SECTION */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <div className="h-[1px] flex-1 bg-zinc-800" />
-          <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Tu Cuaderno de Entrenamiento</h3>
-          <div className="h-[1px] flex-1 bg-zinc-800" />
-        </div>
-
-        {/* BIG RED BUTTON */}
-        <Button 
-          className="w-full h-20 text-xl font-black italic uppercase tracking-wider bg-red-600 hover:bg-red-700 text-white shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98] border border-red-500/20"
-          onClick={() => setShowPreWorkout(true)} 
-        >
-          INICIAR SESIÓN DE PESAS
-        </Button>
-
-        {/* SECONDARY GRID */}
-        <div className="grid grid-cols-2 gap-3">
-          
-          <Button 
-            variant="outline" 
-            className="h-14 bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white uppercase font-bold text-xs tracking-wide flex items-center gap-2 justify-center"
-            onClick={() => setShowCardio(true)}
-          >
-            <Zap className="h-4 w-4" /> Cardio
-          </Button>
-
-          <Button 
-            variant="outline" 
-            className="h-14 bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white uppercase font-bold text-xs tracking-wide flex items-center gap-2 justify-center"
-            onClick={() => setShowRest(true)}
-          >
-            <Moon className="h-4 w-4" /> Día de Descanso
-          </Button>
-
-          <Button 
-            variant="outline" 
-            className="h-14 bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white uppercase font-bold text-xs tracking-wide flex items-center gap-2 justify-center"
-            onClick={() => navigate('/nutrition')}
-          >
-            <Utensils className="h-4 w-4" /> Nutrición & Química
-          </Button>
-
-          <Button 
-            variant="outline" 
-            className="h-14 bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white uppercase font-bold text-xs tracking-wide flex items-center gap-2 justify-center relative"
-            onClick={() => navigate('/checkin')}
-          >
-            {daysSinceCheckin > 15 && (
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            <span className="font-semibold">Check-in</span>
+            {isCheckinOverdue && (
+              <span className="text-[10px] text-red-400 font-medium absolute bottom-2">
+                ¡Pendiente!
               </span>
             )}
-            <Camera className="h-4 w-4" /> Check Físico
-          </Button>
-        
-        </div>
-        
-        {/* ANALYSIS LINK */}
-        {flags['global_analysis'] !== false && (
-            <div className="pt-2">
-                <Button 
-                    variant="ghost" 
-                    className="w-full text-zinc-600 hover:text-red-500 text-xs uppercase tracking-widest"
-                    onClick={() => navigate('/analysis')}
-                >
-                    Ver Análisis de Progreso →
-                </Button>
-            </div>
-        )}
+          </CardContent>
+        </Card>
 
+        <Card 
+          className="bg-zinc-900/80 border-zinc-800 hover:bg-zinc-800/80 transition-colors cursor-pointer group backdrop-blur-sm col-span-2"
+          onClick={() => navigate('/analysis')}
+        >
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-green-500/10 rounded-full group-hover:bg-green-500/20 transition-colors">
+                <LineChart className="w-6 h-6 text-green-500" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="font-semibold">Mi Progreso</span>
+                <span className="text-xs text-zinc-400">Ver estadísticas y análisis</span>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-zinc-300" />
+          </CardContent>
+        </Card>
       </div>
 
-      <PreWorkoutModal 
-        open={showPreWorkout} 
-        onOpenChange={setShowPreWorkout} 
-        coachTone={profile?.coach_tone || 'strict'}
-        hasProAccess={hasProAccess}
-      />
+      {/* Quick Access Menu */}
+      <div className="space-y-2 relative z-10">
+        <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-3 pl-1">Menú Rápido</h3>
+        
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start gap-3 h-14 text-zinc-300 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-zinc-800 rounded-xl"
+          onClick={() => navigate('/logs')}
+        >
+          <Calendar className="w-5 h-5 text-purple-500" />
+          <div className="flex flex-col items-start">
+            <span className="text-sm font-medium">Historial</span>
+            <span className="text-[10px] text-zinc-500">Revisar bitácora</span>
+          </div>
+        </Button>
 
-      <CardioModal open={showCardio} onOpenChange={setShowCardio} />
-      <RestDayModal open={showRest} onOpenChange={setShowRest} />
-      
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start gap-3 h-14 text-zinc-300 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-zinc-800 rounded-xl"
+          onClick={() => navigate('/profile')}
+        >
+          <Settings className="w-5 h-5 text-orange-500" />
+          <div className="flex flex-col items-start">
+            <span className="text-sm font-medium">Configuración</span>
+            <span className="text-[10px] text-zinc-500">Ajustar perfil y preferencias</span>
+          </div>
+        </Button>
+
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start gap-3 h-14 text-red-400 hover:text-red-300 hover:bg-red-950/30 border border-transparent hover:border-red-900/50 rounded-xl mt-4"
+          onClick={handleLogout}
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="text-sm font-medium">Cerrar Sesión</span>
+        </Button>
+      </div>
+
+      {/* Floating Action Button (New Log) */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button 
+          className="h-14 w-14 rounded-full bg-red-600 hover:bg-red-500 shadow-lg shadow-red-900/20 p-0"
+          onClick={() => navigate('/log/new')}
+        >
+          <Plus className="w-8 h-8" />
+        </Button>
+      </div>
+
+      {/* Alerts */}
       <CheckinReminderDialog 
-        open={showReminder} 
-        onOpenChange={setShowReminder}
-        daysSince={daysSinceCheckin} 
+        open={showCheckinReminder} 
+        onOpenChange={setShowCheckinReminder}
+        daysSince={daysSinceLastCheckin}
       />
     </div>
   );
-};
-
-export default Dashboard;
+}
