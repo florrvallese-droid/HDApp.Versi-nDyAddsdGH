@@ -42,8 +42,14 @@ export interface UserProfile {
 }
 
 // Nutrition Specifics
-export type DietType = 'fixed' | 'cycling';
-export type DayType = 'high' | 'low' | 'medium' | 'refeed';
+export type PhaseGoal = 'volume' | 'definition' | 'maintenance';
+
+export interface DietVariant {
+  id: string;
+  name: string; // e.g. "Día de Pierna", "Descanso"
+  calories: number;
+  macros: { p: number; c: number; f: number };
+}
 
 export interface Supplement {
   id: string;
@@ -53,9 +59,8 @@ export interface Supplement {
 }
 
 export interface NutritionConfig {
-  diet_type: DietType;
-  calories_target?: number;
-  macros?: { p: number; c: number; f: number };
+  phase_goal: PhaseGoal;
+  diet_variants: DietVariant[];
   supplements_stack: Supplement[];
 }
 
@@ -98,7 +103,7 @@ export interface PreWorkoutData {
   inputs: {
     sleep: number;
     stress: number;
-    sensation: number | string; // Changed to allow string since we use textarea now
+    sensation: number | string;
     pain: boolean;
     painDescription?: string;
   };
@@ -138,10 +143,8 @@ export interface CheckinData {
 }
 
 export interface NutritionLogData {
-  day_type: DayType;
-  adherence_score: number; // 1-10
-  calories_consumed?: number;
-  supplements_taken: string[]; // IDs of taken supplements
+  // Legacy support or future use
+  day_type?: string;
   notes?: string;
 }
 
