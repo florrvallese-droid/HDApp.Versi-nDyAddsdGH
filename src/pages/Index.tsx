@@ -59,7 +59,7 @@ const Index = () => {
           </div>
           
           <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed pt-4 font-medium">
-            Dejá de adivinar y empezá a entrenar en serio.<br className="hidden md:block"/> 
+            Dejá de adivinar y empezá a entrenar en serio. <br className="hidden md:block"/>
             No podés saber si estás progresando si no medís lo que estás haciendo.
           </p>
         </div>
