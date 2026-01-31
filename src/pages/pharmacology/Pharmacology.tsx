@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ChevronLeft, ShieldAlert, Lock, Plus, Syringe, Pill, FileText, Trash2 } from "lucide-react";
+import { ChevronLeft, ShieldAlert, Lock, Plus, Syringe, Pill, FileText, Trash2, Activity } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
@@ -170,21 +170,22 @@ export default function Pharmacology() {
             <div className="mx-auto bg-red-900/20 p-3 rounded-full w-fit mb-2">
               <ShieldAlert className="w-8 h-8 text-red-500" />
             </div>
-            <DialogTitle className="text-center text-xl font-bold text-red-500">AVISO IMPORTANTE</DialogTitle>
+            <DialogTitle className="text-center text-xl font-bold text-red-500">AVISO DE SALUD Y LEGALIDAD</DialogTitle>
             <DialogDescription className="text-zinc-400 text-center">
               Esta sección es estrictamente para <strong>REGISTRO PERSONAL</strong>.
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-red-950/30 p-4 rounded-lg border border-red-900/30 text-sm space-y-2">
-            <p>1. Heavy Duty NO recomienda, promueve ni vende sustancias controladas.</p>
-            <p>2. La información aquí guardada está encriptada y es accesible solo por ti.</p>
-            <p>3. No sustituye asesoramiento médico profesional.</p>
+          <div className="bg-red-950/30 p-4 rounded-lg border border-red-900/30 text-sm space-y-3 text-left">
+            <p className="flex gap-2"><span className="text-red-500 font-bold">1.</span> Heavy Duty NO recomienda, promueve ni vende sustancias controladas.</p>
+            <p className="flex gap-2"><span className="text-red-500 font-bold">2.</span> El uso de sustancias exógenas conlleva riesgos graves para la salud.</p>
+            <p className="flex gap-2 font-semibold text-red-200"><span className="text-red-500 font-bold">3.</span> Es OBLIGATORIO realizar controles médicos y analíticas de sangre periódicas bajo supervisión profesional.</p>
+            <p className="flex gap-2"><span className="text-red-500 font-bold">4.</span> La información aquí guardada es privada y encriptada, pero tú eres el único responsable de tu salud y tus actos.</p>
           </div>
-          <DialogFooter className="flex-col gap-2 sm:gap-0">
-            <Button variant="destructive" className="w-full" onClick={handleAcceptDisclaimer}>
-              Entiendo y Acepto
+          <DialogFooter className="flex-col gap-2 sm:gap-0 mt-2">
+            <Button variant="destructive" className="w-full font-bold" onClick={handleAcceptDisclaimer}>
+              Entiendo los riesgos y acepto
             </Button>
-            <Button variant="ghost" className="w-full" onClick={handleDecline}>
+            <Button variant="ghost" className="w-full text-zinc-500 hover:text-white" onClick={handleDecline}>
               Cancelar y Salir
             </Button>
           </DialogFooter>
@@ -205,6 +206,17 @@ export default function Pharmacology() {
           </p>
         </div>
       </div>
+
+      {/* Persistent Medical Alert */}
+      {!showDisclaimer && (
+        <Alert variant="destructive" className="bg-red-950/10 border-red-900/20 text-red-400/90">
+          <Activity className="h-4 w-4" />
+          <AlertTitle>Supervisión Médica Requerida</AlertTitle>
+          <AlertDescription className="text-xs">
+            Asegúrate de monitorear tu salud con analíticas de sangre frecuentes. Tu bienestar es lo más importante.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isCreating ? (
         <Card className="bg-zinc-900 border-zinc-800">
