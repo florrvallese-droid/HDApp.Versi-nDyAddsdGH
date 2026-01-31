@@ -5,13 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Upload, Camera, Scale, Save, Loader2, Lock, Calendar, Clock } from "lucide-react";
+import { ChevronLeft, Upload, Camera, Scale, Save, Loader2, Lock } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { uploadCheckinPhoto } from "@/services/storage";
 import { useProfile } from "@/hooks/useProfile";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { format, differenceInDays } from "date-fns";
+import { format } from "date-fns";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { Badge } from "@/components/ui/badge";
 
@@ -22,14 +22,12 @@ export default function Checkin() {
   const [loading, setLoading] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
-  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [weight, setWeight] = useState<string>("");
   const [notes, setNotes] = useState("");
   
   // Previous data
   const [prevWeight, setPrevWeight] = useState<number | null>(null);
   const [history, setHistory] = useState<any[]>([]);
-  const [daysSinceLast, setDaysSinceLast] = useState<number | null>(null);
 
   // Photos
   const [frontPhoto, setFrontPhoto] = useState<File | null>(null);
@@ -72,13 +70,6 @@ export default function Checkin() {
         if (lastEntry.data.weight) {
             setPrevWeight(lastEntry.data.weight);
         }
-
-        // Calculate days since last
-        const lastDate = new Date(lastEntry.created_at);
-        const diff = differenceInDays(new Date(), lastDate);
-        setDaysSinceLast(diff);
-      } else {
-        setDaysSinceLast(null); // No history
       }
     } catch (err) {
       console.log("Error fetching history:", err);
@@ -145,16 +136,11 @@ export default function Checkin() {
         notes: notes
       };
 
-      // Construct final date with current time to preserve order if multiple entries per day
-      const now = new Date();
-      const timeString = now.toTimeString().split(' ')[0]; // HH:MM:SS
-      const finalDate = new Date(`${date}T${timeString}`).toISOString();
-
       const { error } = await supabase.from('logs').insert({
         user_id: user.id,
         type: 'checkin',
         data: logData,
-        created_at: finalDate
+        created_at: new Date().toISOString()
       });
 
       if (error) throw error;
@@ -177,7 +163,7 @@ export default function Checkin() {
         featureName="Check-in y Fotos" 
       />
       
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ChevronLeft className="h-5 w-5" />
@@ -189,29 +175,6 @@ export default function Checkin() {
             <Lock className="w-3 h-3" /> Vista Previa
           </Badge>
         )}
-      </div>
-
-      {/* Days Since Counter */}
-      {daysSinceLast !== null && (
-        <div className={`flex items-center justify-center p-3 rounded-lg border ${daysSinceLast > 15 ? 'bg-red-950/30 border-red-900/50 text-red-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400'}`}>
-          <Clock className="w-4 h-4 mr-2" />
-          <span className="text-sm font-bold uppercase tracking-wide">
-            {daysSinceLast === 0 ? "Último check: Hoy" : `Último check: Hace ${daysSinceLast} días`}
-          </span>
-        </div>
-      )}
-
-      {/* Date Picker */}
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2 text-zinc-400 text-xs font-bold uppercase tracking-wider">
-            <Calendar className="h-4 w-4" /> Fecha del Registro
-        </Label>
-        <Input 
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="bg-zinc-900 border-zinc-800 h-12 font-medium"
-        />
       </div>
 
       {/* Weight Section */}
@@ -229,7 +192,7 @@ export default function Checkin() {
             <Input 
               type="number" 
               placeholder="0.0" 
-              className="text-2xl h-14 w-32 text-center bg-zinc-950 border-zinc-800"
+              className="text-2xl h-14 w-32 text-center"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               step="0.1"
