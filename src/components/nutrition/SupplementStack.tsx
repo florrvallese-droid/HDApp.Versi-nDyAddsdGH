@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, X, ArrowUp, ArrowDown } from "lucide-react";
 import { Supplement } from "@/types";
+import { SupplementSelector } from "./SupplementSelector";
 
 interface SupplementStackProps {
   supplements: Supplement[];
@@ -148,11 +149,9 @@ export function SupplementStack({
 
                 {/* Add Input Row */}
                 <div className="p-3 grid grid-cols-[1fr_80px_36px] gap-2 items-center bg-zinc-900/20">
-                  <Input 
-                    placeholder="Suplemento" 
-                    className="h-8 text-xs bg-zinc-900 border-zinc-800 focus:border-zinc-700"
+                  <SupplementSelector 
                     value={inputState.name}
-                    onChange={(e) => handleSuppInputChange(timingKey, 'name', e.target.value)}
+                    onSelect={(val) => handleSuppInputChange(timingKey, 'name', val)}
                   />
                   <Input 
                     placeholder="Dosis" 
