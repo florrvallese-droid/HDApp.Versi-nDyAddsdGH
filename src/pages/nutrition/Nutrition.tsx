@@ -2,18 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, Save, Plus, Trash2, Utensils, Pill, PieChart, Lock } from "lucide-react";
+import { Plus, Trash2, Utensils, Pill, ChevronLeft, Lock } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { NutritionConfig, Supplement, DayType } from "@/types";
+import { NutritionConfig, Supplement } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { Badge } from "@/components/ui/badge";
@@ -29,18 +25,11 @@ export default function Nutrition() {
   const [calories, setCalories] = useState<number>(2500);
   const [macros, setMacros] = useState({ p: 200, c: 300, f: 80 });
   const [supplements, setSupplements] = useState<Supplement[]>([]);
-  
+
   // New Supplement Input
   const [newSuppName, setNewSuppName] = useState("");
   const [newSuppTiming, setNewSuppTiming] = useState<Supplement['timing']>("pre");
   const [newSuppDosage, setNewSuppDosage] = useState("");
-
-  // Daily Log State
-  const [dayType, setDayType] = useState<DayType>("medium");
-  const [adherence, setAdherence] = useState(8);
-  const [dailyCalories, setDailyCalories] = useState<string>("");
-  const [suppsTaken, setSuppsTaken] = useState<string[]>([]);
-  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     if (profile?.settings?.nutrition) {
@@ -59,7 +48,7 @@ export default function Nutrition() {
     }
     if (!profile) return;
     setLoading(true);
-    
+
     const newConfig: NutritionConfig = {
       diet_type: dietType,
       calories_target: calories,
@@ -79,15 +68,10 @@ export default function Nutrition() {
 
     setLoading(false);
     if (error) toast.error("Error guardando configuración");
-    else toast.success("Estrategia actualizada");
+    else toast.success("Protocolo actualizado");
   };
 
   const addSupplement = () => {
-    if (!hasProAccess) {
-      setShowUpgradeModal(true);
-      return;
-    }
-
     if (!newSuppName) return;
     const newSupp: Supplement = {
       id: crypto.randomUUID(),
@@ -101,284 +85,194 @@ export default function Nutrition() {
   };
 
   const removeSupplement = (id: string) => {
-    if (!hasProAccess) {
-      setShowUpgradeModal(true);
-      return;
-    }
     setSupplements(supplements.filter(s => s.id !== id));
   };
 
-  const logDay = async () => {
-    if (!hasProAccess) {
-      setShowUpgradeModal(true);
-      return;
-    }
-
-    if (!profile) return;
-    setLoading(true);
-
-    const logData = {
-      day_type: dayType,
-      adherence_score: adherence,
-      calories_consumed: dailyCalories ? parseInt(dailyCalories) : undefined,
-      supplements_taken: suppsTaken,
-      notes
-    };
-
-    const { error } = await supabase.from('logs').insert({
-      user_id: profile.user_id,
-      type: 'nutrition',
-      data: logData,
-      created_at: new Date().toISOString()
-    });
-
-    setLoading(false);
-    if (error) {
-      toast.error("Error guardando registro");
-    } else {
-      toast.success("Día registrado correctamente");
-      navigate('/dashboard');
-    }
-  };
-
-  const toggleSuppTaken = (id: string) => {
-    if (suppsTaken.includes(id)) {
-      setSuppsTaken(suppsTaken.filter(s => s !== id));
-    } else {
-      setSuppsTaken([...suppsTaken, id]);
-    }
-  };
-
-  // Loading State
   if (profileLoading) {
-    return <div className="p-8 space-y-4">
-      <Skeleton className="h-8 w-40" />
-      <Skeleton className="h-40 w-full" />
-    </div>;
+    return <div className="min-h-screen bg-black flex items-center justify-center"><Skeleton className="h-12 w-12 rounded-full" /></div>;
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-20 max-w-md mx-auto space-y-6">
-      <UpgradeModal 
-        open={showUpgradeModal} 
-        onOpenChange={setShowUpgradeModal} 
-        featureName="Nutrición"
+    <div className="min-h-screen bg-black text-white p-4 pb-20 max-w-md mx-auto space-y-6">
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        featureName="Estrategia Nutricional"
       />
 
-      <div className="flex items-center justify-between gap-2">
+      {/* Header matching other pages */}
+      <div className="flex items-center justify-between gap-2 border-b border-zinc-900 pb-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-zinc-400 hover:text-white">
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Utensils className="text-primary" /> Nutrición
-          </h1>
+          <div>
+             <h1 className="text-2xl font-black italic uppercase tracking-tighter text-white">Protocolo</h1>
+             <p className="text-xs text-red-600 font-bold tracking-widest uppercase">Nutrición & Suplementación</p>
+          </div>
         </div>
         {!hasProAccess && (
-          <Badge variant="outline" className="border-yellow-500 text-yellow-600 gap-1">
-            <Lock className="w-3 h-3" /> Vista Previa
+          <Badge variant="outline" className="border-yellow-500 text-yellow-600 gap-1 bg-yellow-950/10">
+            <Lock className="w-3 h-3" /> PRO
           </Badge>
         )}
       </div>
 
-      <Tabs defaultValue="log" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="log">Log Diario</TabsTrigger>
-          <TabsTrigger value="strategy">Estrategia</TabsTrigger>
-        </TabsList>
+      {/* Diet Config Section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-zinc-500 mb-2">
+            <Utensils className="h-4 w-4" />
+            <span className="text-xs font-bold uppercase tracking-widest">Macro-Estructura</span>
+        </div>
 
-        {/* --- DAILY LOG TAB --- */}
-        <TabsContent value="log" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Registro de Hoy</CardTitle>
-              <CardDescription>{new Date().toLocaleDateString()}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              
-              {/* Day Type */}
-              <div className="space-y-2">
-                <Label>Tipo de Día</Label>
-                <div className="flex gap-2">
-                  {(['high', 'medium', 'low'] as const).map((t) => (
-                    <Button
-                      key={t}
-                      variant={dayType === t ? "default" : "outline"}
-                      className="flex-1 capitalize"
-                      onClick={() => setDayType(t)}
-                    >
-                      {t}
-                    </Button>
-                  ))}
+        <Card className="bg-zinc-950 border-zinc-800 text-white">
+            <CardContent className="p-4 space-y-4">
+                <div className="space-y-2">
+                    <Label className="text-xs text-zinc-500 uppercase font-bold">Tipo de Dieta</Label>
+                    <Select value={dietType} onValueChange={(v: any) => setDietType(v)}>
+                        <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white font-bold h-11">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                            <SelectItem value="fixed">Dieta Fija (Lineal)</SelectItem>
+                            <SelectItem value="cycling">Ciclado (Altos/Bajos)</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
-              </div>
 
-              {/* Adherence */}
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <Label>Adherencia a la Dieta</Label>
-                  <span className="font-bold">{adherence}/10</span>
-                </div>
-                <Slider 
-                  value={[adherence]} 
-                  min={1} max={10} step={1} 
-                  onValueChange={(v) => setAdherence(v[0])} 
-                />
-              </div>
-
-              {/* Calories */}
-              <div className="space-y-2">
-                <Label>Calorías Consumidas (Estimado)</Label>
-                <Input 
-                  type="number" 
-                  placeholder={calories.toString()}
-                  value={dailyCalories}
-                  onChange={(e) => setDailyCalories(e.target.value)}
-                />
-              </div>
-
-              {/* Supplements Checklist */}
-              {supplements.length > 0 && (
-                <div className="space-y-3">
-                  <Label>Suplementación</Label>
-                  <div className="grid gap-2">
-                    {supplements.map((s) => (
-                      <div key={s.id} className="flex items-center space-x-2 border p-3 rounded-lg">
-                        <Checkbox 
-                          id={s.id} 
-                          checked={suppsTaken.includes(s.id)}
-                          onCheckedChange={() => toggleSuppTaken(s.id)}
+                <div className="space-y-2">
+                    <Label className="text-xs text-zinc-500 uppercase font-bold">Objetivo Calórico</Label>
+                    <div className="relative">
+                        <Input 
+                            type="number" 
+                            className="bg-zinc-900 border-zinc-800 text-white font-black text-lg h-12 pl-4"
+                            value={calories} 
+                            onChange={(e) => setCalories(Number(e.target.value))} 
                         />
-                        <div className="grid gap-1.5 leading-none">
-                          <label
-                            htmlFor={s.id}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {s.name} <span className="text-xs text-muted-foreground">({s.timing})</span>
-                          </label>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label>Notas</Label>
-                <Textarea 
-                  placeholder="¿Hambre? ¿Digestión? ¿Antojos?"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </div>
-
-              <Button className="w-full h-12 relative overflow-hidden" onClick={logDay} disabled={loading}>
-                {!hasProAccess && <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px] flex items-center justify-center z-10"><Lock className="w-4 h-4 mr-2"/> Requiere PRO</div>}
-                {loading ? "Guardando..." : "Registrar Día"}
-              </Button>
-
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* --- STRATEGY TAB --- */}
-        <TabsContent value="strategy" className="space-y-4">
-          
-          {/* Diet Config */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><PieChart className="w-4 h-4"/> Estrategia Nutricional</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Tipo de Estrategia</Label>
-                <Select value={dietType} onValueChange={(v: any) => setDietType(v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fixed">Dieta Fija (Lineal)</SelectItem>
-                    <SelectItem value="cycling">Ciclado (Días Altos/Bajos)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Objetivo Calórico Base</Label>
-                <Input type="number" value={calories} onChange={(e) => setCalories(Number(e.target.value))} />
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <div className="space-y-1">
-                  <Label className="text-xs">Proteína (g)</Label>
-                  <Input type="number" value={macros.p} onChange={(e) => setMacros({...macros, p: Number(e.target.value)})} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Carbos (g)</Label>
-                  <Input type="number" value={macros.c} onChange={(e) => setMacros({...macros, c: Number(e.target.value)})} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Grasas (g)</Label>
-                  <Input type="number" value={macros.f} onChange={(e) => setMacros({...macros, f: Number(e.target.value)})} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Supplement Stack */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Pill className="w-4 h-4"/> Stack de Suplementos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                {supplements.map((s) => (
-                  <div key={s.id} className="flex justify-between items-center p-2 bg-muted rounded text-sm">
-                    <div>
-                      <p className="font-bold">{s.name}</p>
-                      <p className="text-xs text-muted-foreground">{s.dosage} • {s.timing.toUpperCase()}</p>
+                        <span className="absolute right-4 top-3 text-xs text-zinc-500 font-bold">KCAL</span>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => removeSupplement(s.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                </div>
 
-              <div className="pt-4 border-t space-y-3">
-                <Label>Agregar Suplemento</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input placeholder="Nombre (ej: Creatina)" value={newSuppName} onChange={(e) => setNewSuppName(e.target.value)} />
-                  <Input placeholder="Dosis (ej: 5g)" value={newSuppDosage} onChange={(e) => setNewSuppDosage(e.target.value)} />
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                        <Label className="text-[10px] text-zinc-500 uppercase font-bold text-center block">Proteína</Label>
+                        <div className="relative">
+                            <Input 
+                                type="number" 
+                                className="bg-zinc-900 border-zinc-800 text-white font-bold text-center h-10"
+                                value={macros.p} 
+                                onChange={(e) => setMacros({...macros, p: Number(e.target.value)})} 
+                            />
+                            <span className="absolute right-2 top-2.5 text-[10px] text-zinc-600">g</span>
+                        </div>
+                    </div>
+                    <div className="space-y-1">
+                        <Label className="text-[10px] text-zinc-500 uppercase font-bold text-center block">Carbos</Label>
+                        <div className="relative">
+                            <Input 
+                                type="number" 
+                                className="bg-zinc-900 border-zinc-800 text-white font-bold text-center h-10"
+                                value={macros.c} 
+                                onChange={(e) => setMacros({...macros, c: Number(e.target.value)})} 
+                            />
+                             <span className="absolute right-2 top-2.5 text-[10px] text-zinc-600">g</span>
+                        </div>
+                    </div>
+                    <div className="space-y-1">
+                        <Label className="text-[10px] text-zinc-500 uppercase font-bold text-center block">Grasas</Label>
+                        <div className="relative">
+                            <Input 
+                                type="number" 
+                                className="bg-zinc-900 border-zinc-800 text-white font-bold text-center h-10"
+                                value={macros.f} 
+                                onChange={(e) => setMacros({...macros, f: Number(e.target.value)})} 
+                            />
+                             <span className="absolute right-2 top-2.5 text-[10px] text-zinc-600">g</span>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex gap-2">
-                  <Select value={newSuppTiming} onValueChange={(v: any) => setNewSuppTiming(v)}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Timing" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fasted">Ayunas</SelectItem>
-                      <SelectItem value="pre">Pre-Workout</SelectItem>
-                      <SelectItem value="intra">Intra-Workout</SelectItem>
-                      <SelectItem value="post">Post-Workout</SelectItem>
-                      <SelectItem value="meal">Con Comidas</SelectItem>
-                      <SelectItem value="night">Noche</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={addSupplement} disabled={!newSuppName}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
             </CardContent>
-          </Card>
+        </Card>
+      </div>
 
-          <Button className="w-full relative overflow-hidden" onClick={saveConfig} disabled={loading}>
-            {!hasProAccess && <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px] flex items-center justify-center z-10"><Lock className="w-4 h-4 mr-2"/> Requiere PRO</div>}
-            <Save className="mr-2 h-4 w-4" /> Guardar Estrategia
-          </Button>
-        </TabsContent>
-      </Tabs>
+      {/* Supplement Stack Section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-zinc-500 mb-2">
+            <Pill className="h-4 w-4" />
+            <span className="text-xs font-bold uppercase tracking-widest">Stack de Suplementos</span>
+        </div>
+
+        <Card className="bg-zinc-950 border-zinc-800 text-white">
+            <CardContent className="p-4 space-y-4">
+                <div className="space-y-2">
+                    {supplements.length === 0 && (
+                        <p className="text-sm text-zinc-600 text-center py-4 border border-dashed border-zinc-800 rounded">Sin suplementos asignados</p>
+                    )}
+                    {supplements.map((s) => (
+                        <div key={s.id} className="flex justify-between items-center p-3 bg-zinc-900 rounded border border-zinc-800">
+                            <div>
+                                <p className="font-bold text-sm text-white">{s.name}</p>
+                                <div className="flex items-center gap-2 text-xs text-zinc-500">
+                                    <span className="text-red-500 font-bold">{s.timing.toUpperCase()}</span>
+                                    <span>•</span>
+                                    <span>{s.dosage}</span>
+                                </div>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => removeSupplement(s.id)} className="h-8 w-8 text-zinc-600 hover:text-red-500 hover:bg-transparent">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Add New Supplement Form */}
+                <div className="pt-4 border-t border-zinc-900 space-y-3">
+                    <div className="grid grid-cols-[1fr_80px] gap-2">
+                        <Input 
+                            placeholder="Nombre (ej: Creatina)" 
+                            value={newSuppName} 
+                            onChange={(e) => setNewSuppName(e.target.value)}
+                            className="bg-zinc-900 border-zinc-800 text-white h-9 text-xs"
+                        />
+                        <Input 
+                            placeholder="Dosis" 
+                            value={newSuppDosage} 
+                            onChange={(e) => setNewSuppDosage(e.target.value)}
+                            className="bg-zinc-900 border-zinc-800 text-white h-9 text-xs"
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <Select value={newSuppTiming} onValueChange={(v: any) => setNewSuppTiming(v)}>
+                            <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-zinc-400 h-9 text-xs">
+                                <SelectValue placeholder="Timing" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                                <SelectItem value="fasted">Ayunas</SelectItem>
+                                <SelectItem value="pre">Pre-Workout</SelectItem>
+                                <SelectItem value="intra">Intra-Workout</SelectItem>
+                                <SelectItem value="post">Post-Workout</SelectItem>
+                                <SelectItem value="meal">Con Comidas</SelectItem>
+                                <SelectItem value="night">Noche</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Button onClick={addSupplement} disabled={!newSuppName} className="bg-zinc-800 hover:bg-zinc-700 h-9 w-12">
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+      </div>
+
+      {/* Save Button */}
+      <Button 
+        className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-wide border border-red-500/20 shadow-[0_0_15px_rgba(220,38,38,0.2)] relative overflow-hidden" 
+        onClick={saveConfig} 
+        disabled={loading}
+      >
+        {!hasProAccess && <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center z-10"><Lock className="w-4 h-4 mr-2"/> PRO</div>}
+        {loading ? "Guardando..." : "Guardar Protocolo"}
+      </Button>
     </div>
   );
 }
