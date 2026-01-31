@@ -110,10 +110,20 @@ const Index = () => {
         <p className="text-zinc-600 text-xs font-mono mb-2">
           &copy; {new Date().getFullYear()} Heavy Duty Di Iorio. 
         </p>
-        <div className="flex justify-center gap-4 text-[10px] text-zinc-700 uppercase font-bold tracking-wider">
+        <div className="flex justify-center gap-4 text-[10px] text-zinc-700 uppercase font-bold tracking-wider mb-4">
             <span>Privacidad</span>
             <span>Términos</span>
             <span>Soporte</span>
+        </div>
+        
+        {/* Admin Link */}
+        <div className="mt-8">
+            <button 
+                onClick={() => navigate('/admin/login')}
+                className="text-[9px] text-zinc-800 hover:text-zinc-600 transition-colors font-mono uppercase tracking-widest opacity-50 hover:opacity-100"
+            >
+                Admin Access
+            </button>
         </div>
       </footer>
     </div>

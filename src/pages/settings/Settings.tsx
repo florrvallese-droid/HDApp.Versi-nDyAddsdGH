@@ -29,7 +29,7 @@ export default function Settings() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast.success("Sesión cerrada");
-    navigate("/auth");
+    navigate("/");
   };
 
   return (
