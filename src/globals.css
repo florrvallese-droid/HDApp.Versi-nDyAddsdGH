@@ -4,7 +4,6 @@
 
 @layer base {
   :root {
-    /* Light mode fallback (though we force dark usually) */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -24,27 +23,27 @@
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   .dark {
-    /* PRD 'Dark Gym' Palette */
-    --background: 0 0% 4%; /* #0a0a0a */
-    --foreground: 0 0% 98%;
+    /* HD Theme Palette */
+    --background: 0 0% 3%; /* #080808 - Almost pure black */
+    --foreground: 0 0% 95%;
 
-    --card: 0 0% 7%; /* Slightly lighter than bg */
+    --card: 0 0% 5%; /* Very dark grey for cards */
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 7%;
+    --popover: 0 0% 5%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 0 0% 98%; /* White text/icons for primary actions */
-    --primary-foreground: 0 0% 9%;
+    --primary: 0 72% 51%; /* #dc2626 Red-600 */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 13%;
+    --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 13%;
+    --muted: 0 0% 12%;
     --muted-foreground: 0 0% 60%;
 
     --accent: 0 0% 15%;
@@ -53,9 +52,9 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 0 0% 83%;
+    --border: 0 0% 12%;
+    --input: 0 0% 10%;
+    --ring: 0 72% 51%;
   }
 }
 
@@ -67,7 +66,11 @@
     @apply bg-background text-foreground;
   }
   
-  /* Heavy Duty Custom Utilities */
+  /* Heavy Duty Typography Utilities */
+  .font-heading {
+    @apply font-black italic tracking-tighter uppercase;
+  }
+  
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
