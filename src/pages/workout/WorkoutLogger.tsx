@@ -454,6 +454,7 @@ export default function WorkoutLogger() {
                   <ExerciseSelector 
                     value={newExerciseName} 
                     onSelect={(name) => setNewExerciseName(name)} 
+                    targetMuscleGroup={muscleGroupInput}
                   />
                 </div>
                 <Button className="h-12 w-12 bg-zinc-800 hover:bg-zinc-700 text-white shrink-0" onClick={addExercise} disabled={loadingPrevious || !newExerciseName}>
