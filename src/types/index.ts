@@ -95,3 +95,19 @@ export interface CheckinData {
   photos: string[];
   notes?: string;
 }
+
+export interface GlobalAnalysisResponse {
+  top_patterns: {
+    pattern: string;
+    evidence: string;
+    action: string;
+  }[];
+  performance_insights: {
+    best_performing_conditions: string;
+    worst_performing_conditions: string;
+    optimal_frequency: string;
+  };
+  next_14_days_plan: string[];
+  red_flags: string[];
+  overall_assessment: string;
+}

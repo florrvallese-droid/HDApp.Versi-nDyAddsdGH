@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { GlobalAnalysisResponse } from "@/types";
 
 export interface AIResponse {
   decision: 'TRAIN_HEAVY' | 'TRAIN_LIGHT' | 'REST';
@@ -37,7 +38,6 @@ export const aiService = {
       
     } catch (err) {
       console.error("Failed to call AI Coach:", err);
-      // Fallback logic if API fails or no key set
       return {
         decision: 'TRAIN_LIGHT',
         rationale: "No pude conectar con el cerebro digital (AI Error). Por seguridad, entrena ligero hoy.",
@@ -71,6 +71,40 @@ export const aiService = {
         highlights: ["Sesión completada"],
         corrections: ["Intenta aumentar peso la próxima"],
         coach_quote: "La consistencia es clave. Sigue así."
+      };
+    }
+  },
+
+  async getGlobalAnalysis(
+    tone: string,
+    summaryData: any
+  ): Promise<GlobalAnalysisResponse> {
+    try {
+      const { data: response, error } = await supabase.functions.invoke('ai-coach', {
+        body: {
+          action: 'globalanalysis',
+          tone: tone,
+          data: summaryData
+        }
+      });
+
+      if (error) throw error;
+      return response as GlobalAnalysisResponse;
+    } catch (err) {
+      console.error("Failed to call AI Coach (Global):", err);
+      // Fallback
+      return {
+        top_patterns: [
+          { pattern: "Insuficientes datos", evidence: "N/A", action: "Registra más entrenamientos" }
+        ],
+        performance_insights: {
+          best_performing_conditions: "Desconocido",
+          worst_performing_conditions: "Desconocido",
+          optimal_frequency: "Desconocido"
+        },
+        next_14_days_plan: ["Continuar rutina actual", "Priorizar sueño"],
+        red_flags: [],
+        overall_assessment: "Necesito más datos históricos para generar un análisis profundo. Sigue registrando tus sesiones."
       };
     }
   }

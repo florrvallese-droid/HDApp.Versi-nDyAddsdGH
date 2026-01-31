@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dumbbell, Camera, Brain, ChevronRight, LogOut } from "lucide-react";
+import { Dumbbell, Camera, Brain, ChevronRight, LogOut, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/services/supabase";
 import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
+import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -41,8 +42,9 @@ const Dashboard = () => {
     <div className="p-4 pb-20 max-w-md mx-auto min-h-screen space-y-6">
       <header className="flex justify-between items-center mb-2">
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
             Hola, {profile?.display_name?.split(" ")[0] || "Atleta"}
+            {profile?.is_premium && <Badge variant="secondary" className="text-[10px] bg-yellow-500/20 text-yellow-600">PRO</Badge>}
           </h1>
           <p className="text-sm text-muted-foreground">
             {profile?.coach_tone === 'strict' ? "Sin excusas hoy." : 
@@ -62,14 +64,17 @@ const Dashboard = () => {
       </header>
 
       {/* Pre-Workout IA Decision Card */}
-      <Card className="border-primary/20 bg-primary/5 shadow-sm">
-        <CardHeader className="pb-2">
+      <Card className="border-primary/20 bg-primary/5 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-3 opacity-10">
+          <Brain className="w-24 h-24 rotate-12" />
+        </div>
+        <CardHeader className="pb-2 relative">
           <CardTitle className="text-lg flex items-center gap-2">
             <Brain className="h-5 w-5 text-primary" />
             Coach IA
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative">
           <p className="text-sm mb-4 text-muted-foreground">
             Analiza tu sueño, estrés y sensación física para decidir la intensidad de hoy.
           </p>
@@ -79,6 +84,7 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
+      {/* Main Actions Grid */}
       <div className="grid grid-cols-2 gap-4">
         <Card 
           className="hover:bg-accent/50 cursor-pointer transition-all hover:scale-[1.02]" 
@@ -105,6 +111,26 @@ const Dashboard = () => {
         </Card>
       </div>
 
+      {/* Global Analysis Card (New) */}
+      <Card 
+        className="border-dashed border-2 hover:border-solid hover:border-purple-500/50 cursor-pointer transition-all"
+        onClick={() => navigate('/analysis')}
+      >
+        <CardContent className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div>
+              <p className="font-bold text-sm">Auditoría Global</p>
+              <p className="text-xs text-muted-foreground">Detectar patrones y tendencias</p>
+            </div>
+          </div>
+          <ChevronRight className="text-muted-foreground h-5 w-5" />
+        </CardContent>
+      </Card>
+
+      {/* Weekly Summary */}
       <div className="space-y-4 pt-2">
         <h2 className="text-lg font-semibold">Resumen Semanal</h2>
         <Card>
