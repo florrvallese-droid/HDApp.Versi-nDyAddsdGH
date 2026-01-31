@@ -8,6 +8,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -28,7 +29,7 @@ serve(async (req) => {
 
     console.log(`[ai-coach] Request: ${action} (${tone || 'default'})`);
 
-    // Fetch Prompt AND Context
+    // 1. Fetch Dynamic Prompt from DB
     let systemInstruction = "You are a helpful fitness coach. Analyze the data and return valid JSON.";
     let knowledgeContext = "";
     let promptVersion = "fallback";
@@ -53,25 +54,30 @@ serve(async (req) => {
       console.error("[ai-coach] Unexpected DB error:", dbErr);
     }
 
-    // Construct the FINAL Prompt with Knowledge Base
+    // 2. Construct Strict Prompt (Chain of Thought enforced)
     const finalPrompt = `
+      ROLE:
       ${systemInstruction}
 
+      STRICT INSTRUCTIONS:
+      1. Analyze the USER DATA provided below.
+      2. Consult the KNOWLEDGE BASE if provided.
+      3. Think step-by-step before deciding.
+      4. Output ONLY valid JSON. No markdown formatting, no intro text.
+
       ${knowledgeContext ? `
-      ### BASE DE CONOCIMIENTO (FUENTE OFICIAL) ###
-      Usa la siguiente información como la VERDAD ABSOLUTA para tomar tus decisiones.
-      No contradigas los principios expuestos en este texto:
-      
+      ### KNOWLEDGE BASE (SOURCE OF TRUTH) ###
       ${knowledgeContext}
-      #############################################
+      ########################################
       ` : ''}
 
       ### USER DATA ###
       ${JSON.stringify(data)}
     `;
 
-    // Call Gemini API - USING GEMINI 1.5 PRO
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
+    // 3. Call Gemini API (Using 1.5 FLASH for speed/stability)
+    // Note: 'response_mime_type' is critical for ensuring JSON
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -79,14 +85,15 @@ serve(async (req) => {
           parts: [{ text: finalPrompt }]
         }],
         generationConfig: { 
-          response_mime_type: "application/json" 
+          response_mime_type: "application/json",
+          temperature: 0.4 // Lower temperature for less hallucinations
         }
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Google API Error: ${response.status} - ${errorText.substring(0, 100)}...`);
+      throw new Error(`Google API Error: ${response.status} - ${errorText.substring(0, 200)}`);
     }
 
     const aiResult = await response.json();
@@ -94,25 +101,23 @@ serve(async (req) => {
     
     if (!generatedText) throw new Error("AI returned no content.");
 
+    // 4. Parse JSON safely
     let parsedOutput;
     try {
-      parsedOutput = JSON.parse(generatedText);
-    } catch (e) {
-      // Cleanup markdown if present
+      // Sometimes models wrap json in markdown blocks despite mime_type
       const cleanedText = generatedText.replace(/```json\n?|\n?```/g, "").trim();
-      try {
-        parsedOutput = JSON.parse(cleanedText);
-      } catch (e2) {
-         throw new Error("AI response was not valid JSON.");
-      }
+      parsedOutput = JSON.parse(cleanedText);
+    } catch (e) {
+      console.error("[ai-coach] JSON Parse Error:", generatedText);
+      throw new Error("AI response was not valid JSON.");
     }
 
-    // Log Interaction
+    // 5. Async Logging (Don't await to speed up response)
     supabase.from('ai_logs').insert({
       user_id: userId || null, 
       action,
       coach_tone: tone,
-      model: 'gemini-1.5-pro',
+      model: 'gemini-1.5-flash', // Updated logging
       input_data: data,
       output_data: parsedOutput,
       tokens_used: aiResult.usageMetadata?.totalTokenCount || 0,
@@ -126,10 +131,19 @@ serve(async (req) => {
     });
 
   } catch (error: any) {
-    console.error(`[ai-coach] ERROR: ${error.message}`);
+    console.error(`[ai-coach] CRITICAL FAILURE: ${error.message}`);
+    
+    // Return a structured error that the client can parse if needed, 
+    // but Keep 500 status so client knows it failed.
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: error.message,
+        details: "Check Edge Function logs for more info."
+      }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     );
   }
 })
