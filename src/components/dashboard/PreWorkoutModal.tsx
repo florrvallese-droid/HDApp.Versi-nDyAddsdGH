@@ -386,7 +386,7 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess = 
                         className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest hover:text-zinc-400 transition-colors"
                         onClick={skipToWorkout}
                     >
-                        Saltar e ir a la bitácora
+                        omitir e ir al registro
                     </button>
                 </div>
               </div>
