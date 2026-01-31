@@ -1,39 +1,43 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Share2, Home, Dumbbell, Trophy, Loader2, Download } from "lucide-react";
+import { Share2, Home, Dumbbell, Trophy, Loader2, Download, Lock } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { aiService, PostWorkoutAIResponse } from "@/services/ai";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import html2canvas from "html2canvas";
+import { UpgradeModal } from "@/components/shared/UpgradeModal";
 
 export default function PostWorkout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile } = useProfile();
+  const { profile, hasProAccess, loading: profileLoading } = useProfile();
   
   const [workoutData, setWorkoutData] = useState<any>(null);
   const [analysis, setAnalysis] = useState<PostWorkoutAIResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (location.state?.workoutData) {
-      const data = location.state.workoutData;
-      setWorkoutData(data);
-      if (profile) {
-        runAnalysis(data);
-      }
-    } else {
-      // For dev/testing purposes, allow viewing without data if we want, 
-      // but for production redirect. Commenting out redirect for now to allow dev preview if needed
-      // navigate('/dashboard');
+      setWorkoutData(location.state.workoutData);
     }
-  }, [location, navigate, profile]);
+  }, [location]);
+
+  useEffect(() => {
+    if (workoutData && profile && !profileLoading) {
+      if (hasProAccess) {
+        runAnalysis(workoutData);
+      } else {
+        setLoading(false); // Stop loading, show locked state
+      }
+    }
+  }, [workoutData, profile, profileLoading, hasProAccess]);
 
   const runAnalysis = async (currentWorkout: any) => {
     try {
@@ -85,6 +89,11 @@ export default function PostWorkout() {
   };
 
   const handleShare = async () => {
+    if (!hasProAccess) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    
     if (!cardRef.current) return;
     setSharing(true);
 
@@ -97,7 +106,6 @@ export default function PostWorkout() {
 
       const image = canvas.toDataURL("image/png");
 
-      // Check if Web Share API is supported and can share files
       if (navigator.share) {
         const blob = await (await fetch(image)).blob();
         const file = new File([blob], "heavy-duty-workout.png", { type: "image/png" });
@@ -110,7 +118,6 @@ export default function PostWorkout() {
           });
           toast.success("Compartido exitosamente");
         } else {
-          // Fallback to download
           downloadImage(image);
         }
       } else {
@@ -132,7 +139,7 @@ export default function PostWorkout() {
     toast.success("Imagen descargada");
   };
 
-  if (!workoutData && loading) return <div className="min-h-screen flex items-center justify-center bg-black text-white">Cargando datos...</div>;
+  if ((!workoutData && loading) || profileLoading) return <div className="min-h-screen flex items-center justify-center bg-black text-white">Cargando datos...</div>;
   if (!workoutData) return <div className="min-h-screen flex items-center justify-center bg-black text-white">No data found</div>;
 
   const { muscleGroup, duration, volume, exercises } = workoutData;
@@ -141,13 +148,19 @@ export default function PostWorkout() {
   return (
     <div className="min-h-screen bg-zinc-950 p-4 flex flex-col items-center justify-center gap-6 overflow-y-auto">
       
+      <UpgradeModal 
+        open={showUpgradeModal} 
+        onOpenChange={setShowUpgradeModal} 
+        featureName="Análisis Post-Entreno"
+      />
+
       {/* STORY CARD CONTAINER */}
       <div 
         ref={cardRef}
         id="story-card"
         className="w-full max-w-[350px] aspect-[9/16] bg-gradient-to-br from-zinc-900 to-black text-white rounded-3xl p-8 flex flex-col relative overflow-hidden shadow-2xl border border-zinc-800 shrink-0"
       >
-        {/* Background Texture/Accent */}
+        {/* Background Texture/Accent - Conditional on Analysis or Default */}
         <div className={cn(
           "absolute top-0 right-0 w-80 h-80 rounded-full blur-[80px] -translate-y-1/3 translate-x-1/3 pointer-events-none opacity-30 mix-blend-screen",
           analysis?.verdict === 'PROGRESS' ? "bg-green-500" :
@@ -169,11 +182,16 @@ export default function PostWorkout() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 z-10 flex flex-col justify-center gap-6">
+        <div className="flex-1 z-10 flex flex-col justify-center gap-6 relative">
           
+          {/* Verdict - Locked if no analysis */}
           <div className="space-y-2">
             {loading ? (
                <div className="h-4 w-24 bg-zinc-800 rounded animate-pulse" />
+            ) : !hasProAccess ? (
+               <div className="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-1 border bg-zinc-800 border-zinc-700 text-zinc-500">
+                  LOCKED
+               </div>
             ) : (
                 <div className={cn(
                     "inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-1 border",
@@ -200,46 +218,69 @@ export default function PostWorkout() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <p className="text-xs font-bold text-zinc-400 flex items-center gap-2 uppercase tracking-wider">
-              <Dumbbell className="h-3 w-3 text-primary" /> Highlight
-            </p>
-            {loading ? (
-                <div className="space-y-2">
-                    <div className="h-16 bg-zinc-800 rounded-xl animate-pulse" />
-                </div>
-            ) : (
-                <div className="bg-zinc-800/30 p-4 rounded-xl border-l-2 border-primary">
-                {analysis?.highlights && analysis.highlights.length > 0 ? (
-                    <ul className="space-y-1">
-                        {analysis.highlights.slice(0, 2).map((h, i) => (
-                            <li key={i} className="text-sm text-zinc-300 leading-tight">• {h}</li>
-                        ))}
-                    </ul>
-                ) : (
-                    <>
-                        <p className="font-bold text-lg text-white">{bestExercise?.name}</p>
-                        <p className="text-sm text-zinc-400">
-                            {bestExercise?.sets?.length} sets de pura intensidad
-                        </p>
-                    </>
-                )}
-                </div>
-            )}
-          </div>
-
-          {/* Coach Quote */}
-          <div className="mt-2 relative">
-             {loading ? (
-                 <div className="flex gap-2 justify-center items-center h-12">
-                     <Loader2 className="animate-spin h-4 w-4 text-zinc-500"/>
+          {/* AI Insights Section - Locked View */}
+          {!hasProAccess ? (
+            <div className="relative mt-4 bg-zinc-900/50 rounded-xl p-4 border border-zinc-800/50 overflow-hidden group cursor-pointer" onClick={() => setShowUpgradeModal(true)}>
+               <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-20 flex items-center justify-center flex-col gap-2">
+                 <Lock className="h-6 w-6 text-yellow-500" />
+                 <p className="text-xs font-bold text-yellow-500 uppercase tracking-widest">Análisis Premium</p>
+               </div>
+               
+               {/* Blurred dummy content */}
+               <div className="opacity-30 filter blur-sm space-y-3">
+                 <p className="text-xs font-bold text-zinc-400 flex items-center gap-2 uppercase tracking-wider">
+                   <Dumbbell className="h-3 w-3 text-primary" /> Highlight
+                 </p>
+                 <div className="bg-zinc-800/30 p-4 rounded-xl border-l-2 border-primary">
+                    <p className="text-sm text-zinc-300">Has superado tu PR en Press de Banca por 5kg...</p>
                  </div>
-             ) : (
-                <p className="text-sm font-medium italic text-zinc-400 text-center px-2 leading-relaxed opacity-80">
-                   "{analysis?.coach_quote}"
+                 <p className="text-sm italic text-center">"Excelente trabajo, sigue así."</p>
+               </div>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                <p className="text-xs font-bold text-zinc-400 flex items-center gap-2 uppercase tracking-wider">
+                  <Dumbbell className="h-3 w-3 text-primary" /> Highlight
                 </p>
-             )}
-          </div>
+                {loading ? (
+                    <div className="space-y-2">
+                        <div className="h-16 bg-zinc-800 rounded-xl animate-pulse" />
+                    </div>
+                ) : (
+                    <div className="bg-zinc-800/30 p-4 rounded-xl border-l-2 border-primary">
+                    {analysis?.highlights && analysis.highlights.length > 0 ? (
+                        <ul className="space-y-1">
+                            {analysis.highlights.slice(0, 2).map((h, i) => (
+                                <li key={i} className="text-sm text-zinc-300 leading-tight">• {h}</li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <>
+                            <p className="font-bold text-lg text-white">{bestExercise?.name}</p>
+                            <p className="text-sm text-zinc-400">
+                                {bestExercise?.sets?.length} sets de pura intensidad
+                            </p>
+                        </>
+                    )}
+                    </div>
+                )}
+              </div>
+
+              {/* Coach Quote */}
+              <div className="mt-2 relative">
+                 {loading ? (
+                     <div className="flex gap-2 justify-center items-center h-12">
+                         <Loader2 className="animate-spin h-4 w-4 text-zinc-500"/>
+                     </div>
+                 ) : (
+                    <p className="text-sm font-medium italic text-zinc-400 text-center px-2 leading-relaxed opacity-80">
+                       "{analysis?.coach_quote}"
+                    </p>
+                 )}
+              </div>
+            </>
+          )}
 
         </div>
 
@@ -272,10 +313,12 @@ export default function PostWorkout() {
         >
           {sharing ? (
              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : !hasProAccess ? (
+             <Lock className="mr-2 h-4 w-4" />
           ) : (
              <Share2 className="mr-2 h-4 w-4" />
           )}
-          Compartir
+          {hasProAccess ? "Compartir" : "Desbloquear"}
         </Button>
       </div>
 

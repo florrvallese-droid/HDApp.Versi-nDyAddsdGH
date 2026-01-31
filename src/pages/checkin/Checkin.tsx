@@ -5,19 +5,23 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Upload, Camera, Scale, Save, Loader2 } from "lucide-react";
+import { ChevronLeft, Upload, Camera, Scale, Save, Loader2, Lock } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { uploadCheckinPhoto } from "@/services/storage";
 import { useProfile } from "@/hooks/useProfile";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from "date-fns";
+import { UpgradeModal } from "@/components/shared/UpgradeModal";
+import { Badge } from "@/components/ui/badge";
 
 export default function Checkin() {
   const navigate = useNavigate();
-  const { profile } = useProfile();
+  const { profile, hasProAccess } = useProfile();
   
   const [loading, setLoading] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  
   const [weight, setWeight] = useState<string>("");
   const [notes, setNotes] = useState("");
   
@@ -89,6 +93,12 @@ export default function Checkin() {
   };
 
   const handleSubmit = async () => {
+    // TEASER CHECK: Block saving if not PRO
+    if (!hasProAccess) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     if (!weight) {
       toast.error("Por favor ingresa tu peso actual");
       return;
@@ -147,12 +157,24 @@ export default function Checkin() {
 
   return (
     <div className="p-4 pb-20 max-w-md mx-auto min-h-screen space-y-6">
+      <UpgradeModal 
+        open={showUpgradeModal} 
+        onOpenChange={setShowUpgradeModal} 
+        featureName="Check-in y Fotos" 
+      />
       
-      <div className="flex items-center gap-2 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-2xl font-bold">Check-in Físico</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold">Check-in Físico</h1>
+        </div>
+        {!hasProAccess && (
+          <Badge variant="outline" className="border-yellow-500 text-yellow-600 gap-1">
+            <Lock className="w-3 h-3" /> Vista Previa
+          </Badge>
+        )}
       </div>
 
       {/* Weight Section */}
@@ -304,7 +326,12 @@ export default function Checkin() {
         </CardContent>
       </Card>
 
-      <Button className="w-full h-12 text-lg" onClick={handleSubmit} disabled={loading}>
+      <Button className="w-full h-12 text-lg relative overflow-hidden" onClick={handleSubmit} disabled={loading}>
+        {!hasProAccess && (
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px] flex items-center justify-center z-10 font-bold text-shadow">
+            <Lock className="w-4 h-4 mr-2"/> Requiere PRO
+          </div>
+        )}
         {loading ? (
           <>
             <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Guardando...

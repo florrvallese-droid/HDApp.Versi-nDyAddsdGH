@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dumbbell, Camera, Brain, ChevronRight, TrendingUp, Utensils, Syringe } from "lucide-react";
+import { Dumbbell, Camera, Brain, ChevronRight, TrendingUp, Utensils, Syringe, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { useFeatureFlags } from "@/hooks/useFeatureFlags";
@@ -117,9 +117,13 @@ const Dashboard = () => {
           <Button 
             className="w-full" 
             onClick={() => setShowPreWorkout(true)}
-            disabled={!hasProAccess}
+            variant={hasProAccess ? "default" : "outline"}
           >
-            {hasProAccess ? "Consultar Coach" : "Desbloquear con PRO"}
+            {hasProAccess ? "Consultar Coach" : (
+              <>
+                <Lock className="w-4 h-4 mr-2 text-yellow-600" /> Probar Pre-Workout IA
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -219,6 +223,7 @@ const Dashboard = () => {
         open={showPreWorkout} 
         onOpenChange={setShowPreWorkout} 
         coachTone={profile?.coach_tone || 'strict'}
+        hasProAccess={hasProAccess}
       />
     </div>
   );

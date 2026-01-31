@@ -12,6 +12,7 @@ import { ChevronLeft, Brain, TrendingUp, AlertTriangle, Calendar, Lock } from "l
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { UpgradeModal } from "@/components/shared/UpgradeModal";
 
 export default function GlobalAnalysis() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function GlobalAnalysis() {
   const [analysis, setAnalysis] = useState<GlobalAnalysisResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastRunDate, setLastRunDate] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
     if (!profileLoading && profile) {
@@ -44,7 +46,7 @@ export default function GlobalAnalysis() {
 
   const runAudit = async () => {
     if (!hasProAccess) {
-      toast.error("Esta función es exclusiva para usuarios PRO");
+      setShowUpgradeModal(true);
       return;
     }
 
@@ -94,13 +96,26 @@ export default function GlobalAnalysis() {
 
   return (
     <div className="min-h-screen bg-background p-4 pb-20 max-w-md mx-auto space-y-6">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Brain className="text-primary" /> Auditoría Global
-        </h1>
+      <UpgradeModal 
+        open={showUpgradeModal} 
+        onOpenChange={setShowUpgradeModal} 
+        featureName="Auditoría Global con IA" 
+      />
+
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Brain className="text-primary" /> Auditoría Global
+          </h1>
+        </div>
+        {!hasProAccess && (
+          <Badge variant="outline" className="border-yellow-500 text-yellow-600 gap-1">
+            <Lock className="w-3 h-3" /> Vista Previa
+          </Badge>
+        )}
       </div>
 
       {!analysis && (
@@ -112,30 +127,21 @@ export default function GlobalAnalysis() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!hasProAccess ? (
-              <div className="bg-background/80 p-4 rounded-lg border border-dashed text-center space-y-3">
-                <Lock className="h-8 w-8 mx-auto text-muted-foreground" />
-                <p className="font-semibold">Función exclusiva PRO</p>
-                <Button className="w-full" variant="outline" onClick={() => navigate('/settings?tab=billing')}>
-                  Desbloquear Premium
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {lastRunDate && (
-                  <p className="text-xs text-muted-foreground text-center">
-                    Último análisis: {format(new Date(lastRunDate), "d 'de' MMMM, HH:mm", { locale: es })}
-                  </p>
-                )}
-                <Button 
-                  className="w-full h-12 text-lg" 
-                  onClick={runAudit}
-                  disabled={loading}
-                >
-                  {loading ? "Analizando Datos..." : "Ejecutar Auditoría"}
-                </Button>
-              </div>
-            )}
+            <div className="space-y-4">
+              {lastRunDate && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Último análisis: {format(new Date(lastRunDate), "d 'de' MMMM, HH:mm", { locale: es })}
+                </p>
+              )}
+              <Button 
+                className="w-full h-12 text-lg relative overflow-hidden" 
+                onClick={runAudit}
+                disabled={loading}
+              >
+                {!hasProAccess && <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px] flex items-center justify-center z-10"><Lock className="w-4 h-4 mr-2"/> PRO</div>}
+                {loading ? "Analizando Datos..." : "Ejecutar Auditoría"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
