@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { WorkoutDetailDialog } from "@/components/WorkoutDetailDialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RestTimer } from "@/components/workout/RestTimer";
 
 export default function WorkoutLogger() {
   const navigate = useNavigate();
@@ -271,8 +272,9 @@ export default function WorkoutLogger() {
 
   // VIEW 3: ACTIVE LOGGER
   return (
-    <div className="p-4 pb-28 max-w-md mx-auto min-h-screen bg-black text-white space-y-6">
-      
+    <div className="p-4 pb-28 max-w-md mx-auto min-h-screen bg-black text-white space-y-6 relative">
+      <RestTimer />
+
       {/* HEADER */}
       <div className="flex justify-between items-end border-b border-zinc-900 pb-4">
         <div>
