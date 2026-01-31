@@ -60,6 +60,7 @@ export interface Supplement {
 
 export interface NutritionConfig {
   phase_goal: PhaseGoal;
+  strategy_type?: 'single' | 'cycling';
   diet_variants: DietVariant[];
   supplements_stack: Supplement[];
 }

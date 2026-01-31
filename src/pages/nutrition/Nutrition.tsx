@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, ChevronLeft, Lock, Syringe, Calendar, Scale, Activity } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, Lock, Syringe, Calendar, Scale, Activity, X } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 export default function Nutrition() {
   const navigate = useNavigate();
@@ -27,15 +27,9 @@ export default function Nutrition() {
   const [phaseGoal, setPhaseGoal] = useState<PhaseGoal>("maintenance");
   const [currentWeight, setCurrentWeight] = useState("");
 
-  // Strategy State (Variants)
+  // Strategy State
+  const [strategyType, setStrategyType] = useState<'single' | 'cycling'>('single');
   const [variants, setVariants] = useState<DietVariant[]>([]);
-  
-  // New Variant Input
-  const [newVariantName, setNewVariantName] = useState("");
-  const [newCals, setNewCals] = useState<number>(0);
-  const [newP, setNewP] = useState<number>(0);
-  const [newC, setNewC] = useState<number>(0);
-  const [newF, setNewF] = useState<number>(0);
 
   // Supplement State
   const [supplements, setSupplements] = useState<Supplement[]>([]);
@@ -45,19 +39,58 @@ export default function Nutrition() {
 
   useEffect(() => {
     if (profile) {
-      // Load current weight
       if (profile.settings?.current_weight) {
         setCurrentWeight(profile.settings.current_weight);
       }
-      // Load Nutrition Config
       if (profile.settings?.nutrition) {
         const config = profile.settings.nutrition;
         setPhaseGoal(config.phase_goal || "maintenance");
-        setVariants(config.diet_variants || []);
+        setStrategyType(config.strategy_type || "single");
+        
+        // Ensure at least one variant exists if empty
+        if (!config.diet_variants || config.diet_variants.length === 0) {
+           setVariants([{
+             id: crypto.randomUUID(),
+             name: "Dieta Base",
+             calories: 0,
+             macros: { p: 0, c: 0, f: 0 }
+           }]);
+        } else {
+           setVariants(config.diet_variants);
+        }
+        
         setSupplements(config.supplements_stack || []);
+      } else {
+        // Init default if no config
+        setVariants([{
+           id: crypto.randomUUID(),
+           name: "Dieta Base",
+           calories: 0,
+           macros: { p: 0, c: 0, f: 0 }
+        }]);
       }
     }
   }, [profile]);
+
+  // Ensure correct variants structure when switching strategy
+  useEffect(() => {
+    if (strategyType === 'single') {
+        // If switching to single, strictly keep only the first variant or create one
+        if (variants.length > 1) {
+            // We won't delete data automatically here to be safe, but UI will only show first
+        } else if (variants.length === 0) {
+            setVariants([{
+                id: crypto.randomUUID(),
+                name: "Dieta Base",
+                calories: 0,
+                macros: { p: 0, c: 0, f: 0 }
+            }]);
+        }
+    } else {
+        // Switching to cycling: ensure we have at least High/Low if empty?
+        // Let's leave it as is, user can add.
+    }
+  }, [strategyType]);
 
   const saveConfig = async () => {
     if (!hasProAccess) {
@@ -67,15 +100,24 @@ export default function Nutrition() {
     if (!profile) return;
     setLoading(true);
 
+    // Filter variants based on strategy before saving
+    let variantsToSave = [...variants];
+    if (strategyType === 'single') {
+        variantsToSave = [variants[0]]; // Only save the first one
+        // Ensure name is appropriate
+        variantsToSave[0].name = "Dieta Única"; 
+    }
+
     const newConfig: NutritionConfig = {
       phase_goal: phaseGoal,
-      diet_variants: variants,
+      strategy_type: strategyType,
+      diet_variants: variantsToSave,
       supplements_stack: supplements
     };
 
     const newSettings = {
       ...profile.settings,
-      current_weight: currentWeight, // Update weight in profile settings too
+      current_weight: currentWeight,
       nutrition: newConfig
     };
 
@@ -89,25 +131,33 @@ export default function Nutrition() {
     else toast.success("Protocolo actualizado");
   };
 
-  // Variant Handlers
-  const addVariant = () => {
-    if (!newVariantName) return;
-    const variant: DietVariant = {
-      id: crypto.randomUUID(),
-      name: newVariantName,
-      calories: newCals || (newP * 4 + newC * 4 + newF * 9),
-      macros: { p: newP, c: newC, f: newF }
-    };
-    setVariants([...variants, variant]);
-    setNewVariantName("");
-    setNewCals(0);
-    setNewP(0);
-    setNewC(0);
-    setNewF(0);
+  // Helper to update specific fields in variants
+  const updateVariant = (index: number, field: string, value: any) => {
+    const updated = [...variants];
+    if (field === 'name') updated[index].name = value;
+    else if (field === 'calories') updated[index].calories = Number(value);
+    else if (['p', 'c', 'f'].includes(field)) {
+        updated[index].macros = { ...updated[index].macros, [field]: Number(value) };
+        // Auto-calc calories if they are 0 or user wants? simplified:
+        // updated[index].calories = (updated[index].macros.p * 4) + (updated[index].macros.c * 4) + (updated[index].macros.f * 9);
+    }
+    setVariants(updated);
   };
 
-  const removeVariant = (id: string) => {
-    setVariants(variants.filter(v => v.id !== id));
+  const addVariant = () => {
+    const variant: DietVariant = {
+      id: crypto.randomUUID(),
+      name: "Nueva Variante",
+      calories: 0,
+      macros: { p: 0, c: 0, f: 0 }
+    };
+    setVariants([...variants, variant]);
+  };
+
+  const removeVariant = (index: number) => {
+    const updated = [...variants];
+    updated.splice(index, 1);
+    setVariants(updated);
   };
 
   // Supplement Handlers
@@ -128,7 +178,6 @@ export default function Nutrition() {
     setSupplements(supplements.filter(s => s.id !== id));
   };
 
-  // Helper to Group Supplements by Timing
   const getSupplementsByTiming = (timing: string) => {
     return supplements.filter(s => s.timing === timing);
   };
@@ -145,6 +194,9 @@ export default function Nutrition() {
   if (profileLoading) {
     return <div className="min-h-screen bg-black flex items-center justify-center"><Skeleton className="h-12 w-12 rounded-full" /></div>;
   }
+
+  // Determine which variants to show
+  const visibleVariants = strategyType === 'single' ? [variants[0] || { id: 'temp', name: 'Dieta Única', calories: 0, macros: {p:0,c:0,f:0} }] : variants;
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pb-24 max-w-md mx-auto space-y-8">
@@ -172,7 +224,6 @@ export default function Nutrition() {
         )}
       </div>
 
-      {/* 1. ACCESS TO PHARMACOLOGY */}
       <Button 
         className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-bold uppercase tracking-wide flex items-center justify-between px-4 group"
         onClick={() => navigate('/pharmacology')}
@@ -184,7 +235,7 @@ export default function Nutrition() {
         <ChevronLeft className="h-4 w-4 rotate-180" />
       </Button>
 
-      {/* 2. MACRO STRUCTURE */}
+      {/* MACRO STRUCTURE */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-zinc-500 mb-2">
             <Activity className="h-4 w-4" />
@@ -231,88 +282,134 @@ export default function Nutrition() {
         </Card>
       </div>
 
-      {/* 3. NUTRITIONAL STRATEGY (VARIANTS) */}
+      {/* STRATEGY SELECTOR & VARIANTS */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-zinc-500 mb-2">
             <span className="text-xs font-bold uppercase tracking-widest">Estrategia Nutricional</span>
         </div>
 
-        {/* Existing Variants List */}
-        <div className="space-y-3">
-            {variants.map((v) => (
-                <Card key={v.id} className="bg-zinc-900 border-zinc-800">
-                    <CardContent className="p-3 flex justify-between items-center">
-                        <div className="space-y-1">
-                            <p className="font-black italic uppercase text-white">{v.name}</p>
-                            <div className="flex gap-3 text-xs text-zinc-400 font-mono">
-                                <span className="text-white font-bold">{v.calories} kcal</span>
-                                <span>P:{v.macros.p}</span>
-                                <span>C:{v.macros.c}</span>
-                                <span>G:{v.macros.f}</span>
-                            </div>
+        {/* Custom Segmented Control */}
+        <div className="grid grid-cols-2 bg-zinc-900 p-1 rounded-lg border border-zinc-800">
+            <button
+                onClick={() => setStrategyType('single')}
+                className={cn(
+                    "text-xs font-black uppercase tracking-wider py-2.5 rounded-md transition-all",
+                    strategyType === 'single' 
+                        ? "bg-green-700 text-white shadow-md" 
+                        : "text-zinc-500 hover:text-zinc-300"
+                )}
+            >
+                Dieta Única
+            </button>
+            <button
+                onClick={() => setStrategyType('cycling')}
+                className={cn(
+                    "text-xs font-black uppercase tracking-wider py-2.5 rounded-md transition-all",
+                    strategyType === 'cycling' 
+                        ? "bg-green-700 text-white shadow-md" 
+                        : "text-zinc-500 hover:text-zinc-300"
+                )}
+            >
+                Carga / Descarga
+            </button>
+        </div>
+
+        {/* Editable Variants List */}
+        <div className="space-y-4">
+            {visibleVariants.map((v, idx) => (
+                <Card key={v.id || idx} className="bg-zinc-950 border-zinc-800">
+                    <CardContent className="p-4 space-y-4">
+                        <div className="flex justify-between items-center border-b border-zinc-800 pb-2">
+                            {strategyType === 'cycling' ? (
+                                <Input 
+                                    value={v.name}
+                                    onChange={(e) => updateVariant(idx, 'name', e.target.value)}
+                                    className="bg-transparent border-none h-auto p-0 text-green-500 font-bold uppercase text-sm focus-visible:ring-0 placeholder:text-green-500/50"
+                                    placeholder="NOMBRE DE VARIANTE"
+                                />
+                            ) : (
+                                <span className="text-green-500 font-bold uppercase text-sm">
+                                    DIETA ÚNICA (BASE)
+                                </span>
+                            )}
+                            
+                            {strategyType === 'cycling' && (
+                                <button onClick={() => removeVariant(idx)} className="text-zinc-600 hover:text-red-500">
+                                    <X className="h-4 w-4" />
+                                </button>
+                            )}
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => removeVariant(v.id)} className="h-8 w-8 text-zinc-600 hover:text-red-500">
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+
+                        <div className="grid grid-cols-1 gap-4">
+                             <div className="space-y-1">
+                                <Label className="text-[9px] text-zinc-500 uppercase font-bold">Kcal Totales</Label>
+                                <Input 
+                                    type="number"
+                                    value={v.calories || ''}
+                                    onChange={(e) => updateVariant(idx, 'calories', e.target.value)}
+                                    className="bg-zinc-900 border-zinc-800 text-center font-bold text-white"
+                                    placeholder="0"
+                                />
+                             </div>
+                             
+                             <div className="grid grid-cols-3 gap-3">
+                                <div className="space-y-1">
+                                    <Label className="text-[9px] text-zinc-500 uppercase font-bold">Proteína (g)</Label>
+                                    <Input 
+                                        type="number"
+                                        value={v.macros.p || ''}
+                                        onChange={(e) => updateVariant(idx, 'p', e.target.value)}
+                                        className="bg-zinc-900 border-zinc-800 text-center text-zinc-300"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-[9px] text-zinc-500 uppercase font-bold">Carbos (g)</Label>
+                                    <Input 
+                                        type="number"
+                                        value={v.macros.c || ''}
+                                        onChange={(e) => updateVariant(idx, 'c', e.target.value)}
+                                        className="bg-zinc-900 border-zinc-800 text-center text-zinc-300"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-[9px] text-zinc-500 uppercase font-bold">Grasas (g)</Label>
+                                    <Input 
+                                        type="number"
+                                        value={v.macros.f || ''}
+                                        onChange={(e) => updateVariant(idx, 'f', e.target.value)}
+                                        className="bg-zinc-900 border-zinc-800 text-center text-zinc-300"
+                                        placeholder="0"
+                                    />
+                                </div>
+                             </div>
+                        </div>
                     </CardContent>
                 </Card>
             ))}
-        </div>
 
-        {/* Add New Variant Form */}
-        <Card className="bg-zinc-950 border-zinc-800 text-white border-dashed">
-             <CardContent className="p-4 space-y-3">
-                <Label className="text-[10px] text-zinc-500 uppercase font-bold">Agregar Variante de Día</Label>
-                <Input 
-                    placeholder="Nombre (Ej: Día Alto Carbos)" 
-                    className="bg-zinc-900 border-zinc-800 h-9 text-xs"
-                    value={newVariantName}
-                    onChange={(e) => setNewVariantName(e.target.value)}
-                />
-                
-                <div className="grid grid-cols-4 gap-2">
-                    <div className="space-y-1">
-                        <Label className="text-[9px] text-zinc-500 uppercase">Kcal</Label>
-                        <Input type="number" placeholder="0" className="bg-zinc-900 border-zinc-800 h-8 text-xs text-center px-1" value={newCals || ''} onChange={(e) => setNewCals(Number(e.target.value))} />
-                    </div>
-                    <div className="space-y-1">
-                        <Label className="text-[9px] text-zinc-500 uppercase">Prot</Label>
-                        <Input type="number" placeholder="0" className="bg-zinc-900 border-zinc-800 h-8 text-xs text-center px-1" value={newP || ''} onChange={(e) => setNewP(Number(e.target.value))} />
-                    </div>
-                    <div className="space-y-1">
-                        <Label className="text-[9px] text-zinc-500 uppercase">Carb</Label>
-                        <Input type="number" placeholder="0" className="bg-zinc-900 border-zinc-800 h-8 text-xs text-center px-1" value={newC || ''} onChange={(e) => setNewC(Number(e.target.value))} />
-                    </div>
-                    <div className="space-y-1">
-                        <Label className="text-[9px] text-zinc-500 uppercase">Gras</Label>
-                        <Input type="number" placeholder="0" className="bg-zinc-900 border-zinc-800 h-8 text-xs text-center px-1" value={newF || ''} onChange={(e) => setNewF(Number(e.target.value))} />
-                    </div>
-                </div>
-
+            {strategyType === 'cycling' && (
                 <Button 
-                    size="sm" 
-                    className="w-full bg-zinc-800 hover:bg-zinc-700 h-8 text-xs uppercase font-bold"
+                    variant="outline" 
+                    className="w-full border-dashed border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 uppercase font-bold text-xs"
                     onClick={addVariant}
-                    disabled={!newVariantName}
                 >
-                    <Plus className="h-3 w-3 mr-1" /> Agregar Variante
+                    + Agregar Variante
                 </Button>
-             </CardContent>
-        </Card>
+            )}
+        </div>
       </div>
 
-      {/* 4. SUPPLEMENT STACK */}
+      {/* SUPPLEMENT STACK */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-zinc-500 mb-2">
             <span className="text-xs font-bold uppercase tracking-widest">Stack de Suplementos</span>
         </div>
 
-        {/* Timing Boxes */}
         <div className="grid gap-3">
             {timingLabels.map((time) => {
                 const groupedSups = getSupplementsByTiming(time.key);
-                // Always show the box if it has supplements, or if we are in "edit mode" (implied by presence of form below)
-                // Actually, let's just show boxes that have items, or a placeholder if empty
                 if (groupedSups.length === 0) return null;
 
                 return (
@@ -339,7 +436,6 @@ export default function Nutrition() {
              )}
         </div>
 
-        {/* Add Supplement Form */}
         <Card className="bg-zinc-950 border-zinc-800 text-white border-dashed">
             <CardContent className="p-4 space-y-3">
                 <Label className="text-[10px] text-zinc-500 uppercase font-bold">Agregar al Stack</Label>
@@ -376,7 +472,6 @@ export default function Nutrition() {
         </Card>
       </div>
 
-      {/* Save Button */}
       <Button 
         className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-wide border border-red-500/20 shadow-[0_0_15px_rgba(220,38,38,0.2)] relative overflow-hidden" 
         onClick={saveConfig} 
