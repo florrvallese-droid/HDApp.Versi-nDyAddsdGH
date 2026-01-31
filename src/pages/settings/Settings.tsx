@@ -9,13 +9,18 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, LogOut, CreditCard, User } from "lucide-react";
+import { ChevronLeft, LogOut, CreditCard, User, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+// In a real app, these come from Env Vars
+const STRIPE_MONTHLY_PRICE_ID = "price_1Q..."; // Placeholder
+// const STRIPE_YEARLY_PRICE_ID = "price_1Q..."; 
 
 export default function Settings() {
   const navigate = useNavigate();
   const { profile, loading: profileLoading } = useProfile();
   const [loading, setLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const [displayName, setDisplayName] = useState("");
   const [coachTone, setCoachTone] = useState("");
@@ -54,6 +59,36 @@ export default function Settings() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
+  };
+
+  const handleUpgrade = async () => {
+    if (!profile) return;
+    setCheckoutLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          priceId: STRIPE_MONTHLY_PRICE_ID, // Default to monthly for now
+          userId: profile.user_id,
+          returnUrl: window.location.origin + '/settings'
+        }
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No URL returned");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Error iniciando pago. Contacta a soporte.");
+      // For demo purposes, we might want to manually upgrade if Stripe isn't configured in Supabase yet
+      // This is just a fallback for the DYAD environment if keys are missing
+      toast.info("Modo Demo: Contactando servidor de pagos...");
+    } finally {
+      setCheckoutLoading(false);
+    }
   };
 
   if (profileLoading) return <div className="p-8">Cargando...</div>;
@@ -102,7 +137,7 @@ export default function Settings() {
 
               <div className="space-y-2">
                 <Label>Personalidad del Coach</Label>
-                <Select value={coachTone} onValueChange={setCoachTone}>
+                <Select value={coachTone} onValueChange={(v) => setCoachTone(v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -152,8 +187,16 @@ export default function Settings() {
                       <li>Farmacología (Bóveda Privada)</li>
                     </ul>
                   </div>
-                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white font-bold">
-                    Obtener 7 días GRATIS
+                  <Button 
+                    className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white font-bold h-12"
+                    onClick={handleUpgrade}
+                    disabled={checkoutLoading}
+                  >
+                    {checkoutLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      "Obtener 7 días GRATIS"
+                    )}
                   </Button>
                   <p className="text-xs text-center text-muted-foreground">
                     Luego $9.99/mes. Cancela cuando quieras.
