@@ -237,7 +237,7 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess = 
                     <Switch 
                       checked={hasPain} 
                       onCheckedChange={setHasPain}
-                      className="data-[state=checked]:bg-red-600"
+                      className="data-[state=checked]:bg-red-600 data-[state=unchecked]:bg-zinc-700 border-zinc-600"
                     />
                   </div>
                   
