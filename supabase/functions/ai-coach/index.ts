@@ -93,25 +93,39 @@ Deno.serve(async (req) => {
       return response.json();
     };
 
-    // 3. Try Primary Model (1.5 Flash), Fallback to Pro
+    // 3. Select Strategy based on Action
+    let primaryModel = 'gemini-1.5-flash'; // Default fast
+    let fallbackModel = 'gemini-pro';      // Stable fallback
+
+    if (action === 'globalanalysis') {
+      // For audits, prefer Intelligence over Speed
+      primaryModel = 'gemini-1.5-pro';
+      fallbackModel = 'gemini-1.5-flash';
+    }
+
+    // 4. Execution
     let aiResult;
-    let usedModel = 'gemini-1.5-flash-001';
+    let usedModel = primaryModel;
 
     try {
-      // Try specific version first
-      aiResult = await callGemini('gemini-1.5-flash-001');
+      aiResult = await callGemini(primaryModel);
     } catch (err: any) {
-      console.warn(`[ai-coach] Primary model failed: ${err.message}`);
-      // Fallback to stable Gemini Pro 1.0
-      console.log("[ai-coach] Falling back to gemini-pro");
-      usedModel = 'gemini-pro';
-      aiResult = await callGemini('gemini-pro');
+      console.warn(`[ai-coach] Primary model ${primaryModel} failed: ${err.message}`);
+      
+      // Fallback
+      console.log(`[ai-coach] Falling back to ${fallbackModel}`);
+      usedModel = fallbackModel;
+      try {
+        aiResult = await callGemini(fallbackModel);
+      } catch (fallbackErr: any) {
+        throw new Error(`All AI models failed. Primary: ${err.message}. Fallback: ${fallbackErr.message}`);
+      }
     }
 
     const generatedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!generatedText) throw new Error("AI returned no content.");
 
-    // 4. Parse
+    // 5. Parse
     let parsedOutput;
     try {
       const cleanedText = generatedText.replace(/```json\n?|\n?```/g, "").trim();
@@ -121,7 +135,7 @@ Deno.serve(async (req) => {
       throw new Error("AI response was not valid JSON.");
     }
 
-    // 5. Log
+    // 6. Log
     supabase.from('ai_logs').insert({
       user_id: userId || null, 
       action,
