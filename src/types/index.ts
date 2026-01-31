@@ -32,6 +32,12 @@ export interface UserProfile {
     language?: 'es' | 'en';
     theme?: 'dark' | 'light';
     nutrition?: NutritionConfig;
+    
+    // Physical Stats & Objectives
+    age?: string;
+    height?: string;
+    current_weight?: string;
+    objectives?: string;
   };
 }
 
@@ -92,7 +98,7 @@ export interface PreWorkoutData {
   inputs: {
     sleep: number;
     stress: number;
-    sensation: number;
+    sensation: number | string; // Changed to allow string since we use textarea now
     pain: boolean;
     painDescription?: string;
   };

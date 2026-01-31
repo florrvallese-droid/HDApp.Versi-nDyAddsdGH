@@ -1,80 +1,74 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { ChevronLeft, LogOut, CreditCard, User, Loader2, Upload, Camera, CheckCircle2, XCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-
-// In a real app, these come from Env Vars
-const STRIPE_MONTHLY_PRICE_ID = "price_monthly_id"; 
+import { useNavigate } from "react-router-dom";
+import { User, Camera, Loader2, ChevronLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Settings() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { profile, loading: profileLoading, hasProAccess, daysLeftInTrial } = useProfile();
+  const { profile, loading: profileLoading } = useProfile();
   const [loading, setLoading] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   // Form State
   const [displayName, setDisplayName] = useState("");
-  const [coachTone, setCoachTone] = useState("");
-  const [discipline, setDiscipline] = useState("");
+  const [sex, setSex] = useState<'male'|'female'>("male");
+  const [age, setAge] = useState("");
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [objectives, setObjectives] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || "");
-      setCoachTone(profile.coach_tone);
-      setDiscipline(profile.discipline);
+      setSex((profile.sex as 'male'|'female') || 'male');
       setAvatarUrl(profile.avatar_url || null);
+      
+      // Load extra fields from settings jsonb
+      if (profile.settings) {
+        setAge(profile.settings.age || "");
+        setHeight(profile.settings.height || "");
+        setWeight(profile.settings.current_weight || "");
+        setObjectives(profile.settings.objectives || "");
+      }
     }
   }, [profile]);
-
-  // Handle Stripe Return
-  useEffect(() => {
-    if (searchParams.get("session_id")) {
-      toast.success("¡Suscripción exitosa!", {
-        description: "Bienvenido a Heavy Duty PRO.",
-        duration: 5000,
-      });
-      // Optionally clear params
-      navigate("/settings?tab=billing", { replace: true });
-    }
-    if (searchParams.get("canceled")) {
-      toast.info("Suscripción cancelada", {
-        description: "No se ha realizado ningún cobro.",
-      });
-      navigate("/settings?tab=billing", { replace: true });
-    }
-  }, [searchParams, navigate]);
 
   const handleSave = async () => {
     if (!profile) return;
     setLoading(true);
 
+    // Merge new fields into settings
+    const updatedSettings = {
+      ...profile.settings,
+      age,
+      height,
+      current_weight: weight,
+      objectives
+    };
+
     const { error } = await supabase
       .from('profiles')
       .update({
         display_name: displayName,
-        coach_tone: coachTone,
-        discipline: discipline,
+        sex: sex,
+        settings: updatedSettings,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', profile.user_id);
 
     setLoading(false);
     if (error) {
-      toast.error("Error al guardar cambios");
+      toast.error("Error al guardar ficha técnica");
     } else {
-      toast.success("Perfil actualizado");
+      toast.success("Ficha técnica actualizada");
     }
   };
 
@@ -106,7 +100,7 @@ export default function Settings() {
       if (updateError) throw updateError;
 
       setAvatarUrl(publicUrl);
-      toast.success("Avatar actualizado");
+      toast.success("Foto actualizada");
 
     } catch (error: any) {
       toast.error(error.message);
@@ -115,201 +109,160 @@ export default function Settings() {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
-
-  const handleUpgrade = async () => {
-    if (!profile) return;
-    setCheckoutLoading(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: {
-          priceId: STRIPE_MONTHLY_PRICE_ID,
-          userId: profile.user_id,
-          returnUrl: window.location.origin + '/settings'
-        }
-      });
-
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error("No URL returned");
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Error iniciando pago. Contacta a soporte.");
-      
-      // Fallback for Demo Mode if API fails
-      toast.info("MODO DEMO: Redirigiendo simulado...", { duration: 2000 });
-      setTimeout(() => {
-         navigate("/settings?session_id=demo_success&tab=billing");
-      }, 1500);
-    } finally {
-      setCheckoutLoading(false);
-    }
-  };
-
-  if (profileLoading) return <div className="p-8">Cargando...</div>;
+  if (profileLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-red-600"><Loader2 className="animate-spin h-8 w-8" /></div>;
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-20 max-w-md mx-auto space-y-6">
+    <div className="min-h-screen bg-black text-white p-6 pb-24 flex flex-col items-center">
       
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-2xl font-bold">Ajustes</h1>
+      {/* HEADER */}
+      <div className="w-full max-w-2xl text-center mb-8 space-y-1">
+        <h1 className="text-4xl font-black italic uppercase tracking-tighter text-white">
+          FICHA TÉCNICA
+        </h1>
+        <p className="text-red-600 font-bold tracking-widest text-xs uppercase">
+          IDENTIFICACIÓN DEL ATLETA
+        </p>
+        <div className="h-[1px] w-full bg-zinc-900 mt-6" />
       </div>
 
-      <Tabs defaultValue={searchParams.get("tab") || "profile"}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="profile">Perfil</TabsTrigger>
-          <TabsTrigger value="billing">Suscripción</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="profile" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><User className="h-5 w-5"/> Datos Personales</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              
-              <div className="flex flex-col items-center gap-4">
-                <div className="relative h-24 w-24 rounded-full overflow-hidden bg-muted border-2 border-dashed border-muted-foreground/30 flex items-center justify-center group cursor-pointer">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
-                  ) : (
-                    <User className="h-10 w-10 text-muted-foreground" />
-                  )}
-                  
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Camera className="text-white h-6 w-6" />
-                  </div>
-                  
-                  <input 
-                    type="file" 
-                    className="absolute inset-0 opacity-0 cursor-pointer" 
-                    accept="image/*"
-                    onChange={handleAvatarUpload}
-                    disabled={uploadingAvatar}
-                  />
-                </div>
-                {uploadingAvatar && <span className="text-xs text-muted-foreground animate-pulse">Subiendo...</span>}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Nombre</Label>
-                <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Disciplina Principal</Label>
-                <Select value={discipline} onValueChange={setDiscipline}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="bodybuilding">Bodybuilding</SelectItem>
-                    <SelectItem value="powerlifting">Powerlifting</SelectItem>
-                    <SelectItem value="crossfit">CrossFit</SelectItem>
-                    <SelectItem value="general">General Fitness</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Personalidad del Coach</Label>
-                <Select value={coachTone} onValueChange={(v) => setCoachTone(v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="strict">Strict (Estricto)</SelectItem>
-                    <SelectItem value="motivational">Motivational</SelectItem>
-                    <SelectItem value="analytical">Analytical</SelectItem>
-                    <SelectItem value="friendly">Friendly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button className="w-full" onClick={handleSave} disabled={loading}>
-                {loading ? "Guardando..." : "Guardar Cambios"}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Button variant="outline" className="w-full text-red-500 hover:text-red-600 hover:bg-red-50" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
-          </Button>
-        </TabsContent>
-
-        <TabsContent value="billing" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5"/> Estado de Cuenta</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
-                <span className="font-medium">Plan Actual</span>
-                {profile?.is_premium ? (
-                  <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0">PRO</Badge>
-                ) : daysLeftInTrial > 0 ? (
-                  <Badge variant="outline" className="border-yellow-600 text-yellow-600">TRIAL ({daysLeftInTrial} días)</Badge>
-                ) : (
-                  <Badge variant="outline">Gratuito</Badge>
-                )}
-              </div>
-
-              {!profile?.is_premium ? (
-                <div className="space-y-4">
-                  <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 space-y-2">
-                    <h3 className="font-bold text-primary">Upgrade a PRO</h3>
-                    <ul className="text-sm space-y-1 text-muted-foreground list-disc list-inside">
-                      <li>Coach IA personalizado</li>
-                      <li>Análisis ilimitados</li>
-                      <li>Módulo de Nutrición</li>
-                      <li>Farmacología (Bóveda Privada)</li>
-                    </ul>
-                  </div>
-                  <Button 
-                    className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white font-bold h-12"
-                    onClick={handleUpgrade}
-                    disabled={checkoutLoading}
-                  >
-                    {checkoutLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      "Obtener 7 días GRATIS"
-                    )}
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground">
-                    Luego $9.99/mes. Cancela cuando quieras.
-                  </p>
-                </div>
+      <div className="w-full max-w-2xl grid md:grid-cols-[200px_1fr] gap-8">
+        
+        {/* LEFT COLUMN: AVATAR & BADGE */}
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative group cursor-pointer">
+            <div className="h-40 w-40 rounded-full border-[3px] border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.4)] overflow-hidden bg-zinc-900 flex items-center justify-center relative">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <div className="space-y-4">
-                  <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20 flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
-                    <div>
-                      <h3 className="font-bold text-green-500">Membresía Activa</h3>
-                      <p className="text-sm text-muted-foreground">
-                         Tu suscripción está activa. Disfruta de todas las funciones Heavy Duty.
-                      </p>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="w-full">
-                    Administrar Suscripción
-                  </Button>
-                </div>
+                <User className="h-16 w-16 text-zinc-700" />
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              
+              {/* Overlay for upload */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Camera className="text-white h-8 w-8" />
+              </div>
+            </div>
+            <input 
+              type="file" 
+              className="absolute inset-0 opacity-0 cursor-pointer" 
+              accept="image/*"
+              onChange={handleAvatarUpload}
+              disabled={uploadingAvatar}
+            />
+          </div>
+
+          <div className="bg-gradient-to-r from-red-600 to-red-800 text-white text-xs font-black uppercase tracking-widest px-6 py-1.5 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]">
+            {profile?.is_premium ? "MIEMBRO PRO" : "MIEMBRO FREE"}
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: FORM */}
+        <div className="space-y-5 w-full">
+          
+          {/* Nombre */}
+          <div className="space-y-1">
+            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Nombre Completo</Label>
+            <Input 
+              value={displayName} 
+              onChange={(e) => setDisplayName(e.target.value)} 
+              className="bg-zinc-950 border-zinc-800 h-11 text-white font-bold text-lg focus:border-red-600 transition-colors"
+            />
+          </div>
+
+          {/* Sexo Toggle */}
+          <div className="space-y-1">
+            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Sexo</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setSex('male')}
+                className={cn(
+                  "h-10 rounded border text-sm font-bold uppercase transition-all",
+                  sex === 'male' 
+                    ? "bg-[#1a1a2e] border-[#2a2a4e] text-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.2)]" 
+                    : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300"
+                )}
+              >
+                Masculino
+              </button>
+              <button
+                onClick={() => setSex('female')}
+                className={cn(
+                  "h-10 rounded border text-sm font-bold uppercase transition-all",
+                  sex === 'female' 
+                    ? "bg-[#2e1a25] border-[#4e2a3a] text-pink-400 shadow-[0_0_10px_rgba(244,114,182,0.2)]" 
+                    : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300"
+                )}
+              >
+                Femenino
+              </button>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Edad</Label>
+              <Input 
+                type="number"
+                value={age} 
+                onChange={(e) => setAge(e.target.value)}
+                className="bg-zinc-950 border-zinc-800 text-white font-bold"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Altura (cm)</Label>
+              <Input 
+                type="number"
+                value={height} 
+                onChange={(e) => setHeight(e.target.value)}
+                className="bg-zinc-950 border-zinc-800 text-white font-bold"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Peso (kg)</Label>
+              <Input 
+                type="number"
+                value={weight} 
+                onChange={(e) => setWeight(e.target.value)}
+                className="bg-zinc-950 border-zinc-800 text-white font-bold"
+              />
+            </div>
+          </div>
+
+          {/* Objectives */}
+          <div className="space-y-1">
+            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Objetivos Trimestrales</Label>
+            <Textarea 
+              value={objectives}
+              onChange={(e) => setObjectives(e.target.value)}
+              className="bg-zinc-950 border-zinc-800 text-white min-h-[100px] resize-none focus:border-red-600"
+              placeholder="Ej: Aumentar 5kg de masa magra..."
+            />
+          </div>
+
+        </div>
+      </div>
+
+      <div className="h-[1px] w-full max-w-2xl bg-zinc-900 mt-8 mb-6" />
+
+      {/* FOOTER ACTIONS */}
+      <div className="w-full max-w-2xl grid grid-cols-2 gap-4">
+        <Button 
+          variant="outline" 
+          className="h-12 bg-transparent border-zinc-800 text-white hover:bg-zinc-900 font-bold uppercase tracking-wider"
+          onClick={() => navigate('/dashboard')}
+        >
+          Volver
+        </Button>
+        <Button 
+          className="h-12 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-wider shadow-[0_0_20px_rgba(220,38,38,0.4)]"
+          onClick={handleSave}
+          disabled={loading}
+        >
+          {loading ? "Guardando..." : "Guardar Perfil"}
+        </Button>
+      </div>
+
     </div>
   );
 }
