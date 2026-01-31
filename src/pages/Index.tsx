@@ -26,8 +26,11 @@ const Index = () => {
       {/* Navbar */}
       <nav className="relative z-10 flex justify-between items-center p-6 max-w-6xl mx-auto w-full">
         <div className="flex items-center gap-2">
-           <div className="h-8 w-8 bg-red-600 rounded flex items-center justify-center font-black italic">HD</div>
-           <span className="font-bold tracking-tighter text-lg hidden sm:inline-block">DI IORIO GYM</span>
+           <img 
+             src="/logo.png" 
+             alt="Di Iorio Gym" 
+             className="h-12 w-auto object-contain brightness-0 invert" 
+           />
         </div>
         <Button 
             variant="ghost" 
