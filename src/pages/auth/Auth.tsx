@@ -7,6 +7,7 @@ import { supabase } from "@/services/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ChevronLeft } from "lucide-react";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -97,8 +98,16 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 relative">
+      <Button 
+        variant="ghost" 
+        className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
+        onClick={() => navigate("/")}
+      >
+        <ChevronLeft className="mr-2 h-4 w-4" /> Volver al Inicio
+      </Button>
+
+      <Card className="w-full max-w-md mt-8">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Heavy Duty Di Iorio</CardTitle>
           <CardDescription>Entrena inteligente, no solo duro.</CardDescription>
