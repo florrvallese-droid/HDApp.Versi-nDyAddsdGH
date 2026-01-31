@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dumbbell, Camera, Brain, ChevronRight, TrendingUp, Utensils, Syringe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/services/supabase";
 import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
@@ -11,7 +12,9 @@ import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { profile, loading } = useProfile();
+  const { profile, loading: profileLoading } = useProfile();
+  const { flags, loading: flagsLoading } = useFeatureFlags();
+  
   const [showPreWorkout, setShowPreWorkout] = useState(false);
   const [weeklySessions, setWeeklySessions] = useState(0);
 
@@ -41,6 +44,8 @@ const Dashboard = () => {
         
     setWeeklySessions(count || 0);
   };
+
+  const loading = profileLoading || flagsLoading;
 
   if (loading) {
     return (
@@ -145,37 +150,41 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-         <Card 
-          className="hover:bg-accent/50 cursor-pointer transition-all hover:scale-[1.02]" 
-          onClick={() => navigate('/analysis')}
-        >
-          <CardContent className="flex flex-col items-center justify-center p-6 gap-3">
-            <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <span className="font-semibold">Auditoría</span>
-          </CardContent>
-        </Card>
+        {flags['global_analysis'] !== false && (
+          <Card 
+            className="hover:bg-accent/50 cursor-pointer transition-all hover:scale-[1.02]" 
+            onClick={() => navigate('/analysis')}
+          >
+            <CardContent className="flex flex-col items-center justify-center p-6 gap-3">
+              <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              </div>
+              <span className="font-semibold">Auditoría</span>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Pharmacology / Private Vault */}
-      <Card 
-        className="border-red-900/20 bg-gradient-to-r from-red-950/10 to-transparent cursor-pointer transition-all hover:border-red-900/50"
-        onClick={() => navigate('/pharmacology')}
-      >
-        <CardContent className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="h-10 w-10 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
-              <Syringe className="h-5 w-5 text-red-600 dark:text-red-500" />
+      {/* Pharmacology / Private Vault - Controlled by Feature Flag */}
+      {flags['pharmacology'] !== false && (
+        <Card 
+          className="border-red-900/20 bg-gradient-to-r from-red-950/10 to-transparent cursor-pointer transition-all hover:border-red-900/50"
+          onClick={() => navigate('/pharmacology')}
+        >
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                <Syringe className="h-5 w-5 text-red-600 dark:text-red-500" />
+              </div>
+              <div>
+                <p className="font-bold text-sm text-red-700 dark:text-red-400">Farmacología</p>
+                <p className="text-xs text-muted-foreground">Registro privado de ciclos</p>
+              </div>
             </div>
-            <div>
-              <p className="font-bold text-sm text-red-700 dark:text-red-400">Farmacología</p>
-              <p className="text-xs text-muted-foreground">Registro privado de ciclos</p>
-            </div>
-          </div>
-          <ChevronRight className="text-muted-foreground h-5 w-5" />
-        </CardContent>
-      </Card>
+            <ChevronRight className="text-muted-foreground h-5 w-5" />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Weekly Summary */}
       <div className="space-y-4 pt-2">
