@@ -14,6 +14,7 @@ import PostWorkout from "./pages/workout/PostWorkout";
 import Checkin from "./pages/checkin/Checkin";
 import GlobalAnalysis from "./pages/analysis/GlobalAnalysis";
 import Nutrition from "./pages/nutrition/Nutrition";
+import Pharmacology from "./pages/pharmacology/Pharmacology";
 import NotFound from "./pages/NotFound";
 
 // Admin
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/checkin" element={<Checkin />} />
           <Route path="/analysis" element={<GlobalAnalysis />} />
           <Route path="/nutrition" element={<Nutrition />} />
+          <Route path="/pharmacology" element={<Pharmacology />} />
           
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />

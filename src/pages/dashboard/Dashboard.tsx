@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dumbbell, Camera, Brain, ChevronRight, LogOut, TrendingUp, Utensils } from "lucide-react";
+import { Dumbbell, Camera, Brain, ChevronRight, LogOut, TrendingUp, Utensils, Syringe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -134,6 +134,25 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Pharmacology / Private Vault */}
+      <Card 
+        className="border-red-900/20 bg-gradient-to-r from-red-950/10 to-transparent cursor-pointer transition-all hover:border-red-900/50"
+        onClick={() => navigate('/pharmacology')}
+      >
+        <CardContent className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+              <Syringe className="h-5 w-5 text-red-600 dark:text-red-500" />
+            </div>
+            <div>
+              <p className="font-bold text-sm text-red-700 dark:text-red-400">Farmacología</p>
+              <p className="text-xs text-muted-foreground">Registro privado de ciclos</p>
+            </div>
+          </div>
+          <ChevronRight className="text-muted-foreground h-5 w-5" />
+        </CardContent>
+      </Card>
 
       {/* Weekly Summary */}
       <div className="space-y-4 pt-2">

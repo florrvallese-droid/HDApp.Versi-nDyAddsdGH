@@ -71,6 +71,22 @@ export interface Log {
   data: Record<string, any>;
 }
 
+// Pharmacology Specifics
+export interface Compound {
+  id: string;
+  name: string;
+  dosage: string; // e.g. "500mg/week"
+  type: 'injectable' | 'oral' | 'ancillary';
+}
+
+export interface PharmaCycle {
+  name: string;
+  start_date: string;
+  end_date?: string;
+  compounds: Compound[];
+  notes?: string;
+}
+
 // Interfaces específicas para la data de los logs
 export interface PreWorkoutData {
   inputs: {
