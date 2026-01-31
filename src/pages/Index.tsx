@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/services/supabase";
-import { Brain, TrendingUp, ShieldCheck, ChevronRight, Dumbbell, Star } from "lucide-react";
+import { Brain, TrendingUp, ShieldCheck, ChevronRight, Star } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -39,25 +39,29 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-12 relative z-10 max-w-4xl mx-auto space-y-8">
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-12 relative z-10 max-w-5xl mx-auto space-y-10">
         
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-900/50 bg-red-900/10 text-red-500 text-[10px] font-bold uppercase tracking-widest mb-4">
             <Star className="w-3 h-3 fill-current" /> Versión 2.0 con IA
           </div>
           
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase italic leading-[0.9]">
-            Heavy Duty<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-800">Protocol</span>
-          </h1>
+          <div className="space-y-2">
+            <h1 className="text-6xl md:text-9xl font-black tracking-tighter uppercase italic leading-[0.85]">
+              HEAVY DUTY
+            </h1>
+            <h2 className="text-lg md:text-3xl font-bold tracking-[0.2em] text-red-500 uppercase">
+              TU <span className="text-white">CUADERNO</span> DE ENTRENAMIENTO
+            </h2>
+          </div>
           
-          <p className="text-lg md:text-xl text-zinc-400 max-w-xl mx-auto leading-relaxed">
-            Deja de adivinar. Deja de perder el tiempo.<br/>
-            Entrenamiento de alta intensidad asistido por <strong>Inteligencia Artificial</strong>.
+          <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed pt-4 font-medium">
+            Dejá de adivinar y empezá a entrenar en serio.<br className="hidden md:block"/> 
+            No podés saber si estás progresando si no medís lo que estás haciendo.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200 pt-4">
+        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200 pt-2">
           <Button 
             size="lg" 
             className="w-full h-14 text-lg font-black italic uppercase bg-red-600 hover:bg-red-700 text-white shadow-[0_0_30px_rgba(220,38,38,0.4)] border border-red-500/20"
@@ -68,26 +72,29 @@ const Index = () => {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-16 w-full animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 w-full animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300 text-left">
+          
           <FeatureCard 
             icon={<Brain className="w-6 h-6 text-red-500" />}
-            title="Coach IA"
-            desc="Analiza tu sueño y estrés para decidir la intensidad del día."
+            title="EVALUACIÓN SISTÉMICA"
+            desc="Analizá tu descanso y estrés para decidir tu fase de entrenamiento. A veces, la decisión más anabólica no es hacer otra serie, sino dormir una hora más para equilibrar tu dopamina y bajar el cortisol."
           />
+          
           <FeatureCard 
-            icon={<TrendingUp className="w-6 h-6 text-green-500" />}
-            title="Sobrecarga"
-            desc="El sistema te obliga a superar tus marcas en cada sesión."
+            icon={<TrendingUp className="w-6 h-6 text-white" />}
+            title="SOBRECARGA PROGRESIVA"
+            desc="Tu guía. Abrís el cuaderno, mirás lo que hiciste la semana pasada y tu objetivo es simple: superarlo."
           />
+          
           <FeatureCard 
             icon={<ShieldCheck className="w-6 h-6 text-blue-500" />}
-            title="Auditoría"
-            desc="Detecta patrones ocultos y optimiza tu recuperación."
+            title="AUDITORÍA"
+            desc="Detecta patrones ocultos y optimiza tu recuperación basándose en tus datos históricos."
           />
         </div>
 
         {/* Social Proof / Stats */}
-        <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-8 w-full border-t border-zinc-900/50 mt-12">
+        <div className="pt-16 grid grid-cols-2 md:grid-cols-4 gap-8 w-full border-t border-zinc-900/50 mt-12">
             <Stat number="+10k" label="Sesiones" />
             <Stat number="4.9/5" label="Rating IA" />
             <Stat number="100%" label="Ciencia" />
@@ -111,10 +118,10 @@ const Index = () => {
 };
 
 const FeatureCard = ({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) => (
-  <div className="bg-zinc-900/40 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800/50 hover:border-zinc-700/80 hover:bg-zinc-900/60 transition-all text-left group">
+  <div className="bg-zinc-900/40 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800/50 hover:border-zinc-700/80 hover:bg-zinc-900/60 transition-all group h-full">
     <div className="mb-4 bg-zinc-950 w-fit p-3 rounded-xl border border-zinc-800 group-hover:border-zinc-700 transition-colors">{icon}</div>
-    <h3 className="text-lg font-bold mb-2 text-zinc-200 uppercase tracking-wide">{title}</h3>
-    <p className="text-zinc-500 text-sm leading-relaxed">{desc}</p>
+    <h3 className="text-lg font-black mb-3 text-zinc-100 uppercase tracking-wide">{title}</h3>
+    <p className="text-zinc-400 text-sm leading-relaxed font-medium">{desc}</p>
   </div>
 );
 
