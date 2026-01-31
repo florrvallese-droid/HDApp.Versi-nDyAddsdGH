@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { CoachTone, PreWorkoutData } from "@/types";
 import { Loader2, AlertTriangle, CheckCircle2, Moon, Activity, Zap, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { aiService } from "@/services/ai";
+import { toast } from "sonner";
 
 interface PreWorkoutModalProps {
   open: boolean;
@@ -33,61 +35,29 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone }: PreWorkoutMod
     setStep('processing');
     setLoading(true);
 
-    // SIMULACIÓN DE IA / LÓGICA DETERMINÍSTICA (Fallback del PRD)
-    // En el futuro, esto llamará a la Edge Function de Supabase
-    
-    setTimeout(() => {
-      let decision: 'TRAIN_HEAVY' | 'TRAIN_LIGHT' | 'REST' = 'TRAIN_HEAVY';
-      let rationale = "";
-      let recommendations: string[] = [];
-
-      // Reglas básicas del PRD
-      if (pain) {
-        decision = 'TRAIN_LIGHT';
-        rationale = "El dolor reportado es una señal de alerta. No arriesgues una lesión mayor.";
-        recommendations.push("Evita ejercicios que agraven la molestia.");
-        recommendations.push("Enfócate en movilidad y flujo sanguíneo.");
-      } else if (sleep < 5) {
-        decision = 'REST';
-        rationale = "Tu recuperación neurológica es insuficiente. Entrenar hoy solo aumentará el cortisol.";
-        recommendations.push("Prioriza dormir 8 horas hoy.");
-        recommendations.push("Haz una caminata ligera si necesitas movimiento.");
-      } else if (stress > 8) {
-        decision = 'TRAIN_LIGHT';
-        rationale = "El estrés sistémico es muy alto. Añadir estrés físico intenso sería contraproducente.";
-        recommendations.push("Reduce el volumen al 50%.");
-        recommendations.push("No vayas al fallo hoy.");
-      } else if (sensation < 4) {
-        decision = 'REST';
-        rationale = "Tu cuerpo te está pidiendo descanso activamente.";
-        recommendations.push("Día libre total.");
-      } else {
-        // Default Heavy
-        decision = 'TRAIN_HEAVY';
-        rationale = "Tus biomarcadores están alineados para el alto rendimiento.";
-        recommendations.push("Busca superar tus marcas anteriores.");
-        recommendations.push("Mantén la intensidad alta.");
-      }
-
-      // Ajuste de tono
-      if (coachTone === 'strict') {
-        if (decision === 'TRAIN_HEAVY') rationale += " No acepto menos que tu máximo esfuerzo.";
-        if (decision === 'REST') rationale += " Descansar es parte de la disciplina. Cúmplelo.";
-      } else if (coachTone === 'motivational') {
-        if (decision === 'TRAIN_HEAVY') rationale += " ¡Hoy es el día para brillar!";
-        if (decision === 'REST') rationale += " ¡Recarga energías para volver más fuerte!";
-      }
+    try {
+      const aiResponse = await aiService.getPreWorkoutAdvice(coachTone, {
+        sleep,
+        stress,
+        sensation,
+        pain,
+        painDescription: painDesc
+      });
 
       setResult({
         inputs: { sleep, stress, sensation, pain, painDescription: painDesc },
-        decision,
-        rationale,
-        recommendations
+        decision: aiResponse.decision,
+        rationale: aiResponse.rationale,
+        recommendations: aiResponse.recommendations
       });
       
-      setLoading(false);
       setStep('result');
-    }, 1500);
+    } catch (error) {
+      toast.error("Error al consultar al coach. Intenta nuevamente.");
+      setStep('input');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -109,7 +79,7 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone }: PreWorkoutMod
           </DialogTitle>
           <DialogDescription>
             {step === 'input' && "Sé honesto. La calidad de la decisión depende de tus datos."}
-            {step === 'processing' && "Procesando tus biomarcadores."}
+            {step === 'processing' && "Procesando tus biomarcadores con Gemini AI."}
             {step === 'result' && "Basado en tu estado actual."}
           </DialogDescription>
         </DialogHeader>
@@ -171,7 +141,7 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone }: PreWorkoutMod
         {step === 'processing' && (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="text-muted-foreground animate-pulse">Consultando modelo...</p>
+            <p className="text-muted-foreground animate-pulse">Conectando con el cerebro digital...</p>
           </div>
         )}
 
@@ -222,7 +192,6 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone }: PreWorkoutMod
               </Button>
               {result.decision !== 'REST' && (
                 <Button className="w-full sm:w-auto" onClick={() => {
-                  // TODO: Navigate to Workout with settings
                   onOpenChange(false);
                 }}>
                   Iniciar Entrenamiento
