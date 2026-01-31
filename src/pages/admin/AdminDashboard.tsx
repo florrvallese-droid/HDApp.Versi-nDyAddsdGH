@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/services/supabase";
-import { Users, Activity, DollarSign, Brain } from "lucide-react";
+import { Users, Activity, DollarSign, Brain, Zap } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format, subDays } from "date-fns";
@@ -11,7 +11,8 @@ export default function AdminDashboard() {
     users: 0,
     premiumUsers: 0,
     aiRequests: 0,
-    totalLogs: 0
+    totalLogs: 0,
+    totalTokens: 0
   });
 
   const [chartData, setChartData] = useState<any[]>([]);
@@ -28,12 +29,17 @@ export default function AdminDashboard() {
     const { count: premiumCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_premium', true);
     const { count: aiCount } = await supabase.from('ai_logs').select('*', { count: 'exact', head: true });
     const { count: logsCount } = await supabase.from('logs').select('*', { count: 'exact', head: true });
+    
+    // Calculate total tokens
+    const { data: tokenData } = await supabase.from('ai_logs').select('tokens_used');
+    const totalTokens = tokenData?.reduce((sum, row) => sum + (row.tokens_used || 0), 0) || 0;
 
     setStats({
       users: userCount || 0,
       premiumUsers: premiumCount || 0,
       aiRequests: aiCount || 0,
-      totalLogs: logsCount || 0
+      totalLogs: logsCount || 0,
+      totalTokens: totalTokens
     });
   };
 
@@ -104,14 +110,15 @@ export default function AdminDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Consultas IA</CardTitle>
+            <CardTitle className="text-sm font-medium">Uso de IA</CardTitle>
             <Brain className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.aiRequests}</div>
-            <p className="text-xs text-muted-foreground">
-              Total histórico
-            </p>
+            <div className="text-2xl font-bold">{stats.aiRequests} <span className="text-sm font-normal text-muted-foreground">reqs</span></div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+               <Zap className="h-3 w-3 text-yellow-500" />
+               <span className="font-mono font-medium text-white">{stats.totalTokens.toLocaleString()}</span> tokens totales
+            </div>
           </CardContent>
         </Card>
 
