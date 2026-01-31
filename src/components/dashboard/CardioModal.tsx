@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { Zap, Loader2 } from "lucide-react";
+import { Zap, Loader2, Footprints } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 
 interface CardioModalProps {
@@ -20,8 +20,9 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
   const [loading, setLoading] = useState(false);
   
   const [duration, setDuration] = useState("");
-  const [type, setType] = useState("liss");
+  const [type, setType] = useState("walking");
   const [calories, setCalories] = useState("");
+  const [steps, setSteps] = useState("");
   const [notes, setNotes] = useState("");
 
   const handleSubmit = async () => {
@@ -37,6 +38,7 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
           duration_minutes: parseInt(duration),
           type,
           calories: calories ? parseInt(calories) : null,
+          steps: (type === 'walking' && steps) ? parseInt(steps) : null,
           notes
         }
       });
@@ -45,9 +47,14 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
 
       toast.success("Sesión de cardio registrada");
       onOpenChange(false);
+      
+      // Reset form
       setDuration("");
       setCalories("");
+      setSteps("");
       setNotes("");
+      setType("walking");
+      
     } catch (error: any) {
       toast.error("Error al guardar: " + error.message);
     } finally {
@@ -65,11 +72,29 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
           </div>
           <DialogTitle className="text-xl font-bold">Registrar Cardio</DialogTitle>
           <DialogDescription className="text-zinc-500">
-            Suma actividad para mejorar tu capacidad de trabajo.
+            Post-entreno o actividad diaria.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          
+          <div className="space-y-2">
+            <Label>Tipo de Actividad</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger className="bg-zinc-900 border-zinc-800 h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                <SelectItem value="walking">🚶 Caminata</SelectItem>
+                <SelectItem value="cycling">🚴 Bicicleta</SelectItem>
+                <SelectItem value="elliptical">🏃 Elíptico</SelectItem>
+                <SelectItem value="stairmaster">🪜 Escalera</SelectItem>
+                <SelectItem value="running">🏃 Correr</SelectItem>
+                <SelectItem value="other">⚡ Otro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Duración (min)</Label>
@@ -78,40 +103,42 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
                 placeholder="30"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
-                className="bg-zinc-900 border-zinc-800"
+                className="bg-zinc-900 border-zinc-800 h-11"
               />
             </div>
             <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select value={type} onValueChange={setType}>
-                <SelectTrigger className="bg-zinc-900 border-zinc-800">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                  <SelectItem value="liss">LISS (Baja Intensidad)</SelectItem>
-                  <SelectItem value="hiit">HIIT (Intervalos)</SelectItem>
-                  <SelectItem value="miss">MISS (Moderada)</SelectItem>
-                  <SelectItem value="steps">Caminata / Pasos</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Calorías (Opcional)</Label>
+              <Input 
+                type="number" 
+                placeholder="kcal"
+                value={calories}
+                onChange={(e) => setCalories(e.target.value)}
+                className="bg-zinc-900 border-zinc-800 h-11"
+              />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Calorías (Opcional)</Label>
-            <Input 
-              type="number" 
-              placeholder="Ej: 300"
-              value={calories}
-              onChange={(e) => setCalories(e.target.value)}
-              className="bg-zinc-900 border-zinc-800"
-            />
-          </div>
+          {/* Campo condicional para Pasos si es Caminata */}
+          {type === 'walking' && (
+            <div className="space-y-2 animate-in slide-in-from-top-2">
+              <Label className="flex items-center gap-2">
+                <Footprints className="h-3 w-3 text-zinc-500" /> 
+                Cantidad de Pasos (Opcional)
+              </Label>
+              <Input 
+                type="number" 
+                placeholder="Ej: 5000"
+                value={steps}
+                onChange={(e) => setSteps(e.target.value)}
+                className="bg-zinc-900 border-zinc-800 h-11"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Notas</Label>
             <Textarea 
-              placeholder="Máquina utilizada, sensaciones..."
+              placeholder="Sensaciones, inclinación, velocidad..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="bg-zinc-900 border-zinc-800 min-h-[80px]"
