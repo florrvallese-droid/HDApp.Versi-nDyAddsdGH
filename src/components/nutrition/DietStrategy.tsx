@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { X } from "lucide-react";
+import { X, Calculator } from "lucide-react";
 import { DietVariant } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -44,11 +44,26 @@ export function DietStrategy({
 
   const updateVariant = (index: number, field: string, value: any) => {
     const updated = [...variants];
-    if (field === 'name') updated[index].name = value;
-    else if (field === 'calories') updated[index].calories = Number(value);
-    else if (['p', 'c', 'f'].includes(field)) {
-      updated[index].macros = { ...updated[index].macros, [field]: Number(value) };
+    
+    if (field === 'name') {
+      updated[index].name = value;
+    } else if (['p', 'c', 'f'].includes(field)) {
+      // Handle empty string as 0, otherwise number
+      const numValue = value === '' ? 0 : parseFloat(value);
+      
+      const newMacros = { 
+        ...updated[index].macros, 
+        [field]: numValue 
+      };
+      
+      updated[index].macros = newMacros;
+      
+      // Auto-calculate Calories: (P*4) + (C*4) + (F*9)
+      updated[index].calories = Math.round(
+        (newMacros.p * 4) + (newMacros.c * 4) + (newMacros.f * 9)
+      );
     }
+    
     setVariants(updated);
   };
 
@@ -129,45 +144,47 @@ export function DietStrategy({
               </div>
 
               <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-[9px] text-zinc-500 uppercase font-bold">Kcal Totales</Label>
+                <div className="space-y-1 relative">
+                  <Label className="text-[9px] text-zinc-500 uppercase font-bold flex items-center gap-1">
+                    Kcal Totales <Calculator className="w-3 h-3"/>
+                  </Label>
                   <Input 
                     type="number"
                     value={v.calories || ''}
-                    onChange={(e) => updateVariant(idx, 'calories', e.target.value)}
-                    className="bg-zinc-900 border-zinc-800 text-center font-bold text-white"
+                    readOnly
+                    className="bg-zinc-900/50 border-zinc-800/50 text-center font-bold text-zinc-400 cursor-not-allowed"
                     placeholder="0"
                   />
                 </div>
                 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-[9px] text-zinc-500 uppercase font-bold">Proteína (g)</Label>
+                    <Label className="text-[9px] text-zinc-500 uppercase font-bold text-blue-400">Proteína (g)</Label>
                     <Input 
                       type="number"
                       value={v.macros.p || ''}
                       onChange={(e) => updateVariant(idx, 'p', e.target.value)}
-                      className="bg-zinc-900 border-zinc-800 text-center text-zinc-300"
+                      className="bg-zinc-900 border-zinc-800 text-center text-white font-bold focus:border-blue-500/50"
                       placeholder="0"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[9px] text-zinc-500 uppercase font-bold">Carbos (g)</Label>
+                    <Label className="text-[9px] text-zinc-500 uppercase font-bold text-green-400">Carbos (g)</Label>
                     <Input 
                       type="number"
                       value={v.macros.c || ''}
                       onChange={(e) => updateVariant(idx, 'c', e.target.value)}
-                      className="bg-zinc-900 border-zinc-800 text-center text-zinc-300"
+                      className="bg-zinc-900 border-zinc-800 text-center text-white font-bold focus:border-green-500/50"
                       placeholder="0"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[9px] text-zinc-500 uppercase font-bold">Grasas (g)</Label>
+                    <Label className="text-[9px] text-zinc-500 uppercase font-bold text-yellow-400">Grasas (g)</Label>
                     <Input 
                       type="number"
                       value={v.macros.f || ''}
                       onChange={(e) => updateVariant(idx, 'f', e.target.value)}
-                      className="bg-zinc-900 border-zinc-800 text-center text-zinc-300"
+                      className="bg-zinc-900 border-zinc-800 text-center text-white font-bold focus:border-yellow-500/50"
                       placeholder="0"
                     />
                   </div>
