@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/services/supabase";
-import { Brain, TrendingUp, ShieldCheck, ChevronRight, Star } from "lucide-react";
+import { Brain, TrendingUp, ShieldCheck, ChevronRight, Star, Lock } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -107,22 +107,22 @@ const Index = () => {
       </div>
 
       <footer className="p-8 text-center border-t border-zinc-900 relative z-10 bg-black/80 backdrop-blur-sm">
-        <p className="text-zinc-600 text-xs font-mono mb-2">
+        <p className="text-zinc-500 text-xs font-mono mb-4">
           &copy; {new Date().getFullYear()} Heavy Duty Di Iorio. 
         </p>
-        <div className="flex justify-center gap-4 text-[10px] text-zinc-700 uppercase font-bold tracking-wider mb-4">
+        <div className="flex justify-center gap-4 text-[10px] text-zinc-600 uppercase font-bold tracking-wider mb-8">
             <span>Privacidad</span>
             <span>Términos</span>
             <span>Soporte</span>
         </div>
         
-        {/* Admin Link */}
-        <div className="mt-8">
+        {/* Admin Link - IMPROVED VISIBILITY */}
+        <div className="mt-8 border-t border-zinc-900 pt-4">
             <button 
                 onClick={() => navigate('/admin/login')}
-                className="text-[9px] text-zinc-800 hover:text-zinc-600 transition-colors font-mono uppercase tracking-widest opacity-50 hover:opacity-100"
+                className="text-[10px] text-zinc-600 hover:text-red-500 transition-colors font-mono uppercase tracking-widest flex items-center justify-center gap-2 mx-auto px-4 py-2 rounded hover:bg-zinc-900/50"
             >
-                Admin Access
+                <Lock className="w-3 h-3" /> Acceso Administrativo
             </button>
         </div>
       </footer>
