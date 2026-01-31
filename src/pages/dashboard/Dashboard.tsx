@@ -15,7 +15,8 @@ import {
   User, 
   Camera,
   Moon,
-  Zap
+  Zap,
+  Utensils
 } from "lucide-react";
 import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
 import { CardioModal } from "@/components/dashboard/CardioModal";
@@ -103,6 +104,25 @@ export default function Dashboard() {
               </div>
             </div>
             <ChevronRight className="w-6 h-6 text-zinc-600 group-hover:text-white transition-colors" />
+          </CardContent>
+        </Card>
+
+        {/* NUTRITION - Full width or prominent */}
+        <Card 
+          className="bg-zinc-900/80 border-zinc-800 hover:bg-zinc-800/80 transition-colors cursor-pointer group backdrop-blur-sm col-span-2"
+          onClick={() => navigate('/nutrition')}
+        >
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-green-500/10 rounded-full group-hover:bg-green-500/20 transition-colors">
+                <Utensils className="w-5 h-5 text-green-500" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="font-bold text-lg uppercase italic tracking-wider">Nutrición & Química</span>
+                <span className="text-[10px] text-zinc-400">Protocolo y Farmacología</span>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-white transition-colors" />
           </CardContent>
         </Card>
 
