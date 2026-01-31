@@ -10,6 +10,8 @@ import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { uploadCheckinPhoto } from "@/services/storage";
 import { useProfile } from "@/hooks/useProfile";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { format } from "date-fns";
 
 export default function Checkin() {
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ export default function Checkin() {
   
   // Previous data
   const [prevWeight, setPrevWeight] = useState<number | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
 
   // Photos
   const [frontPhoto, setFrontPhoto] = useState<File | null>(null);
@@ -33,31 +36,39 @@ export default function Checkin() {
   const [backPreview, setBackPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchLastCheckin();
+    fetchHistory();
   }, []);
 
-  const fetchLastCheckin = async () => {
+  const fetchHistory = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get last checkin log
+      // Get checkin logs
       const { data, error } = await supabase
         .from('logs')
-        .select('data')
+        .select('data, created_at')
         .eq('user_id', user.id)
         .eq('type', 'checkin')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('created_at', { ascending: true })
+        .limit(20);
 
-      if (data && data.data && data.data.weight) {
-        setPrevWeight(data.data.weight);
-        // Pre-fill weight with previous weight for convenience? 
-        // No, better to force user to type it.
+      if (data && data.length > 0) {
+        // Prepare chart data
+        const chartData = data.map(log => ({
+            date: format(new Date(log.created_at), 'dd/MM'),
+            weight: log.data.weight
+        }));
+        setHistory(chartData);
+
+        // Set previous weight from last entry
+        const lastEntry = data[data.length - 1];
+        if (lastEntry.data.weight) {
+            setPrevWeight(lastEntry.data.weight);
+        }
       }
     } catch (err) {
-      console.log("No previous checkin found or error fetching it.");
+      console.log("Error fetching history:", err);
     }
   };
 
@@ -119,7 +130,6 @@ export default function Checkin() {
         user_id: user.id,
         type: 'checkin',
         data: logData,
-        // Assuming checkin doesn't need specific muscle group etc.
         created_at: new Date().toISOString()
       });
 
@@ -176,6 +186,30 @@ export default function Checkin() {
           )}
         </CardContent>
       </Card>
+
+      {/* History Chart */}
+      {history.length > 1 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Progreso</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[150px] w-full pl-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={history}>
+                <defs>
+                  <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" fontSize={10} tickLine={false} axisLine={false} />
+                <Tooltip />
+                <Area type="monotone" dataKey="weight" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorWeight)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Photos Section */}
       <Card>
