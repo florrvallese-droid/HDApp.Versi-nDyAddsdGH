@@ -4,20 +4,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/services/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { User, Scale, Brain, Dumbbell, CheckCircle, ChevronRight, ChevronLeft } from "lucide-react";
+import { User, Scale, Brain, CheckCircle, ChevronRight, ChevronLeft } from "lucide-react";
 import { CoachTone, Discipline, Sex, UnitSystem } from "@/types";
 
 const STEPS = [
   { id: 1, title: "Datos Básicos", icon: User },
   { id: 2, title: "Físico", icon: Scale },
   { id: 3, title: "Tu Coach", icon: Brain },
-  { id: 4, title: "Disciplina", icon: Dumbbell },
-  { id: 5, title: "Listo", icon: CheckCircle },
+  { id: 4, title: "Listo", icon: CheckCircle },
 ];
 
 const Onboarding = () => {
@@ -32,7 +30,8 @@ const Onboarding = () => {
   const [weight, setWeight] = useState(70);
   const [units, setUnits] = useState<UnitSystem>("kg");
   const [coachTone, setCoachTone] = useState<CoachTone>("strict");
-  const [discipline, setDiscipline] = useState<Discipline>("general");
+  // Default to bodybuilding as it fits Heavy Duty best, and we removed the step
+  const [discipline, setDiscipline] = useState<Discipline>("bodybuilding"); 
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -68,8 +67,7 @@ const Onboarding = () => {
           sex,
           units,
           coach_tone: coachTone,
-          discipline,
-          // Initialize checking weight log? Maybe later.
+          discipline, // Will send 'bodybuilding' by default
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", userId);
@@ -132,8 +130,8 @@ const Onboarding = () => {
               </div>
               <div className="space-y-2">
                 <Label>Sexo Biológico</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["male", "female", "other"] as const).map((s) => (
+                <div className="grid grid-cols-2 gap-2">
+                  {(["male", "female"] as const).map((s) => (
                     <Button
                       key={s}
                       type="button"
@@ -141,7 +139,7 @@ const Onboarding = () => {
                       onClick={() => setSex(s)}
                       className="capitalize"
                     >
-                      {s === 'male' ? 'Hombre' : s === 'female' ? 'Mujer' : 'Otro'}
+                      {s === 'male' ? 'Hombre' : 'Mujer'}
                     </Button>
                   ))}
                 </div>
@@ -242,35 +240,8 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* STEP 4: DISCIPLINE */}
+          {/* STEP 4: REVIEW (Previously Step 5) */}
           {step === 4 && (
-            <div className="space-y-4">
-              <Label className="text-base">¿Cuál es tu enfoque principal?</Label>
-              <div className="grid grid-cols-1 gap-3">
-                {[
-                  { id: 'bodybuilding', label: 'Bodybuilding', desc: 'Hipertrofia y estética' },
-                  { id: 'powerlifting', label: 'Powerlifting', desc: 'Fuerza máxima (SBD)' },
-                  { id: 'crossfit', label: 'CrossFit', desc: 'Resistencia y funcionalidad' },
-                  { id: 'general', label: 'General Fitness', desc: 'Salud y bienestar general' }
-                ].map((d) => (
-                  <div 
-                    key={d.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-all flex justify-between items-center ${discipline === d.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:bg-accent'}`}
-                    onClick={() => setDiscipline(d.id as Discipline)}
-                  >
-                    <div>
-                      <p className="font-bold">{d.label}</p>
-                      <p className="text-xs text-muted-foreground">{d.desc}</p>
-                    </div>
-                    {discipline === d.id && <CheckCircle className="h-5 w-5 text-primary" />}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* STEP 5: REVIEW */}
-          {step === 5 && (
             <div className="space-y-6 text-center">
               <div className="space-y-2">
                 <h3 className="text-lg font-medium">¡Todo listo, {displayName}!</h3>
@@ -285,8 +256,8 @@ const Onboarding = () => {
                   <span className="font-medium capitalize">{coachTone}</span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
-                  <span className="text-muted-foreground">Disciplina:</span>
-                  <span className="font-medium capitalize">{discipline}</span>
+                  <span className="text-muted-foreground">Enfoque:</span>
+                  <span className="font-medium">Heavy Duty (Bodybuilding)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Peso inicial:</span>
@@ -312,10 +283,10 @@ const Onboarding = () => {
           <Button 
             onClick={handleNext} 
             disabled={loading || (step === 1 && !displayName)}
-            className={step === 5 ? "w-32" : ""}
+            className={step === 4 ? "w-32" : ""}
           >
-            {loading ? "Guardando..." : step === 5 ? "Comenzar" : "Siguiente"} 
-            {!loading && step !== 5 && <ChevronRight className="ml-2 h-4 w-4" />}
+            {loading ? "Guardando..." : step === 4 ? "Comenzar" : "Siguiente"} 
+            {!loading && step !== 4 && <ChevronRight className="ml-2 h-4 w-4" />}
           </Button>
         </CardFooter>
       </Card>
