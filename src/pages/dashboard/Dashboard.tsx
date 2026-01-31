@@ -21,6 +21,7 @@ import {
 import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
 import { CardioModal } from "@/components/dashboard/CardioModal";
 import { RestDayModal } from "@/components/dashboard/RestDayModal";
+import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Dashboard() {
@@ -32,6 +33,10 @@ export default function Dashboard() {
   const [showPreWorkout, setShowPreWorkout] = useState(false);
   const [showCardio, setShowCardio] = useState(false);
   const [showRest, setShowRest] = useState(false);
+  
+  // Checkin Reminder State
+  const [showCheckinReminder, setShowCheckinReminder] = useState(false);
+  const [daysSinceCheckin, setDaysSinceCheckin] = useState(0);
 
   useEffect(() => {
     // Cast to access properties safely
@@ -39,7 +44,56 @@ export default function Dashboard() {
     if (userProfile?.first_name || userProfile?.display_name) {
       setUserName(userProfile.first_name || userProfile.display_name);
     }
+    
+    if (profile) {
+      checkLastCheckin();
+    }
   }, [profile]);
+
+  const checkLastCheckin = async () => {
+    if (!profile) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('logs')
+        .select('created_at')
+        .eq('user_id', profile.user_id)
+        .eq('type', 'checkin')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error("Error checking logs:", error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const lastDate = new Date(data[0].created_at);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - lastDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        
+        if (diffDays > 15) {
+          setDaysSinceCheckin(diffDays);
+          setShowCheckinReminder(true);
+        }
+      } else {
+        // If no checkins ever, check account age
+        // If account is older than 3 days and no checkin, prompt
+        const createdAt = new Date(profile.created_at);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - createdAt.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays > 3) {
+           setDaysSinceCheckin(diffDays);
+           setShowCheckinReminder(true);
+        }
+      }
+    } catch (err) {
+      console.error("Error in checkLastCheckin:", err);
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -235,6 +289,12 @@ export default function Dashboard() {
       <RestDayModal 
         open={showRest} 
         onOpenChange={setShowRest} 
+      />
+      
+      <CheckinReminderDialog
+        open={showCheckinReminder}
+        onOpenChange={setShowCheckinReminder}
+        daysSince={daysSinceCheckin}
       />
       
     </div>
