@@ -8,8 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import { ChevronLeft, LogOut, CreditCard, User, Loader2, Upload, Camera } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ChevronLeft, LogOut, CreditCard, User, Loader2, Upload, Camera, CheckCircle2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 // In a real app, these come from Env Vars
@@ -17,10 +17,12 @@ const STRIPE_MONTHLY_PRICE_ID = "price_monthly_id";
 
 export default function Settings() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { profile, loading: profileLoading, hasProAccess, daysLeftInTrial } = useProfile();
   const [loading, setLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
+  // Form State
   const [displayName, setDisplayName] = useState("");
   const [coachTone, setCoachTone] = useState("");
   const [discipline, setDiscipline] = useState("");
@@ -35,6 +37,24 @@ export default function Settings() {
       setAvatarUrl(profile.avatar_url || null);
     }
   }, [profile]);
+
+  // Handle Stripe Return
+  useEffect(() => {
+    if (searchParams.get("session_id")) {
+      toast.success("¡Suscripción exitosa!", {
+        description: "Bienvenido a Heavy Duty PRO.",
+        duration: 5000,
+      });
+      // Optionally clear params
+      navigate("/settings?tab=billing", { replace: true });
+    }
+    if (searchParams.get("canceled")) {
+      toast.info("Suscripción cancelada", {
+        description: "No se ha realizado ningún cobro.",
+      });
+      navigate("/settings?tab=billing", { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   const handleSave = async () => {
     if (!profile) return;
@@ -70,17 +90,14 @@ export default function Settings() {
       const fileName = `${profile?.user_id}/avatar.${fileExt}`;
       const filePath = `${fileName}`;
 
-      // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Get Public URL
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
-      // Update Profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -110,7 +127,7 @@ export default function Settings() {
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: {
-          priceId: STRIPE_MONTHLY_PRICE_ID, // Default to monthly for now
+          priceId: STRIPE_MONTHLY_PRICE_ID,
           userId: profile.user_id,
           returnUrl: window.location.origin + '/settings'
         }
@@ -125,7 +142,12 @@ export default function Settings() {
     } catch (err: any) {
       console.error(err);
       toast.error("Error iniciando pago. Contacta a soporte.");
-      toast.info("Modo Demo: Simulación de pago fallida (falta API Key)");
+      
+      // Fallback for Demo Mode if API fails
+      toast.info("MODO DEMO: Redirigiendo simulado...", { duration: 2000 });
+      setTimeout(() => {
+         navigate("/settings?session_id=demo_success&tab=billing");
+      }, 1500);
     } finally {
       setCheckoutLoading(false);
     }
@@ -143,7 +165,7 @@ export default function Settings() {
         <h1 className="text-2xl font-bold">Ajustes</h1>
       </div>
 
-      <Tabs defaultValue="profile">
+      <Tabs defaultValue={searchParams.get("tab") || "profile"}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
           <TabsTrigger value="billing">Suscripción</TabsTrigger>
@@ -270,9 +292,15 @@ export default function Settings() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Tu suscripción está activa. Gracias por apoyar el desarrollo de Heavy Duty.
-                  </p>
+                  <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20 flex items-start gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
+                    <div>
+                      <h3 className="font-bold text-green-500">Membresía Activa</h3>
+                      <p className="text-sm text-muted-foreground">
+                         Tu suscripción está activa. Disfruta de todas las funciones Heavy Duty.
+                      </p>
+                    </div>
+                  </div>
                   <Button variant="outline" className="w-full">
                     Administrar Suscripción
                   </Button>
