@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Pharmacology() {
   const navigate = useNavigate();
-  const { profile, loading: profileLoading } = useProfile();
+  const { profile, hasProAccess, loading: profileLoading } = useProfile();
   
   // Disclaimer State
   const [showDisclaimer, setShowDisclaimer] = useState(true);
@@ -145,8 +145,8 @@ export default function Pharmacology() {
     </div>;
   }
 
-  // Premium Check
-  if (profile && !profile.is_premium) {
+  // Premium Check (using hasProAccess)
+  if (!hasProAccess) {
     return (
       <div className="min-h-screen bg-zinc-950 p-4 pb-20 max-w-md mx-auto relative">
         <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="absolute top-4 left-4 z-10 text-white hover:bg-zinc-800">

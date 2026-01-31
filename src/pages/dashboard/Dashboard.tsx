@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { profile, loading: profileLoading } = useProfile();
+  const { profile, hasProAccess, daysLeftInTrial, loading: profileLoading } = useProfile();
   const { flags, loading: flagsLoading } = useFeatureFlags();
   
   const [showPreWorkout, setShowPreWorkout] = useState(false);
@@ -72,7 +72,11 @@ const Dashboard = () => {
         <div onClick={() => navigate('/settings')} className="cursor-pointer">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             Hola, {profile?.display_name?.split(" ")[0] || "Atleta"}
-            {profile?.is_premium && <Badge variant="secondary" className="text-[10px] bg-yellow-500/20 text-yellow-600">PRO</Badge>}
+            {profile?.is_premium ? (
+               <Badge variant="secondary" className="text-[10px] bg-yellow-500/20 text-yellow-600">PRO</Badge>
+            ) : daysLeftInTrial > 0 ? (
+               <Badge variant="outline" className="text-[10px] border-yellow-500 text-yellow-600">TRIAL: {daysLeftInTrial}d</Badge>
+            ) : null}
           </h1>
           <p className="text-sm text-muted-foreground">
             {profile?.coach_tone === 'strict' ? "Sin excusas hoy." : 
@@ -83,10 +87,14 @@ const Dashboard = () => {
         </div>
         <div className="flex gap-2">
            <div 
-             className="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold uppercase cursor-pointer hover:opacity-80 transition-opacity"
+             className="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold uppercase cursor-pointer hover:opacity-80 transition-opacity overflow-hidden"
              onClick={() => navigate('/settings')}
            >
-            {profile?.display_name ? profile.display_name.substring(0, 2) : "JD"}
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span>{profile?.display_name ? profile.display_name.substring(0, 2) : "JD"}</span>
+            )}
           </div>
         </div>
       </header>
@@ -106,8 +114,12 @@ const Dashboard = () => {
           <p className="text-sm mb-4 text-muted-foreground">
             Analiza tu sueño, estrés y sensación física para decidir la intensidad de hoy.
           </p>
-          <Button className="w-full" onClick={() => setShowPreWorkout(true)}>
-            Consultar Coach
+          <Button 
+            className="w-full" 
+            onClick={() => setShowPreWorkout(true)}
+            disabled={!hasProAccess}
+          >
+            {hasProAccess ? "Consultar Coach" : "Desbloquear con PRO"}
           </Button>
         </CardContent>
       </Card>

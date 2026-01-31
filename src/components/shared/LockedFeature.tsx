@@ -51,7 +51,7 @@ export const LockedFeature = ({ title, description }: LockedFeatureProps) => {
             className="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700 text-white font-bold h-12 text-lg shadow-lg shadow-yellow-900/20 transition-all hover:scale-[1.02]" 
             onClick={() => navigate('/settings?tab=billing')}
           >
-            Comenzar Trial de 7 Días
+            Suscribirse Ahora
           </Button>
           <p className="text-xs text-muted-foreground">Sin compromiso. Cancela cuando quieras.</p>
         </CardFooter>

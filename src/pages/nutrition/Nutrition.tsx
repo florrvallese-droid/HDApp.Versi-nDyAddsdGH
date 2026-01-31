@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Nutrition() {
   const navigate = useNavigate();
-  const { profile, loading: profileLoading } = useProfile();
+  const { profile, hasProAccess, loading: profileLoading } = useProfile();
   const [loading, setLoading] = useState(false);
 
   // Config State
@@ -137,8 +137,8 @@ export default function Nutrition() {
     </div>;
   }
 
-  // Premium Check
-  if (profile && !profile.is_premium) {
+  // Premium Check (using hasProAccess which includes trial)
+  if (!hasProAccess) {
     return (
       <div className="min-h-screen bg-background p-4 pb-20 max-w-md mx-auto relative">
         <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="absolute top-4 left-4 z-10">

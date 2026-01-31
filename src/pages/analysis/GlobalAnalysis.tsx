@@ -15,7 +15,7 @@ import { es } from "date-fns/locale";
 
 export default function GlobalAnalysis() {
   const navigate = useNavigate();
-  const { profile, loading: profileLoading } = useProfile();
+  const { profile, hasProAccess, loading: profileLoading } = useProfile();
   
   const [analysis, setAnalysis] = useState<GlobalAnalysisResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,7 +43,7 @@ export default function GlobalAnalysis() {
   };
 
   const runAudit = async () => {
-    if (!profile?.is_premium) {
+    if (!hasProAccess) {
       toast.error("Esta función es exclusiva para usuarios PRO");
       return;
     }
@@ -112,11 +112,13 @@ export default function GlobalAnalysis() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!profile?.is_premium ? (
+            {!hasProAccess ? (
               <div className="bg-background/80 p-4 rounded-lg border border-dashed text-center space-y-3">
                 <Lock className="h-8 w-8 mx-auto text-muted-foreground" />
                 <p className="font-semibold">Función exclusiva PRO</p>
-                <Button className="w-full" variant="outline">Desbloquear Premium</Button>
+                <Button className="w-full" variant="outline" onClick={() => navigate('/settings?tab=billing')}>
+                  Desbloquear Premium
+                </Button>
               </div>
             ) : (
               <div className="space-y-4">

@@ -9,28 +9,30 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, LogOut, CreditCard, User, Loader2 } from "lucide-react";
+import { ChevronLeft, LogOut, CreditCard, User, Loader2, Upload, Camera } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 // In a real app, these come from Env Vars
-const STRIPE_MONTHLY_PRICE_ID = "price_1Q..."; // Placeholder
-// const STRIPE_YEARLY_PRICE_ID = "price_1Q..."; 
+const STRIPE_MONTHLY_PRICE_ID = "price_monthly_id"; 
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { profile, loading: profileLoading } = useProfile();
+  const { profile, loading: profileLoading, hasProAccess, daysLeftInTrial } = useProfile();
   const [loading, setLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const [displayName, setDisplayName] = useState("");
   const [coachTone, setCoachTone] = useState("");
   const [discipline, setDiscipline] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || "");
       setCoachTone(profile.coach_tone);
       setDiscipline(profile.discipline);
+      setAvatarUrl(profile.avatar_url || null);
     }
   }, [profile]);
 
@@ -53,6 +55,46 @@ export default function Settings() {
       toast.error("Error al guardar cambios");
     } else {
       toast.success("Perfil actualizado");
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploadingAvatar(true);
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error("Selecciona una imagen");
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${profile?.user_id}/avatar.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get Public URL
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+      // Update Profile
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('user_id', profile?.user_id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      toast.success("Avatar actualizado");
+
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -83,9 +125,7 @@ export default function Settings() {
     } catch (err: any) {
       console.error(err);
       toast.error("Error iniciando pago. Contacta a soporte.");
-      // For demo purposes, we might want to manually upgrade if Stripe isn't configured in Supabase yet
-      // This is just a fallback for the DYAD environment if keys are missing
-      toast.info("Modo Demo: Contactando servidor de pagos...");
+      toast.info("Modo Demo: Simulación de pago fallida (falta API Key)");
     } finally {
       setCheckoutLoading(false);
     }
@@ -114,7 +154,31 @@ export default function Settings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><User className="h-5 w-5"/> Datos Personales</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative h-24 w-24 rounded-full overflow-hidden bg-muted border-2 border-dashed border-muted-foreground/30 flex items-center justify-center group cursor-pointer">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-10 w-10 text-muted-foreground" />
+                  )}
+                  
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Camera className="text-white h-6 w-6" />
+                  </div>
+                  
+                  <input 
+                    type="file" 
+                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    disabled={uploadingAvatar}
+                  />
+                </div>
+                {uploadingAvatar && <span className="text-xs text-muted-foreground animate-pulse">Subiendo...</span>}
+              </div>
+
               <div className="space-y-2">
                 <Label>Nombre</Label>
                 <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
@@ -171,6 +235,8 @@ export default function Settings() {
                 <span className="font-medium">Plan Actual</span>
                 {profile?.is_premium ? (
                   <Badge className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0">PRO</Badge>
+                ) : daysLeftInTrial > 0 ? (
+                  <Badge variant="outline" className="border-yellow-600 text-yellow-600">TRIAL ({daysLeftInTrial} días)</Badge>
                 ) : (
                   <Badge variant="outline">Gratuito</Badge>
                 )}
