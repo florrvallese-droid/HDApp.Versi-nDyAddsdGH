@@ -33,9 +33,22 @@ export default function Nutrition() {
 
   // Supplement State
   const [supplements, setSupplements] = useState<Supplement[]>([]);
-  const [newSuppName, setNewSuppName] = useState("");
-  const [newSuppTiming, setNewSuppTiming] = useState<Supplement['timing']>("pre");
-  const [newSuppDosage, setNewSuppDosage] = useState("");
+  
+  // State for inputs within each timing card
+  // Key = timing string, Value = { name, dosage }
+  const [suppInputs, setSuppInputs] = useState<Record<string, { name: string; dosage: string }>>({});
+  
+  // State for visible timing blocks
+  const [visibleTimings, setVisibleTimings] = useState<string[]>([]);
+
+  const timingLabels: { key: Supplement['timing'], label: string }[] = [
+    { key: 'fasted', label: 'Ayunas' },
+    { key: 'pre', label: 'Pre Entreno' },
+    { key: 'intra', label: 'Intra Entreno' },
+    { key: 'post', label: 'Post Entreno' },
+    { key: 'night', label: 'Noche' },
+    { key: 'meal', label: 'Con Comidas' },
+  ];
 
   useEffect(() => {
     if (profile) {
@@ -59,7 +72,24 @@ export default function Nutrition() {
            setVariants(config.diet_variants);
         }
         
-        setSupplements(config.supplements_stack || []);
+        const loadedSupps = config.supplements_stack || [];
+        setSupplements(loadedSupps);
+
+        // Determine which timings should be visible initially
+        // Show timings that have supplements, plus defaults if list is empty
+        const usedTimings = new Set(loadedSupps.map(s => s.timing));
+        if (usedTimings.size === 0) {
+           setVisibleTimings(['fasted', 'pre', 'intra', 'post', 'night']);
+        } else {
+           // Ensure standard ones are shown or just the used ones? 
+           // Let's show all standard ones that the user has seemingly "activated" or just default set
+           const standardSet = new Set(['fasted', 'pre', 'intra', 'post', 'night']);
+           const merged = Array.from(new Set([...usedTimings, ...standardSet]));
+           // Filter to ensure they are valid keys
+           const validKeys = merged.filter(k => timingLabels.find(t => t.key === k));
+           setVisibleTimings(validKeys as string[]);
+        }
+
       } else {
         // Init default if no config
         setVariants([{
@@ -68,11 +98,27 @@ export default function Nutrition() {
            calories: 0,
            macros: { p: 0, c: 0, f: 0 }
         }]);
+        setVisibleTimings(['fasted', 'pre', 'intra', 'post', 'night']);
       }
     }
   }, [profile]);
 
-  // Handle strategy switching with default initialization
+  // Ensure correct variants structure when switching strategy
+  useEffect(() => {
+    if (strategyType === 'single') {
+        if (variants.length > 1) {
+            // Keep data but UI only shows first
+        } else if (variants.length === 0) {
+            setVariants([{
+                id: crypto.randomUUID(),
+                name: "Dieta Base",
+                calories: 0,
+                macros: { p: 0, c: 0, f: 0 }
+            }]);
+        }
+    }
+  }, [strategyType]);
+
   const handleStrategyChange = (newType: 'single' | 'cycling') => {
     setStrategyType(newType);
     
@@ -109,11 +155,9 @@ export default function Nutrition() {
     if (!profile) return;
     setLoading(true);
 
-    // Filter variants based on strategy before saving
     let variantsToSave = [...variants];
     if (strategyType === 'single') {
-        variantsToSave = [variants[0]]; // Only save the first one
-        // Ensure name is appropriate
+        variantsToSave = [variants[0]];
         variantsToSave[0].name = "Dieta Única"; 
     }
 
@@ -140,15 +184,12 @@ export default function Nutrition() {
     else toast.success("Protocolo actualizado");
   };
 
-  // Helper to update specific fields in variants
   const updateVariant = (index: number, field: string, value: any) => {
     const updated = [...variants];
     if (field === 'name') updated[index].name = value;
     else if (field === 'calories') updated[index].calories = Number(value);
     else if (['p', 'c', 'f'].includes(field)) {
         updated[index].macros = { ...updated[index].macros, [field]: Number(value) };
-        // Auto-calc calories if they are 0 or user wants? simplified:
-        // updated[index].calories = (updated[index].macros.p * 4) + (updated[index].macros.c * 4) + (updated[index].macros.f * 9);
     }
     setVariants(updated);
   };
@@ -169,18 +210,36 @@ export default function Nutrition() {
     setVariants(updated);
   };
 
-  // Supplement Handlers
-  const addSupplement = () => {
-    if (!newSuppName) return;
+  // --- Supplement Logic ---
+
+  const handleSuppInputChange = (timing: string, field: 'name' | 'dosage', value: string) => {
+    setSuppInputs(prev => ({
+      ...prev,
+      [timing]: {
+        ...prev[timing],
+        [field]: value
+      }
+    }));
+  };
+
+  const addSupplementToTiming = (timing: string) => {
+    const input = suppInputs[timing];
+    if (!input?.name) return;
+    
     const newSupp: Supplement = {
       id: crypto.randomUUID(),
-      name: newSuppName,
-      timing: newSuppTiming,
-      dosage: newSuppDosage
+      name: input.name,
+      timing: timing as Supplement['timing'],
+      dosage: input.dosage || ""
     };
+    
     setSupplements([...supplements, newSupp]);
-    setNewSuppName("");
-    setNewSuppDosage("");
+    
+    // Clear input
+    setSuppInputs(prev => ({
+      ...prev,
+      [timing]: { name: "", dosage: "" }
+    }));
   };
 
   const removeSupplement = (id: string) => {
@@ -191,21 +250,24 @@ export default function Nutrition() {
     return supplements.filter(s => s.timing === timing);
   };
 
-  const timingLabels = [
-    { key: 'fasted', label: 'Ayunas' },
-    { key: 'meal', label: 'Con Comidas' },
-    { key: 'pre', label: 'Pre-Entreno' },
-    { key: 'intra', label: 'Intra-Entreno' },
-    { key: 'post', label: 'Post-Entreno' },
-    { key: 'night', label: 'Noche' },
-  ];
+  const toggleTimingVisibility = (timingKey: string) => {
+    if (visibleTimings.includes(timingKey)) {
+        // Remove
+        setVisibleTimings(visibleTimings.filter(t => t !== timingKey));
+    } else {
+        // Add
+        setVisibleTimings([...visibleTimings, timingKey]);
+    }
+  };
+
+  // Get available (hidden) timings for the "Add Moment" dropdown/action
+  const availableHiddenTimings = timingLabels.filter(t => !visibleTimings.includes(t.key));
 
   if (profileLoading) {
     return <div className="min-h-screen bg-black flex items-center justify-center"><Skeleton className="h-12 w-12 rounded-full" /></div>;
   }
 
-  // Determine which variants to show
-  const visibleVariants = strategyType === 'single' ? [variants[0] || { id: 'temp', name: 'Dieta Única', calories: 0, macros: {p:0,c:0,f:0} }] : variants;
+  const visibleVariantsList = strategyType === 'single' ? [variants[0] || { id: 'temp', name: 'Dieta Única', calories: 0, macros: {p:0,c:0,f:0} }] : variants;
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pb-24 max-w-md mx-auto space-y-8">
@@ -297,7 +359,6 @@ export default function Nutrition() {
             <span className="text-xs font-bold uppercase tracking-widest">Estrategia Nutricional</span>
         </div>
 
-        {/* Custom Segmented Control */}
         <div className="grid grid-cols-2 bg-zinc-900 p-1 rounded-lg border border-zinc-800">
             <button
                 onClick={() => handleStrategyChange('single')}
@@ -323,9 +384,8 @@ export default function Nutrition() {
             </button>
         </div>
 
-        {/* Editable Variants List */}
         <div className="space-y-4">
-            {visibleVariants.map((v, idx) => (
+            {visibleVariantsList.map((v, idx) => (
                 <Card key={v.id || idx} className="bg-zinc-950 border-zinc-800">
                     <CardContent className="p-4 space-y-4">
                         <div className="flex justify-between items-center border-b border-zinc-800 pb-2">
@@ -410,75 +470,99 @@ export default function Nutrition() {
         </div>
       </div>
 
-      {/* SUPPLEMENT STACK */}
+      {/* TIMING DE SUPLEMENTACION - NEW DESIGN */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 text-zinc-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-widest">Stack de Suplementos</span>
+        <div className="flex items-center gap-2 text-yellow-500 mb-2">
+            <span className="text-xs font-bold uppercase tracking-widest">Timing de Suplementación</span>
         </div>
 
-        <div className="grid gap-3">
-            {timingLabels.map((time) => {
-                const groupedSups = getSupplementsByTiming(time.key);
-                if (groupedSups.length === 0) return null;
+        <div className="grid gap-4">
+            {/* Render Visible Timing Cards */}
+            {visibleTimings.map((timingKey) => {
+                const timingLabel = timingLabels.find(t => t.key === timingKey)?.label || timingKey;
+                const groupedSups = getSupplementsByTiming(timingKey);
+                const inputState = suppInputs[timingKey] || { name: "", dosage: "" };
 
                 return (
-                    <div key={time.key} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                        <div className="bg-zinc-950 px-3 py-2 border-b border-zinc-800 flex justify-between items-center">
-                            <span className="text-xs font-black uppercase text-red-600 tracking-wider">{time.label}</span>
-                        </div>
-                        <div className="p-2 space-y-1">
-                            {groupedSups.map(s => (
-                                <div key={s.id} className="flex justify-between items-center px-2 py-1.5 hover:bg-zinc-800/50 rounded text-sm">
-                                    <div className="flex gap-2">
-                                        <span className="text-white font-medium">{s.name}</span>
-                                        <span className="text-zinc-500 text-xs mt-0.5">{s.dosage}</span>
-                                    </div>
-                                    <Trash2 className="h-3 w-3 text-zinc-600 cursor-pointer hover:text-red-500" onClick={() => removeSupplement(s.id)} />
+                    <Card key={timingKey} className="bg-zinc-950 border-zinc-800">
+                        <CardContent className="p-0">
+                            {/* Card Header */}
+                            <div className="flex justify-between items-center p-3 border-b border-zinc-900 bg-zinc-900/50">
+                                <span className="font-black uppercase text-xs tracking-wider text-white">
+                                    {timingLabel}
+                                </span>
+                                <button 
+                                    onClick={() => toggleTimingVisibility(timingKey)}
+                                    className="text-zinc-600 hover:text-red-500 transition-colors"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            </div>
+                            
+                            {/* Supplements List */}
+                            {groupedSups.length > 0 && (
+                                <div className="divide-y divide-zinc-900">
+                                    {groupedSups.map(s => (
+                                        <div key={s.id} className="flex justify-between items-center px-4 py-2 hover:bg-zinc-900/30">
+                                            <span className="text-sm font-medium text-zinc-300">{s.name}</span>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xs text-zinc-500 font-mono">{s.dosage}</span>
+                                                <Trash2 
+                                                    className="h-3.5 w-3.5 text-zinc-700 cursor-pointer hover:text-red-500" 
+                                                    onClick={() => removeSupplement(s.id)}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                            )}
+
+                            {/* Add Input Row */}
+                            <div className="p-3 grid grid-cols-[1fr_80px_36px] gap-2 items-center bg-zinc-900/20">
+                                <Input 
+                                    placeholder="Suplemento" 
+                                    className="h-8 text-xs bg-zinc-900 border-zinc-800 focus:border-zinc-700"
+                                    value={inputState.name}
+                                    onChange={(e) => handleSuppInputChange(timingKey, 'name', e.target.value)}
+                                />
+                                <Input 
+                                    placeholder="Dosis" 
+                                    className="h-8 text-xs bg-zinc-900 border-zinc-800 focus:border-zinc-700 text-center"
+                                    value={inputState.dosage}
+                                    onChange={(e) => handleSuppInputChange(timingKey, 'dosage', e.target.value)}
+                                />
+                                <Button 
+                                    size="icon" 
+                                    className="h-8 w-9 bg-zinc-800 hover:bg-zinc-700 text-green-500"
+                                    disabled={!inputState.name}
+                                    onClick={() => addSupplementToTiming(timingKey)}
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
                 );
             })}
-             {supplements.length === 0 && (
-                 <p className="text-xs text-zinc-600 text-center py-4 italic">No hay suplementos configurados</p>
-             )}
-        </div>
 
-        <Card className="bg-zinc-950 border-zinc-800 text-white border-dashed">
-            <CardContent className="p-4 space-y-3">
-                <Label className="text-[10px] text-zinc-500 uppercase font-bold">Agregar al Stack</Label>
-                <div className="grid grid-cols-[1fr_80px] gap-2">
-                    <Input 
-                        placeholder="Nombre (ej: Creatina)" 
-                        value={newSuppName} 
-                        onChange={(e) => setNewSuppName(e.target.value)}
-                        className="bg-zinc-900 border-zinc-800 h-9 text-xs"
-                    />
-                    <Input 
-                        placeholder="Dosis" 
-                        value={newSuppDosage} 
-                        onChange={(e) => setNewSuppDosage(e.target.value)}
-                        className="bg-zinc-900 border-zinc-800 h-9 text-xs"
-                    />
-                </div>
-                <div className="flex gap-2">
-                    <Select value={newSuppTiming} onValueChange={(v: any) => setNewSuppTiming(v)}>
-                        <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-zinc-400 h-9 text-xs">
-                            <SelectValue placeholder="Timing" />
+            {/* Add Moment Placeholder */}
+            {availableHiddenTimings.length > 0 && (
+                <div className="relative group">
+                    <Select onValueChange={(val) => toggleTimingVisibility(val)}>
+                        <SelectTrigger className="w-full h-24 border-2 border-dashed border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10 hover:border-yellow-500/50 transition-all flex flex-col items-center justify-center gap-2">
+                             <span className="text-yellow-500 font-black uppercase tracking-widest text-sm">
+                                + Agregar Momento
+                             </span>
                         </SelectTrigger>
                         <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                            {timingLabels.map(t => (
+                            {availableHiddenTimings.map(t => (
                                 <SelectItem key={t.key} value={t.key}>{t.label}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
-                    <Button onClick={addSupplement} disabled={!newSuppName} className="bg-zinc-800 hover:bg-zinc-700 h-9 w-12">
-                        <Plus className="h-4 w-4" />
-                    </Button>
                 </div>
-            </CardContent>
-        </Card>
+            )}
+        </div>
       </div>
 
       <Button 
