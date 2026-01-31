@@ -1,18 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { CoachTone, PreWorkoutData } from "@/types";
-import { Loader2, Lock, AlertCircle, HeartPulse } from "lucide-react";
+import { Loader2, Lock, AlertCircle, HeartPulse, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { aiService } from "@/services/ai";
 import { toast } from "sonner";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/services/supabase";
+import { differenceInDays, format, isValid, parseISO } from "date-fns";
 
 interface PreWorkoutModalProps {
   open: boolean;
@@ -23,24 +26,76 @@ interface PreWorkoutModalProps {
 
 export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess = false }: PreWorkoutModalProps) {
   const navigate = useNavigate();
-  const { profile } = useProfile(); // Need profile to check sex
+  const { profile } = useProfile(); 
   
   const [step, setStep] = useState<'input' | 'processing' | 'result'>('input');
   const [loading, setLoading] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
-  // Inputs
+  // Inputs Standard
   const [sleep, setSleep] = useState(5);
   const [stress, setStress] = useState<'low' | 'medium' | 'high'>('medium');
   const [sensation, setSensation] = useState("");
-  
-  // New Inputs
   const [hasPain, setHasPain] = useState(false);
   const [painDescription, setPainDescription] = useState("");
-  const [cycleDay, setCycleDay] = useState(1);
+
+  // Cycle Inputs (Female only)
+  const [lastPeriodDate, setLastPeriodDate] = useState("");
+  const [calculatedPhase, setCalculatedPhase] = useState<{day: number, phase: string, desc: string} | null>(null);
 
   // Result
   const [result, setResult] = useState<PreWorkoutData | null>(null);
+
+  // Load saved cycle date on open
+  useEffect(() => {
+    if (open && profile?.sex === 'female' && profile.settings?.last_cycle_start) {
+      setLastPeriodDate(profile.settings.last_cycle_start);
+    }
+  }, [open, profile]);
+
+  // Calculate phase whenever date changes
+  useEffect(() => {
+    if (lastPeriodDate && isValid(parseISO(lastPeriodDate))) {
+      const today = new Date();
+      const start = parseISO(lastPeriodDate);
+      const diff = differenceInDays(today, start) + 1; // +1 because day 1 is the start day
+
+      let phase = "";
+      let desc = "";
+
+      if (diff >= 1 && diff <= 5) {
+        phase = "Menstrual";
+        desc = "Energía baja, inflamación. Priorizar recuperación.";
+      } else if (diff >= 6 && diff <= 11) {
+        phase = "Folicular";
+        desc = "Aumento de estrógeno. Alta fuerza y tolerancia al dolor.";
+      } else if (diff >= 12 && diff <= 16) {
+        phase = "Ovulación";
+        desc = "Pico máximo de fuerza (testosterona alta). Cuidado articular.";
+      } else if (diff >= 17) {
+        phase = "Lútea";
+        desc = "Progesterona alta. Sube temperatura corporal, baja rendimiento.";
+      } else {
+        phase = "Irregular / Nuevo Ciclo";
+        desc = "Por favor actualiza si ha comenzado un nuevo ciclo.";
+      }
+
+      setCalculatedPhase({ day: diff, phase, desc });
+    } else {
+      setCalculatedPhase(null);
+    }
+  }, [lastPeriodDate]);
+
+  const saveCycleDate = async () => {
+    if (profile && lastPeriodDate && lastPeriodDate !== profile.settings?.last_cycle_start) {
+      const newSettings = {
+        ...profile.settings,
+        last_cycle_start: lastPeriodDate
+      };
+      // Fire and forget update
+      await supabase.from('profiles').update({ settings: newSettings }).eq('user_id', profile.user_id);
+    }
+  };
 
   const analyzeData = async () => {
     if (!hasProAccess) {
@@ -53,25 +108,36 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess = 
       return;
     }
 
+    if (profile?.sex === 'female' && !lastPeriodDate) {
+      toast.warning("Para mayor precisión, ingresa la fecha de tu último periodo (o selecciona una aproximada).");
+      // Allow continue, but maybe show warning? For now we allow it.
+    }
+
     setStep('processing');
     setLoading(true);
 
     try {
+      // Save cycle date if changed
+      if (profile?.sex === 'female') {
+        await saveCycleDate();
+      }
+
       const stressVal = stress === 'low' ? 3 : stress === 'medium' ? 6 : 9;
       
       // Prepare data packet
       const assessmentData: any = {
         sleep,
         stress: stressVal,
-        sensation: 7, // Legacy numeric, kept for backend compatibility
+        sensation: 7, // Legacy numeric
         pain: hasPain,
         painDescription: hasPain ? painDescription : undefined,
-        userFeedback: sensation // The actual text input for sensation
+        userFeedback: sensation
       };
 
-      // Add cycle day if female
-      if (profile?.sex === 'female') {
-        assessmentData.cycleDay = cycleDay;
+      // Add cycle data
+      if (profile?.sex === 'female' && calculatedPhase) {
+        assessmentData.cycleDay = calculatedPhase.day;
+        assessmentData.cyclePhase = calculatedPhase.phase;
       }
 
       const aiResponse = await aiService.getPreWorkoutAdvice(coachTone, assessmentData);
@@ -187,24 +253,42 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess = 
                   )}
                 </div>
 
-                {/* Menstrual Cycle (Conditional) */}
+                {/* Menstrual Cycle (Conditional & Calculated) */}
                 {profile?.sex === 'female' && (
                   <div className="bg-zinc-900/50 p-4 rounded-lg border border-zinc-800 space-y-4">
                     <div className="flex items-center justify-between">
                        <Label className="text-pink-500 font-bold uppercase tracking-wider text-xs flex items-center gap-2">
                         <HeartPulse className="w-4 h-4" />
-                        Día del Ciclo: {cycleDay}
+                        Ciclo Hormonal
                       </Label>
                     </div>
-                    <Slider 
-                      value={[cycleDay]} 
-                      min={1} 
-                      max={28} 
-                      step={1} 
-                      onValueChange={(v) => setCycleDay(v[0])}
-                      className="[&>.relative>.bg-primary]:bg-pink-600 [&>.relative>.border-primary]:border-pink-600 [&_span]:bg-zinc-800"
-                    />
-                    <p className="text-[10px] text-zinc-500 text-right">Día 1 = Inicio menstruación</p>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] text-zinc-500 uppercase">Inicio última menstruación:</Label>
+                      <div className="relative">
+                        <Input 
+                          type="date" 
+                          value={lastPeriodDate}
+                          onChange={(e) => setLastPeriodDate(e.target.value)}
+                          className="bg-zinc-950 border-zinc-800 text-white h-10 pl-10"
+                        />
+                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-zinc-500" />
+                      </div>
+                    </div>
+
+                    {calculatedPhase && (
+                      <div className="mt-3 p-3 bg-pink-950/20 border border-pink-900/30 rounded-md">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-pink-400 font-black text-sm uppercase">Día {calculatedPhase.day}</span>
+                          <span className="text-[10px] bg-pink-900/50 text-pink-200 px-2 py-0.5 rounded-full uppercase font-bold">
+                            {calculatedPhase.phase}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-zinc-400 leading-tight">
+                          {calculatedPhase.desc}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
