@@ -29,7 +29,7 @@ const Index = () => {
            <img 
              src="/logo.png" 
              alt="Di Iorio Gym" 
-             className="h-16 w-auto object-contain" 
+             className="h-16 w-auto object-contain brightness-0 invert" 
            />
         </div>
         <Button 
