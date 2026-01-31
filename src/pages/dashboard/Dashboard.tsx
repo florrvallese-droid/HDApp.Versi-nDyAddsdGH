@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, ChevronRight, Zap, Moon, Utensils, Camera, Dumbbell } from "lucide-react";
+import { User, ChevronRight, Zap, Moon, Utensils, Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { useFeatureFlags } from "@/hooks/useFeatureFlags";
@@ -9,16 +9,62 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
 import { CardioModal } from "@/components/dashboard/CardioModal";
 import { RestDayModal } from "@/components/dashboard/RestDayModal";
+import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/services/supabase";
+import { differenceInDays } from "date-fns";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { profile, hasProAccess, loading: profileLoading } = useProfile();
   const { flags, loading: flagsLoading } = useFeatureFlags();
   
+  // Modals
   const [showPreWorkout, setShowPreWorkout] = useState(false);
   const [showCardio, setShowCardio] = useState(false);
   const [showRest, setShowRest] = useState(false);
+
+  // Check-in Reminder Logic
+  const [showCheckinReminder, setShowCheckinReminder] = useState(false);
+  const [isCheckinOverdue, setIsCheckinOverdue] = useState(false);
+  const [daysSinceLastCheckin, setDaysSinceLastCheckin] = useState(0);
+
+  useEffect(() => {
+    if (profile?.user_id) {
+      checkLastCheckin();
+    }
+  }, [profile]);
+
+  const checkLastCheckin = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('logs')
+        .select('created_at')
+        .eq('user_id', profile?.user_id)
+        .eq('type', 'checkin')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') return;
+
+      const lastDate = data ? new Date(data.created_at) : null;
+      
+      if (lastDate) {
+        const diff = differenceInDays(new Date(), lastDate);
+        setDaysSinceLastCheckin(diff);
+        if (diff >= 15) {
+          setIsCheckinOverdue(true);
+          setShowCheckinReminder(true);
+        }
+      } else {
+        // First time user or no checkins
+        setIsCheckinOverdue(true);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const loading = profileLoading || flagsLoading;
 
@@ -36,7 +82,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-4 pb-20 max-w-md mx-auto min-h-screen space-y-8 bg-black">
+    <div className="p-4 pb-24 max-w-md mx-auto min-h-screen space-y-8 bg-black">
       
       {/* USER HEADER CARD */}
       <Card className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden cursor-pointer hover:border-zinc-700 transition-colors" onClick={() => navigate('/settings')}>
@@ -122,10 +168,13 @@ const Dashboard = () => {
 
           <Button 
             variant="outline" 
-            className="h-14 bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white uppercase font-bold text-xs tracking-wide flex items-center gap-2 justify-center"
+            className="h-14 bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white uppercase font-bold text-xs tracking-wide flex items-center gap-2 justify-center relative overflow-hidden"
             onClick={() => navigate('/checkin')}
           >
             <Camera className="h-4 w-4" /> Check Físico
+            {isCheckinOverdue && (
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            )}
           </Button>
         
         </div>
@@ -145,6 +194,7 @@ const Dashboard = () => {
 
       </div>
 
+      {/* MODALS */}
       <PreWorkoutModal 
         open={showPreWorkout} 
         onOpenChange={setShowPreWorkout} 
@@ -154,6 +204,12 @@ const Dashboard = () => {
 
       <CardioModal open={showCardio} onOpenChange={setShowCardio} />
       <RestDayModal open={showRest} onOpenChange={setShowRest} />
+      
+      <CheckinReminderDialog 
+        open={showCheckinReminder} 
+        onOpenChange={setShowCheckinReminder}
+        daysSince={daysSinceLastCheckin}
+      />
     </div>
   );
 };
