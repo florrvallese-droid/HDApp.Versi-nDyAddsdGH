@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { Moon, Loader2 } from "lucide-react";
+import { Moon, Loader2, Calendar } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { format } from "date-fns";
 
 interface RestDayModalProps {
   open: boolean;
@@ -16,6 +18,7 @@ interface RestDayModalProps {
 export function RestDayModal({ open, onOpenChange }: RestDayModalProps) {
   const { profile } = useProfile();
   const [loading, setLoading] = useState(false);
+  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState("");
 
   const handleSubmit = async () => {
@@ -23,10 +26,15 @@ export function RestDayModal({ open, onOpenChange }: RestDayModalProps) {
     setLoading(true);
 
     try {
+      // Create a date object with the selected date and current time
+      const now = new Date();
+      const timeString = now.toTimeString().split(' ')[0]; // HH:MM:SS
+      const finalDate = new Date(`${date}T${timeString}`).toISOString();
+
       const { error } = await supabase.from('logs').insert({
         user_id: profile.user_id,
         type: 'rest',
-        created_at: new Date().toISOString(),
+        created_at: finalDate,
         data: {
           notes
         }
@@ -37,6 +45,8 @@ export function RestDayModal({ open, onOpenChange }: RestDayModalProps) {
       toast.success("Día de descanso registrado. ¡A recuperar!");
       onOpenChange(false);
       setNotes("");
+      setDate(format(new Date(), "yyyy-MM-dd"));
+      
     } catch (error: any) {
       toast.error("Error al guardar: " + error.message);
     } finally {
@@ -59,6 +69,18 @@ export function RestDayModal({ open, onOpenChange }: RestDayModalProps) {
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+                <Calendar className="h-3 w-3 text-zinc-400" /> Fecha del Descanso
+            </Label>
+            <Input 
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="bg-zinc-900 border-zinc-800 h-11"
+            />
+          </div>
+
           <div className="space-y-2">
             <Label>Notas de Recuperación</Label>
             <Textarea 

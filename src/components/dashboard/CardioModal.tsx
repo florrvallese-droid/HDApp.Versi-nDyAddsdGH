@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { Zap, Loader2, Footprints } from "lucide-react";
+import { Zap, Loader2, Footprints, Calendar } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { format } from "date-fns";
 
 interface CardioModalProps {
   open: boolean;
@@ -19,6 +20,7 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
   const { profile } = useProfile();
   const [loading, setLoading] = useState(false);
   
+  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [duration, setDuration] = useState("");
   const [type, setType] = useState("walking");
   const [calories, setCalories] = useState("");
@@ -30,10 +32,15 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
     setLoading(true);
 
     try {
+      // Create a date object with the selected date and current time (to avoid timezone shifts to previous day)
+      const now = new Date();
+      const timeString = now.toTimeString().split(' ')[0]; // HH:MM:SS
+      const finalDate = new Date(`${date}T${timeString}`).toISOString();
+
       const { error } = await supabase.from('logs').insert({
         user_id: profile.user_id,
         type: 'cardio',
-        created_at: new Date().toISOString(),
+        created_at: finalDate,
         data: {
           duration_minutes: parseInt(duration),
           type,
@@ -54,6 +61,7 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
       setSteps("");
       setNotes("");
       setType("walking");
+      setDate(format(new Date(), "yyyy-MM-dd"));
       
     } catch (error: any) {
       toast.error("Error al guardar: " + error.message);
@@ -78,6 +86,18 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
 
         <div className="space-y-4 py-2">
           
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+                <Calendar className="h-3 w-3 text-zinc-400" /> Fecha de Actividad
+            </Label>
+            <Input 
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="bg-zinc-900 border-zinc-800 h-11"
+            />
+          </div>
+
           <div className="space-y-2">
             <Label>Tipo de Actividad</Label>
             <Select value={type} onValueChange={setType}>
@@ -118,7 +138,6 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
             </div>
           </div>
 
-          {/* Campo condicional para Pasos si es Caminata */}
           {type === 'walking' && (
             <div className="space-y-2 animate-in slide-in-from-top-2">
               <Label className="flex items-center gap-2">
