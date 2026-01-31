@@ -70,8 +70,8 @@ serve(async (req) => {
       ${JSON.stringify(data)}
     `;
 
-    // Call Gemini API
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    // Call Gemini API - USING GEMINI 1.5 PRO
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -112,7 +112,7 @@ serve(async (req) => {
       user_id: userId || null, 
       action,
       coach_tone: tone,
-      model: 'gemini-1.5-flash',
+      model: 'gemini-1.5-pro',
       input_data: data,
       output_data: parsedOutput,
       tokens_used: aiResult.usageMetadata?.totalTokenCount || 0,
