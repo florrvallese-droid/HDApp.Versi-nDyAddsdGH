@@ -46,7 +46,7 @@ const Index = () => {
         
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-900/50 bg-red-900/10 text-red-500 text-[10px] font-bold uppercase tracking-widest mb-4">
-            <Star className="w-3 h-3 fill-current" /> Versión 2.0 con IA
+            <Star className="w-3 h-3 fill-current" /> Versión 17.09 integrada con IA
           </div>
           
           <div className="space-y-2">
