@@ -27,27 +27,26 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
       const { data: { user: coach } } = await supabase.auth.getUser();
       if (!coach) throw new Error("No autenticado");
 
-      // Buscamos el perfil del atleta por email
+      // Usamos ilike para búsqueda insensible a mayúsculas
       const { data: athleteProfile, error: searchError } = await supabase
         .from('profiles')
         .select('user_id, display_name')
-        .eq('email', cleanEmail)
+        .ilike('email', cleanEmail)
         .maybeSingle();
 
       if (searchError) {
         console.error("Search error:", searchError);
-        throw new Error("Error técnico al buscar el perfil. Por favor, reintenta.");
+        throw new Error("Error en la conexión con la base de datos.");
       }
 
       if (!athleteProfile) {
-        throw new Error("No se encontró ningún usuario con ese correo electrónico. Asegúrate de que el atleta ya se haya registrado en la app.");
+        throw new Error("No se encontró al atleta. Asegúrate de que ya haya iniciado sesión en la app al menos una vez.");
       }
 
       if (athleteProfile.user_id === coach.id) {
-        throw new Error("No puedes vincularte a ti mismo como alumno.");
+        throw new Error("No puedes invitarte a ti mismo.");
       }
 
-      // Verificar si ya existe un vínculo
       const { data: existing } = await supabase
         .from('coach_assignments')
         .select('status')
@@ -56,10 +55,9 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
         .maybeSingle();
 
       if (existing) {
-        throw new Error(`Este atleta ya tiene una solicitud ${existing.status === 'active' ? 'activa' : 'pendiente'} contigo.`);
+        throw new Error(`Ya existe una relación ${existing.status === 'active' ? 'activa' : 'pendiente'} con este atleta.`);
       }
 
-      // Crear la invitación
       const { error: inviteError } = await supabase
         .from('coach_assignments')
         .insert({
@@ -90,7 +88,7 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
             <UserPlus className="h-5 w-5 text-red-600" /> Vincular Nuevo Atleta
           </DialogTitle>
           <DialogDescription className="text-zinc-500">
-            Ingresa el correo exacto con el que tu alumno se registró en Heavy Duty.
+            Ingresa el correo exacto con el que tu alumno se registró.
           </DialogDescription>
         </DialogHeader>
 
@@ -102,7 +100,7 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
               <Input 
                 id="email"
                 type="email"
-                placeholder="alumno@ejemplo.com"
+                placeholder="valleseflorencia@gmail.com"
                 className="bg-zinc-900 border-zinc-800 pl-10 h-11"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
