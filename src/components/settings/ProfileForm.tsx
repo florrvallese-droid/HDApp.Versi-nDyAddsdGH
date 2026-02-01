@@ -26,7 +26,10 @@ export function ProfileForm() {
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || "");
-      setSex((profile.sex as 'male'|'female') || 'male');
+      // Safe cast if possible, fallback to male if not set
+      if (profile.sex === 'male' || profile.sex === 'female') {
+          setSex(profile.sex);
+      }
       setAvatarUrl(profile.avatar_url || null);
       
       // Load extra fields from settings jsonb
@@ -124,7 +127,7 @@ export function ProfileForm() {
         <div className="flex flex-col items-center gap-6">
           <div className="relative group cursor-pointer">
             {/* Red Glow Ring */}
-            <div className="absolute inset-0 rounded-full border-2 border-red-600 blur-[2px]" />
+            <div className="absolute inset-0 rounded-full border-2 border-red-600 blur-[4px] opacity-70" />
             <div className="absolute inset-0 rounded-full border border-red-600/50" />
             
             <div className="h-48 w-48 rounded-full border-4 border-zinc-950 overflow-hidden bg-zinc-900 flex items-center justify-center relative z-10 shadow-2xl">
@@ -148,7 +151,7 @@ export function ProfileForm() {
           </div>
           
           {profile?.is_premium ? (
-             <div className="bg-gradient-to-r from-red-600 to-red-700 text-white text-xs font-black uppercase py-2 px-6 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)] tracking-widest">
+             <div className="bg-gradient-to-r from-red-600 to-red-700 text-white text-xs font-black uppercase py-2 px-6 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)] tracking-widest border border-red-500/50">
                MIEMBRO PRO
              </div>
           ) : (
@@ -166,7 +169,7 @@ export function ProfileForm() {
             <Input 
               value={displayName} 
               onChange={(e) => setDisplayName(e.target.value)} 
-              className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0"
+              className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0 placeholder:text-zinc-700"
               placeholder="Tu nombre..."
             />
           </div>
@@ -206,7 +209,7 @@ export function ProfileForm() {
                 type="number"
                 value={age} 
                 onChange={(e) => setAge(e.target.value)}
-                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0"
+                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0 placeholder:text-zinc-700"
                 placeholder="--"
               />
             </div>
@@ -216,7 +219,7 @@ export function ProfileForm() {
                 type="number"
                 value={height} 
                 onChange={(e) => setHeight(e.target.value)}
-                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0"
+                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0 placeholder:text-zinc-700"
                 placeholder="--"
               />
             </div>
@@ -226,7 +229,7 @@ export function ProfileForm() {
                 type="number"
                 value={weight} 
                 onChange={(e) => setWeight(e.target.value)}
-                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0"
+                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0 placeholder:text-zinc-700"
                 placeholder="--"
               />
             </div>
@@ -237,7 +240,7 @@ export function ProfileForm() {
             <Textarea 
               value={objectives}
               onChange={(e) => setObjectives(e.target.value)}
-              className="bg-black/50 border-zinc-800 text-zinc-300 min-h-[120px] resize-none focus:border-red-600/50 focus:ring-0 text-base"
+              className="bg-black/50 border-zinc-800 text-zinc-300 min-h-[120px] resize-none focus:border-red-600/50 focus:ring-0 text-base placeholder:text-zinc-700"
               placeholder="Describí tus metas: Subir 5kg limpios, mejorar banca plana, bajar % graso..."
             />
           </div>
