@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { 
-  Zap, Moon, Camera, FlaskConical, Settings, LogOut, Share2, Loader2, Bell
+  Zap, Moon, Camera, FlaskConical, Settings, LogOut, Share2, Loader2, Bell, ClipboardCheck
 } from "lucide-react";
 import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
 import { CardioModal } from "@/components/dashboard/CardioModal";
 import { RestDayModal } from "@/components/dashboard/RestDayModal";
 import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
 import { CoachInvitationAlert } from "@/components/dashboard/CoachInvitationAlert";
+import { WeeklyCheckinModal } from "@/components/dashboard/WeeklyCheckinModal";
 import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
@@ -22,9 +23,9 @@ export default function AthleteDashboardView() {
   const [showPreWorkout, setShowPreWorkout] = useState(false);
   const [showCardio, setShowCardio] = useState(false);
   const [showRest, setShowRest] = useState(false);
+  const [showCheckinModal, setShowCheckinModal] = useState(false);
   const [showCheckinReminder, setShowCheckinReminder] = useState(false);
   const [daysSinceCheckin, setDaysSinceCheckin] = useState(0);
-  const [isSharing, setIsSharing] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
@@ -63,13 +64,10 @@ export default function AthleteDashboardView() {
       const lastCheckin = new Date(data.created_at);
       const diff = differenceInDays(new Date(), lastCheckin);
       setDaysSinceCheckin(diff);
-      
-      // Si pasaron más de 15 días, mostramos el recordatorio
       if (diff > 15) {
         setShowCheckinReminder(true);
       }
     } else {
-      // Si nunca hizo uno, lo recordamos a los 7 días de registrarse
       setDaysSinceCheckin(7);
       setShowCheckinReminder(true);
     }
@@ -127,8 +125,11 @@ export default function AthleteDashboardView() {
         </div>
 
         <div className="pt-2 border-t border-zinc-900">
-           <Button className="w-full h-14 bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold uppercase tracking-widest flex items-center justify-center gap-3" onClick={() => {}} disabled={isSharing}>
-              {isSharing ? <Loader2 className="animate-spin h-5 w-5" /> : <Share2 className="h-5 w-5 text-green-500" />}
+           <Button 
+            className="w-full h-14 bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold uppercase tracking-widest flex items-center justify-center gap-3" 
+            onClick={() => setShowCheckinModal(true)}
+           >
+              <ClipboardCheck className="h-5 w-5 text-green-500" />
               Enviar Chequeo Semanal
            </Button>
         </div>
@@ -138,6 +139,14 @@ export default function AthleteDashboardView() {
       <CardioModal open={showCardio} onOpenChange={setShowCardio} />
       <RestDayModal open={showRest} onOpenChange={setShowRest} />
       <CheckinReminderDialog open={showCheckinReminder} onOpenChange={setShowCheckinReminder} daysSince={daysSinceCheckin} />
+      {profile?.user_id && (
+        <WeeklyCheckinModal 
+            open={showCheckinModal} 
+            onOpenChange={setShowCheckinModal} 
+            userId={profile.user_id} 
+            athleteName={profile.display_name || "Atleta"} 
+        />
+      )}
     </div>
   );
 }
