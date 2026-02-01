@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { User, Camera, Loader2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Strictly synchronous component
 export function ProfileForm() {
   const { profile, loading: profileLoading } = useProfile();
   const [loading, setLoading] = useState(false);
@@ -112,12 +111,12 @@ export function ProfileForm() {
   };
 
   if (profileLoading) {
-    return <div className="p-12 text-center text-zinc-500">Cargando datos...</div>;
+    return <div className="p-12 text-center text-zinc-500 flex flex-col items-center gap-2"><Loader2 className="animate-spin h-6 w-6"/> Cargando perfil...</div>;
   }
 
-  // Fallback if no profile is found but loading finished (shouldn't happen if auth guard works)
+  // Fallback if no profile is found but loading finished
   if (!profile) {
-    return <div className="p-12 text-center text-red-500">Error cargando perfil.</div>;
+    return <div className="p-12 text-center text-red-500">No se pudo cargar el perfil.</div>;
   }
 
   return (

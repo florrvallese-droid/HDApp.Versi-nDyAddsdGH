@@ -9,7 +9,6 @@ import { ProfileForm } from "@/components/settings/ProfileForm";
 import { BillingSettings } from "@/components/settings/BillingSettings";
 import { DataManagement } from "@/components/settings/DataManagement";
 
-// Explicitly synchronous component
 export default function Settings() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -34,7 +33,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 pb-24 max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-black text-white p-4 pb-24 max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
       
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -75,7 +74,7 @@ export default function Settings() {
       
       <div className="text-center pt-10 pb-4 border-t border-zinc-900 mt-10">
         <p className="text-[10px] text-zinc-700 font-mono">
-           Heavy Duty Di Iorio System
+           HEAVY DUTY SYSTEM v1.0
         </p>
       </div>
 
