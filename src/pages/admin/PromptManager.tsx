@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,10 +6,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { Save, RefreshCw, PlusCircle, Database } from "lucide-react";
+import { Save, RefreshCw, PlusCircle, Database, FileUp, Loader2, FileText, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import * as pdfjsLib from "pdfjs-dist";
+
+// Configurar el worker de PDF.js (usando CDN para evitar problemas de assets locales)
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export default function PromptManager() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [prompts, setPrompts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -26,6 +31,7 @@ export default function PromptManager() {
   const [knowledgeContent, setKnowledgeContent] = useState("");
   const [knowledgeId, setKnowledgeId] = useState<string | null>(null);
   const [loadingKnowledge, setLoadingKnowledge] = useState(false);
+  const [processingPdf, setProcessingPdf] = useState(false);
 
   useEffect(() => {
     fetchPrompts();
@@ -121,6 +127,41 @@ export default function PromptManager() {
       toast.error("Error guardando conocimiento: " + err.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      toast.error("Por favor, sube un archivo PDF válido.");
+      return;
+    }
+
+    setProcessingPdf(true);
+    const toastId = toast.loading("Extrayendo conocimiento del PDF...");
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = "";
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(" ");
+        fullText += `[PÁGINA ${i}]\n${pageText}\n\n`;
+      }
+
+      setKnowledgeContent(prev => prev + (prev ? "\n\n" : "") + `--- INICIO DOCUMENTO: ${file.name} ---\n` + fullText + `--- FIN DOCUMENTO ---`);
+      toast.success(`Se extrajeron ${pdf.numPages} páginas de conocimiento.`, { id: toastId });
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Error al procesar el PDF: " + error.message, { id: toastId });
+    } finally {
+      setProcessingPdf(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -229,29 +270,69 @@ export default function PromptManager() {
 
         <TabsContent value="knowledge" className="mt-6">
           <Card className="border-blue-500/20 bg-blue-500/5">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Database className="h-6 w-6 text-blue-500" />
-                <CardTitle>Base de Conocimiento Heavy Duty</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Database className="h-6 w-6 text-blue-500" />
+                  <CardTitle>Base de Conocimiento Heavy Duty</CardTitle>
+                </div>
+                <CardDescription>
+                  Este texto será inyectado en el contexto de la IA. Puedes escribirlo o subir libros en PDF.
+                </CardDescription>
               </div>
-              <CardDescription>
-                Este texto será inyectado en el contexto de la IA para TODAS las acciones y TODOS los tonos. 
-                Pega aquí el libro, principios o reglas técnicas.
-              </CardDescription>
+              <div className="flex gap-2">
+                 <input 
+                    type="file" 
+                    accept="application/pdf" 
+                    className="hidden" 
+                    ref={fileInputRef}
+                    onChange={handlePdfUpload}
+                 />
+                 <Button 
+                    variant="outline" 
+                    className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={processingPdf}
+                 >
+                    {processingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
+                    Cargar PDF (Libro)
+                 </Button>
+                 <Button 
+                    variant="ghost" 
+                    className="text-red-500 hover:bg-red-500/10"
+                    onClick={() => { if(confirm("¿Borrar todo el conocimiento?")) setKnowledgeContent(""); }}
+                 >
+                    <Trash2 className="h-4 w-4" />
+                 </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {loadingKnowledge ? (
                 <div className="h-[500px] flex items-center justify-center">Cargando...</div>
               ) : (
-                <Textarea 
-                  className="min-h-[500px] font-mono text-sm leading-relaxed bg-zinc-950/50 border-blue-500/20 focus:border-blue-500"
-                  value={knowledgeContent}
-                  onChange={(e) => setKnowledgeContent(e.target.value)}
-                  placeholder="Pega aquí el contenido completo del libro o manual..."
-                />
+                <div className="relative">
+                   <Textarea 
+                    className="min-h-[500px] font-mono text-sm leading-relaxed bg-zinc-950/50 border-blue-500/20 focus:border-blue-500"
+                    value={knowledgeContent}
+                    onChange={(e) => setKnowledgeContent(e.target.value)}
+                    placeholder="Pega aquí el contenido o sube un PDF..."
+                   />
+                   {processingPdf && (
+                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center rounded-md">
+                        <Loader2 className="h-10 w-10 text-blue-500 animate-spin mb-4" />
+                        <p className="text-white font-bold animate-pulse text-lg uppercase tracking-widest">Extrayendo texto del libro...</p>
+                     </div>
+                   )}
+                </div>
               )}
-              <div className="flex justify-end">
-                <Button onClick={handleSaveKnowledge} disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <div className="flex justify-between items-center bg-zinc-900/50 p-4 rounded-lg border border-blue-500/10">
+                <div className="flex items-center gap-2 text-zinc-400 text-xs">
+                   <FileText className="h-4 w-4" />
+                   <span>Carcacteres actuales: <strong>{knowledgeContent.length.toLocaleString()}</strong></span>
+                   <span className="opacity-30">|</span>
+                   <span>Tokens estimados: <strong>{Math.ceil(knowledgeContent.length / 4).toLocaleString()}</strong></span>
+                </div>
+                <Button onClick={handleSaveKnowledge} disabled={saving || processingPdf} className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Save className="mr-2 h-4 w-4" /> Guardar Conocimiento Global
                 </Button>
               </div>
