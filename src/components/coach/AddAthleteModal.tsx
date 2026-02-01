@@ -27,7 +27,7 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
       const { data: { user: coach } } = await supabase.auth.getUser();
       if (!coach) throw new Error("No autenticado");
 
-      // Usamos ilike para búsqueda insensible a mayúsculas
+      // Buscamos el perfil por email (insensible a mayúsculas tras la sincronización)
       const { data: athleteProfile, error: searchError } = await supabase
         .from('profiles')
         .select('user_id, display_name')
@@ -36,11 +36,11 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
 
       if (searchError) {
         console.error("Search error:", searchError);
-        throw new Error("Error en la conexión con la base de datos.");
+        throw new Error("Error de conexión con la base de datos.");
       }
 
       if (!athleteProfile) {
-        throw new Error("No se encontró al atleta. Asegúrate de que ya haya iniciado sesión en la app al menos una vez.");
+        throw new Error("No se encontró al atleta. Debe estar registrado en la aplicación.");
       }
 
       if (athleteProfile.user_id === coach.id) {
@@ -55,7 +55,7 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
         .maybeSingle();
 
       if (existing) {
-        throw new Error(`Ya existe una relación ${existing.status === 'active' ? 'activa' : 'pendiente'} con este atleta.`);
+        throw new Error(`Ya existe una relación ${existing.status === 'active' ? 'activa' : 'pendiente'}.`);
       }
 
       const { error: inviteError } = await supabase
@@ -85,22 +85,22 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
       <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-red-600" /> Vincular Nuevo Atleta
+            <UserPlus className="h-5 w-5 text-red-600" /> Vincular Atleta
           </DialogTitle>
           <DialogDescription className="text-zinc-500">
-            Ingresa el correo exacto con el que tu alumno se registró.
+            Ingresa el correo exacto de tu alumno.
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-xs font-bold uppercase text-zinc-500">Email del Atleta</Label>
+            <Label htmlFor="email" className="text-xs font-bold uppercase text-zinc-500">Email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-zinc-600" />
               <Input 
                 id="email"
                 type="email"
-                placeholder="valleseflorencia@gmail.com"
+                placeholder="ejemplo@correo.com"
                 className="bg-zinc-900 border-zinc-800 pl-10 h-11"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
