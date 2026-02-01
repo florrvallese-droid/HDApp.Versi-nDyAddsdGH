@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
@@ -23,6 +23,9 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
   const [newExerciseName, setNewExerciseName] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingPrevious, setLoadingPrevious] = useState(false);
+  
+  // Cronómetro de sesión
+  const [startTime] = useState(Date.now());
 
   const findPreviousExerciseStats = async (exerciseName: string) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -144,6 +147,10 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user");
 
+      // Calculamos duración real en minutos
+      const endTime = Date.now();
+      const durationMinutes = Math.max(1, Math.round((endTime - startTime) / 60000));
+      
       const totalVolume = calculateTotalVolume(exercises);
       
       await supabase.from('logs').insert({
@@ -151,12 +158,25 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
         type: 'workout',
         muscle_group: muscleGroup,
         workout_date: new Date().toISOString(),
-        data: { exercises, total_volume: totalVolume, duration_minutes: 45 }, 
+        data: { 
+          exercises, 
+          total_volume: totalVolume, 
+          duration_minutes: durationMinutes 
+        }, 
         discipline: profile?.discipline || 'general'
       });
 
       toast.success("Sesión Finalizada");
-      navigate('/workout/analysis', { state: { workoutData: { muscleGroup: muscleGroup, volume: totalVolume, exercises, duration: 45 } } });
+      navigate('/workout/analysis', { 
+        state: { 
+          workoutData: { 
+            muscleGroup: muscleGroup, 
+            volume: totalVolume, 
+            exercises, 
+            duration: durationMinutes 
+          } 
+        } 
+      });
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -215,7 +235,6 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
         </div>
       </div>
 
-      {/* FOOTER FIX: Usamos z-[100] para que esté por encima de la navegación principal */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/90 backdrop-blur-md border-t border-zinc-900 grid grid-cols-2 gap-3 z-[100] safe-area-bottom pb-8">
         <Button 
           variant="outline" 
