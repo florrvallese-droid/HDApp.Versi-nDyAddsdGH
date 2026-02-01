@@ -6,9 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save, Target, BookOpen } from "lucide-react";
+import { User, Camera, Loader2, Save, Target, BookOpen, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { LoggingPreference } from "@/types";
+import { LoggingPreference, CoachTone } from "@/types";
 
 export function ProfileForm() {
   const { profile, loading: profileLoading } = useProfile();
@@ -18,6 +18,7 @@ export function ProfileForm() {
   const [displayName, setDisplayName] = useState("");
   const [sex, setSex] = useState<'male'|'female'>("male");
   const [loggingPreference, setLoggingPreference] = useState<LoggingPreference>("effective_only");
+  const [coachTone, setCoachTone] = useState<CoachTone>("strict");
   const [age, setAge] = useState("");
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
@@ -32,6 +33,7 @@ export function ProfileForm() {
           setSex(profile.sex);
       }
       setLoggingPreference(profile.logging_preference || "effective_only");
+      setCoachTone(profile.coach_tone || "strict");
       setAvatarUrl(profile.avatar_url || null);
       if (profile.settings) {
         setAge(profile.settings.age || "");
@@ -61,6 +63,7 @@ export function ProfileForm() {
           display_name: displayName,
           sex: sex,
           logging_preference: loggingPreference,
+          coach_tone: coachTone,
           settings: updatedSettings,
           updated_at: new Date().toISOString()
         })
@@ -115,10 +118,6 @@ export function ProfileForm() {
     return <div className="p-12 text-center text-zinc-500 flex flex-col items-center gap-2"><Loader2 className="animate-spin h-6 w-6"/> Cargando perfil...</div>;
   }
 
-  if (!profile) {
-    return <div className="p-12 text-center text-red-500">No se pudo cargar el perfil.</div>;
-  }
-
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       
@@ -155,7 +154,7 @@ export function ProfileForm() {
             />
           </div>
           
-          {profile.is_premium ? (
+          {profile?.is_premium ? (
              <div className="bg-gradient-to-r from-red-600 to-red-700 text-white text-xs font-black uppercase py-2 px-6 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)] tracking-widest border border-red-500/50">
                MIEMBRO PRO
              </div>
@@ -167,7 +166,7 @@ export function ProfileForm() {
         </div>
 
         {/* RIGHT COLUMN: FORM */}
-        <div className="space-y-6 w-full">
+        <div className="space-y-8 w-full">
           <div className="space-y-2">
             <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Nombre Completo</Label>
             <Input 
@@ -175,6 +174,29 @@ export function ProfileForm() {
               onChange={(e) => setDisplayName(e.target.value)} 
               className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0 placeholder:text-zinc-700"
             />
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider flex items-center gap-2">
+              <Brain className="h-3 w-3" /> Personalidad del Coach IA
+            </Label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {(['strict', 'motivational', 'analytical', 'friendly'] as CoachTone[]).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setCoachTone(t)}
+                  className={cn(
+                    "flex flex-col items-center justify-center p-3 rounded-md border transition-all text-[10px] font-black uppercase tracking-tighter",
+                    coachTone === t 
+                      ? "bg-red-600 border-red-500 text-white" 
+                      : "bg-black/50 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+                  )}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-zinc-600 italic">Define cómo te hablará la IA durante la evaluación y el análisis post-entreno.</p>
           </div>
 
           <div className="space-y-2">

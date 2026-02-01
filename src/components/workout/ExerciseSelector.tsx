@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Check, ChevronsUpDown, Plus, Loader2, Star, Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +9,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -80,9 +79,9 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Debes iniciar sesión");
 
-      const normalizedSearch = searchTerm.trim().toLowerCase().replace(/[°º]/g, '');
+      const normalizedSearch = searchTerm.trim().toLowerCase();
       
-      if (exercises.some(e => e.name.toLowerCase().replace(/[°º]/g, '').trim() === normalizedSearch)) {
+      if (exercises.some(e => e.name.toLowerCase().trim() === normalizedSearch)) {
         toast.error("Este ejercicio ya existe");
         setCreating(false);
         return;
@@ -107,7 +106,7 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
         onSelect(data.name);
         setOpen(false);
         setSearchTerm("");
-        toast.success(`Ejercicio creado`);
+        toast.success(`Ejercicio creado correctamente`);
       }
     } catch (error: any) {
       toast.error("Error: " + error.message);
@@ -134,48 +133,49 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
         align="start"
         sideOffset={5}
       >
-        <Command className="bg-zinc-950">
+        <Command className="bg-zinc-950" shouldFilter={false}>
           <CommandInput 
-            placeholder="Buscar..." 
+            placeholder="Escribe el nombre del ejercicio..." 
             className="h-12 border-b border-zinc-800"
+            value={searchTerm}
             onValueChange={setSearchTerm}
           />
           <CommandList className="max-h-[300px] overflow-y-auto">
-            <CommandEmpty className="p-4 flex flex-col items-center gap-2">
-              <span className="text-zinc-500 text-sm">No encontrado.</span>
-              {searchTerm && (
-                <Button 
-                    size="sm" 
-                    className="w-full bg-red-600 hover:bg-red-700"
-                    onClick={handleCreate}
-                    disabled={creating}
-                >
-                    {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                    Crear "{searchTerm}"
-                </Button>
-              )}
-            </CommandEmpty>
-            
             {loading ? (
               <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-zinc-500" /></div>
             ) : (
               <>
-                <CommandGroup heading="Ejercicios">
-                  {exercises.map((ex) => (
-                    <CommandItem
-                      key={ex.id}
-                      value={ex.name}
-                      onSelect={() => { onSelect(ex.name); setOpen(false); }}
-                      className="py-3 px-4 flex justify-between data-[selected=true]:bg-zinc-900 cursor-pointer"
-                    >
-                      <div className="flex items-center">
-                        <Check className={cn("mr-2 h-4 w-4", value === ex.name ? "opacity-100" : "opacity-0")} />
-                        <span>{ex.name}</span>
-                      </div>
-                      {ex.muscle_group && <span className="text-[10px] uppercase text-zinc-600 font-bold">{ex.muscle_group}</span>}
-                    </CommandItem>
-                  ))}
+                <CommandGroup heading="Ejercicios Sugeridos">
+                  {exercises
+                    .filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .map((ex) => (
+                      <CommandItem
+                        key={ex.id}
+                        value={ex.name}
+                        onSelect={() => { onSelect(ex.name); setOpen(false); }}
+                        className="py-3 px-4 flex justify-between data-[selected=true]:bg-zinc-900 cursor-pointer"
+                      >
+                        <div className="flex items-center">
+                          <Check className={cn("mr-2 h-4 w-4", value === ex.name ? "opacity-100" : "opacity-0")} />
+                          <span>{ex.name}</span>
+                        </div>
+                        {ex.muscle_group && <span className="text-[10px] uppercase text-zinc-600 font-bold">{ex.muscle_group}</span>}
+                      </CommandItem>
+                    ))}
                 </CommandGroup>
+                
+                {searchTerm && !exercises.some(e => e.name.toLowerCase() === searchTerm.toLowerCase()) && (
+                    <div className="p-4 border-t border-zinc-800">
+                        <Button 
+                            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold"
+                            onClick={handleCreate}
+                            disabled={creating}
+                        >
+                            {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                            Crear "{searchTerm}"
+                        </Button>
+                    </div>
+                )}
               </>
             )}
           </CommandList>

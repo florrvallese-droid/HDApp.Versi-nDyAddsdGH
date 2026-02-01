@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 
     // 1. Fetch Prompt (Personality)
     let systemInstruction = `Sos un entrenador experto en Heavy Duty.`;
-    let promptVersion = "fallback";
+    let promptVersion = "v1.5-context-aware";
 
     try {
       const { data: promptData } = await supabase
@@ -70,6 +70,14 @@ Deno.serve(async (req) => {
       console.error("[ai-coach] DB Knowledge Error:", kbErr);
     }
 
+    // 3. Define Context-Aware Post-Workout Instructions
+    const postWorkoutInstructions = `
+      ### CONTEXTO DE INTENSIDAD (SOBRECARGA PROGRESIVA) ###
+      - Si un ejercicio tiene la propiedad "is_superset": true, significa que el atleta lo realizó combinado con otro sin descanso.
+      - IMPORTANTE: Una bajada en la carga (peso o reps) NO es necesariamente una regresión si el ejercicio se movió de "aislado" a "superserie". La fatiga sistémica acumulada justifica un rendimiento numérico menor pero una intensidad metabólica mayor.
+      - Tu análisis de "verdict" debe priorizar el esfuerzo relativo y la técnica sobre el número absoluto si hay cambios en el formato de la sesión.
+    `;
+
     const schemas = {
       preworkout: `
       {
@@ -102,9 +110,11 @@ Deno.serve(async (req) => {
       ${systemInstruction}
 
       ### STRICT SAFETY & COMPLIANCE RULES ###
-      1. PROHIBICIÓN ABSOLUTA: No puedes sugerir, recomendar ni mencionar nuevos suplementos, vitaminas o sustancias farmacológicas/químicas que el usuario deba tomar.
-      2. PROTOCOLOS EXISTENTES: Solo puedes hacer recordatorios de ingesta si, y solo si, el usuario YA ha cargado un protocolo de suplementación o química en su ficha y el momento del análisis coincide con la ingesta programada.
-      3. No des consejos médicos. Enfócate exclusivamente en el entrenamiento y la recuperación sistémica.
+      1. PROHIBICIÓN ABSOLUTA: No puedes sugerir, recomendar ni mencionar nuevos suplementos, sustancias farmacológicas o químicas.
+      2. Solo puedes hacer recordatorios si el usuario YA los tiene en su protocolo.
+      3. No des consejos médicos.
+
+      ${action === 'postworkout' ? postWorkoutInstructions : ''}
 
       ### OUTPUT INSTRUCTIONS ###
       1. Analyze the USER DATA provided below.
@@ -112,7 +122,7 @@ Deno.serve(async (req) => {
       3. Output ONLY valid JSON matching this structure:
       ${targetSchema}
 
-      NO markdown formatting. Just raw JSON.
+      NO markdown formatting outside the "judgment" or "overall_assessment" fields. Just raw JSON.
 
       ${knowledgeContext ? `### KNOWLEDGE BASE (HEAVY DUTY PRINCIPLES) ###\n${knowledgeContext}\n` : ''}
 
@@ -141,45 +151,31 @@ Deno.serve(async (req) => {
       return response.json();
     };
 
-    // --- ESTRATEGIA DE MODELOS (FALLBACK) ---
-    const modelsToTry = [
-      'gemini-2.0-flash', 
-      'gemini-1.5-pro', 
-      'gemini-1.5-flash'
-    ];
-
+    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
     let aiResult = null;
     let usedModel = "";
-    let lastError = null;
 
     for (const model of modelsToTry) {
         try {
-            console.log(`[ai-coach] Intentando con: ${model}`);
             aiResult = await callGemini(model);
             usedModel = model;
-            console.log(`[ai-coach] Éxito con: ${model}`);
             break; 
         } catch (err) {
-            console.warn(`[ai-coach] Error en ${model}, saltando al siguiente...`);
-            lastError = err;
+            console.warn(`[ai-coach] Error en ${model}`);
         }
     }
 
-    if (!aiResult) {
-        throw new Error(`Todos los modelos fallaron. Último error: ${lastError?.message}`);
-    }
+    if (!aiResult) throw new Error("IA failure");
     
     const generatedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!generatedText) throw new Error("La IA no devolvió contenido.");
+    if (!generatedText) throw new Error("IA Empty output");
 
     let parsedOutput;
     try {
       const cleanedText = generatedText.replace(/```json\n?|\n?```/g, "").trim();
       parsedOutput = JSON.parse(cleanedText);
     } catch (e) {
-      console.error("[ai-coach] Error de parseo JSON:", generatedText);
-      throw new Error("La respuesta de la IA no es un JSON válido.");
+      throw new Error("Invalid JSON Output");
     }
 
     supabase.from('ai_logs').insert({
@@ -191,20 +187,13 @@ Deno.serve(async (req) => {
       output_data: parsedOutput,
       tokens_used: aiResult.usageMetadata?.totalTokenCount || 0,
       prompt_version: promptVersion
-    }).then(({ error }) => { if(error) console.error("Error guardando log:", error) });
+    }).then(({ error }) => { if(error) console.error("Log error:", error) });
 
     return new Response(JSON.stringify(parsedOutput), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
-    console.error(`[ai-coach] FALLO CRÍTICO: ${error.message}`);
-    return new Response(
-      JSON.stringify({ 
-        error: true,
-        message: error.message
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: true, message: error.message }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 })
