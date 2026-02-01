@@ -16,6 +16,7 @@ export interface UserProfile {
   units: UnitSystem;
   avatar_url?: string;
   birth_date?: string;
+  is_competitor?: boolean;
   
   // Registro
   logging_preference: LoggingPreference;
@@ -60,11 +61,24 @@ export interface UserProfile {
     language?: 'es' | 'en';
     theme?: 'dark' | 'light';
     nutrition?: NutritionConfig;
+    pharmacology_protocol?: any;
     age?: string;
     height?: string;
     current_weight?: string;
     objectives?: string;
   };
+}
+
+export interface Competition {
+    id: string;
+    athlete_id: string;
+    name: string;
+    date: string;
+    category?: string;
+    location?: string;
+    notes?: string;
+    peak_week_protocol?: any;
+    status: 'scheduled' | 'completed' | 'cancelled';
 }
 
 export interface Routine {
