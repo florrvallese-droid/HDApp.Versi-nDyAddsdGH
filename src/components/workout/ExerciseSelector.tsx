@@ -164,14 +164,14 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0 bg-zinc-950 border-zinc-800 text-white" align="start">
+      <PopoverContent className="w-[85vw] max-w-[400px] p-0 bg-zinc-950 border-zinc-800 text-white" align="start">
         <Command className="bg-zinc-950 text-white" shouldFilter={true}>
           <CommandInput 
             placeholder="Escribe para buscar..." 
             className="h-11 border-b border-zinc-800"
             onValueChange={setSearchTerm}
           />
-          <CommandList className="max-h-[300px] custom-scrollbar">
+          <CommandList className="max-h-[50vh] custom-scrollbar">
             <CommandEmpty className="py-2 px-2">
               {searchTerm && (
                 <div className="flex flex-col items-center gap-2 p-2">
