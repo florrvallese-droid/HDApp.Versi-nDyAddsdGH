@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Link2, Trash2, Trophy, TrendingUp, Pencil, ArrowUp, ArrowDown, ChevronRight, CornerDownRight } from "lucide-react";
+import { Link2, Trash2, Trophy, Pencil, ArrowUp, ArrowDown, ChevronRight, CornerDownRight, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WorkoutExercise, WorkoutSet, UnitSystem } from "@/types";
@@ -23,213 +23,72 @@ interface ExerciseCardProps {
 }
 
 export function ExerciseCard({
-  exercise,
-  index,
-  totalExercises,
-  units,
-  onRemoveExercise,
-  onToggleSuperset,
-  onMoveUp,
-  onMoveDown,
-  onAddSet,
-  onRemoveSet,
-  onUpdateSet
+  exercise, index, totalExercises, units, onRemoveExercise, onToggleSuperset, onMoveUp, onMoveDown, onAddSet, onRemoveSet, onUpdateSet
 }: ExerciseCardProps) {
-  
   const [editingSetIndex, setEditingSetIndex] = useState<number | null>(null);
-
-  const defaultFormValues = {
-    weight: exercise.previous?.weight?.toString() || "",
-    tempo: "3-0-1"
-  };
-
-  const renderTechniques = (set: WorkoutSet) => {
-    // Filter out extension techniques (they are rendered separately)
-    const EXTENSION_KEYS = ['rest_pause', 'drop_set'];
-    const displayTechs = set.techniques?.filter(t => !EXTENSION_KEYS.includes(t)) || [];
-
-    if (displayTechs.length === 0) return null;
-
-    return (
-      <div className="flex flex-wrap gap-1 max-w-[120px] mt-1">
-        {displayTechs.map(tech => {
-          const count = set.technique_counts?.[tech];
-          const label = getTechLabel(tech);
-          
-          if (count) {
-            return (
-              <Badge key={tech} variant="outline" className={cn("text-[9px] px-1 py-0 h-4 border font-bold", getTechColor(tech))}>
-                +{count} {label}
-              </Badge>
-            );
-          }
-          
-          return (
-            <Badge key={tech} variant="outline" className={cn("text-[9px] px-1 py-0 h-4 border", getTechColor(tech))}>
-              {label}
-            </Badge>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const renderExtensions = (set: WorkoutSet) => {
-    if (!set.extensions || set.extensions.length === 0) return null;
-
-    return (
-      <div className="mt-2 space-y-1">
-        {set.extensions.map((ext, i) => (
-          <div key={i} className="flex items-center gap-2 text-[10px]">
-            <CornerDownRight className="h-3 w-3 text-zinc-500" />
-            
-            {ext.type === 'rest_pause' && (
-              <span className="flex items-center gap-1.5 bg-blue-950/30 text-blue-400 px-2 py-0.5 rounded border border-blue-900/30">
-                <span className="font-bold">RP {ext.rest_time}s</span> 
-                <ChevronRight className="h-3 w-3 opacity-50"/> 
-                <span className="text-white font-bold">+{ext.reps} reps</span>
-              </span>
-            )}
-
-            {ext.type === 'drop_set' && (
-              <span className="flex items-center gap-1.5 bg-red-950/30 text-red-400 px-2 py-0.5 rounded border border-red-900/30">
-                <span className="font-bold">DROP {ext.weight}{units}</span> 
-                <ChevronRight className="h-3 w-3 opacity-50"/> 
-                <span className="text-white font-bold">+{ext.reps} reps</span>
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
+  const defaultFormValues = { weight: exercise.previous?.weight?.toString() || "", tempo: "3-0-1" };
 
   return (
-    <div 
-      className={cn(
-        "space-y-3 animate-in fade-in slide-in-from-bottom-2 transition-all",
-        exercise.is_superset ? "-mt-6 pt-8 border-t-2 border-dashed border-red-900/50 relative z-0" : ""
-      )}
-    >
-      {exercise.is_superset && (
-        <div className="absolute top-2 left-4 text-[10px] font-black uppercase text-red-500 flex items-center gap-1">
-          <Link2 className="h-3 w-3" /> Super Serie (Pre-Agotamiento)
-        </div>
-      )}
+    <div className={cn("space-y-3 animate-in fade-in", exercise.is_superset ? "-mt-6 pt-8 border-t-2 border-dashed border-red-900/50 relative" : "")}>
+      {exercise.is_superset && <div className="absolute top-2 left-4 text-[10px] font-black uppercase text-red-500 flex items-center gap-1"><Link2 className="h-3 w-3" /> Super Serie</div>}
 
       <div className="flex justify-between items-start gap-2">
         <h3 className="text-red-500 font-black uppercase text-lg leading-tight flex-1">{exercise.name}</h3>
-        
         <div className="flex gap-1 shrink-0">
-          <div className="flex bg-zinc-900 rounded-md border border-zinc-800 mr-2">
-             <Button 
-               variant="ghost" 
-               size="icon" 
-               className="h-8 w-6 rounded-none border-r border-zinc-800 disabled:opacity-20 hover:bg-zinc-800"
-               onClick={onMoveUp}
-               disabled={index === 0}
-             >
-               <ArrowUp className="h-3 w-3 text-zinc-400" />
-             </Button>
-             <Button 
-               variant="ghost" 
-               size="icon" 
-               className="h-8 w-6 rounded-none disabled:opacity-20 hover:bg-zinc-800"
-               onClick={onMoveDown}
-               disabled={index === totalExercises - 1}
-             >
-               <ArrowDown className="h-3 w-3 text-zinc-400" />
-             </Button>
+          <div className="flex bg-zinc-900 rounded-md border border-zinc-800 mr-1">
+             <Button variant="ghost" size="icon" className="h-8 w-6" onClick={onMoveUp} disabled={index === 0}><ArrowUp className="h-3 w-3" /></Button>
+             <Button variant="ghost" size="icon" className="h-8 w-6" onClick={onMoveDown} disabled={index === totalExercises - 1}><ArrowDown className="h-3 w-3" /></Button>
           </div>
-
-          {index > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onToggleSuperset}
-              className={cn(
-                "h-8 px-2 border border-transparent",
-                exercise.is_superset ? "text-red-500 bg-red-950/20 border-red-900/30" : "text-zinc-600 hover:text-zinc-400 hover:bg-zinc-900"
-              )}
-            >
-              <Link2 className="h-4 w-4" />
-            </Button>
-          )}
-          <Button variant="ghost" size="sm" onClick={onRemoveExercise} className="h-8 px-2 text-zinc-600 hover:text-red-500 hover:bg-zinc-900">
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {index > 0 && <Button variant="ghost" size="sm" onClick={onToggleSuperset} className={cn("h-8 px-2", exercise.is_superset ? "text-red-500 bg-red-950/20" : "text-zinc-600")}><Link2 className="h-4 w-4" /></Button>}
+          <Button variant="ghost" size="sm" onClick={onRemoveExercise} className="h-8 px-2 text-zinc-600 hover:text-red-500"><Trash2 className="h-4 w-4" /></Button>
         </div>
       </div>
 
       {exercise.previous && (
-        <div className="flex items-center gap-2 text-xs bg-yellow-950/30 border border-yellow-900/50 p-2 rounded text-yellow-500 mb-2">
-          <Trophy className="h-3 w-3" />
-          <span className="font-bold">A SUPERAR:</span>
-          <span className="font-mono">{exercise.previous.weight}kg x {exercise.previous.reps} reps</span>
+        <div className="flex items-center gap-2 text-xs bg-yellow-950/30 border border-yellow-900/50 p-2 rounded text-yellow-500">
+          <Trophy className="h-3 w-3" /> <span className="font-bold">A SUPERAR:</span> <span className="font-mono">{exercise.previous.weight}kg x {exercise.previous.reps}</span>
         </div>
       )}
 
       {exercise.sets.map((set, si) => (
-        <div key={si} className="bg-zinc-900/50 border border-zinc-800 p-3 rounded relative overflow-hidden group hover:border-zinc-700 transition-colors">
+        <div key={si} className="bg-zinc-900/50 border border-zinc-800 p-3 rounded group">
           <div className="flex items-start justify-between">
             <div className="flex gap-4 items-center flex-1">
               <div className="flex flex-col">
                 <span className="text-[10px] text-zinc-500 uppercase font-bold">Peso</span>
-                <span className="text-xl font-bold text-white">{set.weight}<span className="text-xs text-zinc-500 ml-1">{units}</span></span>
+                <span className="text-xl font-bold text-white flex items-center gap-1">
+                    {set.weight}<span className="text-xs text-zinc-500">{units}</span>
+                    {set.is_unilateral && <UserCheck className="h-3 w-3 text-blue-400" />}
+                </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] text-zinc-500 uppercase font-bold">Reps</span>
                 <span className="text-xl font-bold text-white">{set.reps}</span>
               </div>
-              
-              <div className="ml-2">
-                 {renderTechniques(set)}
+              <div className="flex flex-wrap gap-1 max-w-[100px]">
+                {set.techniques?.map(tech => (
+                  <Badge key={tech} variant="outline" className={cn("text-[9px] px-1 py-0 h-4 border", getTechColor(tech))}>{getTechLabel(tech)}</Badge>
+                ))}
               </div>
-
-              {exercise.previous && (
-                <div className="flex flex-col justify-center ml-auto mr-4">
-                  {set.weight > exercise.previous.weight || (set.weight === exercise.previous.weight && set.reps > exercise.previous.reps) ? (
-                    <TrendingUp className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <div className="h-1 w-4 bg-zinc-700 rounded"/>
-                  )}
-                </div>
-              )}
             </div>
-            
             <div className="flex gap-1">
-               <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-600 hover:text-white" onClick={() => setEditingSetIndex(si)}>
-                  <Pencil className="h-3.5 w-3.5" />
-               </Button>
-               <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-600 hover:text-red-500" onClick={() => onRemoveSet(si)}>
-                  <Trash2 className="h-3.5 w-3.5" />
-               </Button>
+               <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-600" onClick={() => setEditingSetIndex(si)}><Pencil className="h-3.5 w-3.5" /></Button>
+               <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-600" onClick={() => onRemoveSet(si)}><Trash2 className="h-3.5 w-3.5" /></Button>
             </div>
           </div>
-
-          {/* RENDER EXTENSIONS (RP / DROP) */}
-          {renderExtensions(set)}
+          {set.extensions?.map((ext, i) => (
+            <div key={i} className="mt-2 flex items-center gap-2 text-[10px] text-zinc-400">
+               <CornerDownRight className="h-3 w-3" />
+               <span className="font-bold uppercase">{ext.type === 'rest_pause' ? `RP ${ext.rest_time}s` : `DROP ${ext.weight}${units}`}</span>
+               <ChevronRight className="h-3 w-3 opacity-50"/> <span className="text-white font-bold">+{ext.reps} reps</span>
+            </div>
+          ))}
         </div>
       ))}
 
-      <SetForm 
-        units={units}
-        isSuperset={!!exercise.is_superset}
-        defaultValues={defaultFormValues}
-        onAddSet={onAddSet}
-      />
-
-      {editingSetIndex !== null && exercise.sets[editingSetIndex] && (
-        <EditSetDialog 
-          open={true}
-          onOpenChange={(open) => !open && setEditingSetIndex(null)}
-          set={exercise.sets[editingSetIndex]}
-          onSave={(updatedSet) => {
-            onUpdateSet(editingSetIndex, updatedSet);
-            setEditingSetIndex(null);
-          }}
-        />
-      )}
+      <SetForm units={units} isSuperset={!!exercise.is_superset} defaultValues={defaultFormValues} onAddSet={onAddSet} />
+      
+      {editingSetIndex !== null && <EditSetDialog open={true} onOpenChange={(open) => !open && setEditingSetIndex(null)} set={exercise.sets[editingSetIndex]} onSave={(updatedSet) => onUpdateSet(editingSetIndex, updatedSet)} />}
     </div>
   );
 }

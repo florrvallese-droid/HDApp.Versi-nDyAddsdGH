@@ -2,12 +2,14 @@ import { WorkoutExercise } from "@/types";
 
 /**
  * Calculates the total volume of a workout (weight * reps for all sets)
+ * If a set is unilateral, we multiply by 2.
  */
 export const calculateTotalVolume = (exercises: WorkoutExercise[]): number => {
   let totalVolume = 0;
   exercises.forEach(ex => {
     ex.sets.forEach(set => {
-      totalVolume += (Number(set.weight || 0) * Number(set.reps || 0));
+      const multiplier = set.is_unilateral ? 2 : 1;
+      totalVolume += (Number(set.weight || 0) * Number(set.reps || 0) * multiplier);
     });
   });
   return totalVolume;

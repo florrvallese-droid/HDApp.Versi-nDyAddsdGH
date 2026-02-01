@@ -46,7 +46,7 @@ export type PhaseGoal = 'volume' | 'definition' | 'maintenance';
 
 export interface DietVariant {
   id: string;
-  name: string; // e.g. "Día de Pierna", "Descanso"
+  name: string; 
   calories: number;
   macros: { p: number; c: number; f: number };
 }
@@ -79,7 +79,7 @@ export interface Log {
   cycle_day?: number;
   discipline?: string;
   
-  // Payload (estructura varía según type)
+  // Payload
   data: Record<string, any>;
 }
 
@@ -87,7 +87,7 @@ export interface Log {
 export interface Compound {
   id: string;
   name: string;
-  dosage: string; // e.g. "500mg/week"
+  dosage: string;
   type: 'injectable' | 'oral' | 'ancillary';
 }
 
@@ -99,7 +99,6 @@ export interface PharmaCycle {
   notes?: string;
 }
 
-// Interfaces específicas para la data de los logs
 export interface PreWorkoutData {
   inputs: {
     sleep: number;
@@ -114,12 +113,11 @@ export interface PreWorkoutData {
   recommendations: string[];
 }
 
-// --- NEW EXTENSION TYPES ---
 export interface SetExtension {
   type: 'rest_pause' | 'drop_set';
   reps: number;
-  weight?: number; // Para Drop Set
-  rest_time?: number; // Para Rest Pause (segundos)
+  weight?: number;
+  rest_time?: number;
 }
 
 export interface WorkoutSet {
@@ -128,9 +126,10 @@ export interface WorkoutSet {
   tempo?: string;
   rest_seconds?: number;
   rpe?: number;
-  techniques?: string[]; // Array of strings like "Forced Reps"
-  technique_counts?: Record<string, number>; // { "forced_reps": 2 }
-  extensions?: SetExtension[]; // Array para Rest Pause y Drop Sets
+  is_unilateral?: boolean; // NUEVO
+  techniques?: string[];
+  technique_counts?: Record<string, number>;
+  extensions?: SetExtension[];
 }
 
 export interface WorkoutExercise {
@@ -139,26 +138,13 @@ export interface WorkoutExercise {
   previous?: { weight: number; reps: number };
   progress?: 'PROGRESS' | 'MANTUVO' | 'REGRESSION';
   notes?: string;
-  is_superset?: boolean; // Links to previous exercise visually
+  is_superset?: boolean;
 }
 
 export interface WorkoutData {
   exercises: WorkoutExercise[];
   total_volume: number;
   duration_minutes: number;
-}
-
-export interface CheckinData {
-  weight: number;
-  weight_delta: number;
-  photos: string[];
-  notes?: string;
-}
-
-export interface NutritionLogData {
-  // Legacy support or future use
-  day_type?: string;
-  notes?: string;
 }
 
 export interface GlobalAnalysisResponse {
