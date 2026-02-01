@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Plus, Clock, Save, X } from "lucide-react";
+import { Plus, Clock, Save, X, ChevronLeft } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { WorkoutExercise, WorkoutSet, UserProfile } from "@/types";
@@ -121,14 +121,19 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
     <div className="p-4 pb-32 max-w-md mx-auto min-h-screen bg-black text-white space-y-6 relative">
       <RestTimer />
 
-      <div className="flex justify-between items-end border-b border-zinc-900 pb-4">
-        <div>
-          <div className="bg-zinc-900 text-white px-3 py-1 rounded text-sm font-bold inline-block mb-1">
-            {new Date().toLocaleDateString()}
+      <div className="flex justify-between items-start border-b border-zinc-900 pb-4">
+        <div className="flex items-start gap-1">
+          <Button variant="ghost" size="icon" onClick={onCancel} className="text-zinc-500 mt-1">
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+          <div>
+            <div className="bg-zinc-900 text-white px-3 py-1 rounded text-sm font-bold inline-block mb-1">
+              {new Date().toLocaleDateString()}
+            </div>
+            <h2 className="text-3xl font-black italic uppercase text-white leading-none">
+              {muscleGroup}
+            </h2>
           </div>
-          <h2 className="text-3xl font-black italic uppercase text-white leading-none">
-            {muscleGroup}
-          </h2>
         </div>
       </div>
 
@@ -141,8 +146,8 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
             exercise={ex}
             units={profile?.units || 'kg'}
             onRemoveExercise={() => setExercises(exercises.filter((_, idx) => idx !== i))}
-            onMoveUp={() => {}} // simplified for this update
-            onMoveDown={() => {}} // simplified
+            onMoveUp={() => {}} 
+            onMoveDown={() => {}} 
             onToggleSuperset={() => {
                 const updated = [...exercises];
                 updated[i].is_superset = !updated[i].is_superset;

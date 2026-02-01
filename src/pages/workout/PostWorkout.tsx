@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Share2, Home, Dumbbell, Trophy, Loader2, Download, Lock, Flag, Zap, Gavel, ChevronDown } from "lucide-react";
+import { Share2, Trophy, Loader2, Flag, Zap, Gavel, ChevronDown, ChevronLeft, Dumbbell } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { aiService, PostWorkoutAIResponse } from "@/services/ai";
@@ -54,7 +54,6 @@ export default function PostWorkout() {
         .eq('muscle_group', currentWorkout.muscleGroup)
         .order('created_at', { ascending: false });
 
-      // Filtrar el log actual de la comparación
       const previousLogs = logs?.filter(l => {
           const logDate = new Date(l.created_at).getTime();
           const now = new Date().getTime();
@@ -71,7 +70,6 @@ export default function PostWorkout() {
         setIsFirstSession(true);
       }
 
-      // Calculamos densidad para la IA: sets / min
       const totalSets = currentWorkout.exercises?.reduce((acc: number, ex: any) => acc + (ex.sets?.length || 0), 0) || 0;
       const density = currentWorkout.duration > 0 ? (totalSets / currentWorkout.duration).toFixed(2) : 0;
 
@@ -158,16 +156,21 @@ export default function PostWorkout() {
   const totalSets = exercises?.reduce((acc: number, ex: any) => acc + (ex.sets?.length || 0), 0) || 0;
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-4 pb-20 flex flex-col items-center gap-10 overflow-y-auto">
+    <div className="min-h-screen bg-zinc-950 p-4 pb-20 flex flex-col items-center gap-10 overflow-y-auto relative">
       
+      <div className="absolute top-4 left-4 z-50">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-zinc-500 hover:text-white">
+          <ChevronLeft className="h-6 w-6" />
+        </Button>
+      </div>
+
       <UpgradeModal 
         open={showUpgradeModal} 
         onOpenChange={setShowUpgradeModal} 
         featureName="Análisis Post-Entreno"
       />
 
-      {/* 1. EL JUICIO (PROTAGONISTA) */}
-      <div className="w-full max-w-2xl px-2 animate-in fade-in slide-in-from-top-8 duration-1000 mt-4">
+      <div className="w-full max-w-2xl px-2 animate-in fade-in slide-in-from-top-8 duration-1000 mt-12">
         <div className="text-center space-y-2 mb-8">
             <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white">
                 FASE 3: EL JUICIO
@@ -210,7 +213,6 @@ export default function PostWorkout() {
                     </div>
                 ) : (
                     <div className="space-y-8">
-                         {/* El Juicio en Markdown */}
                          <div className="prose prose-invert max-w-none">
                             <MarkdownRenderer 
                                 content={analysis?.judgment || "No se pudo generar el análisis."} 
@@ -264,7 +266,6 @@ export default function PostWorkout() {
         </div>
       </div>
 
-      {/* 2. STORY CARD (SECUNDARIA / COMPARTIR) */}
       <div className="pt-20 border-t border-zinc-900 w-full flex flex-col items-center gap-8">
         <div className="text-center space-y-1">
             <h3 className="text-xl font-black uppercase italic text-zinc-500">Story Card</h3>

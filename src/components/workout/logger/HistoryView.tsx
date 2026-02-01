@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Dumbbell, Clock, Plus, History } from "lucide-react";
+import { Calendar, Dumbbell, Clock, Plus, History, ChevronLeft } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -13,6 +14,7 @@ interface HistoryViewProps {
 }
 
 export function HistoryView({ onStartNew }: HistoryViewProps) {
+  const navigate = useNavigate();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
@@ -50,9 +52,14 @@ export function HistoryView({ onStartNew }: HistoryViewProps) {
       />
 
       <div className="p-4 border-b border-zinc-900 bg-black/50 backdrop-blur sticky top-0 z-10 flex justify-between items-center">
-        <h1 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2">
-          <History className="h-5 w-5 text-red-600" /> Bitácora
-        </h1>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-zinc-500 mr-1">
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+          <h1 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2">
+            <History className="h-5 w-5 text-red-600" /> Bitácora
+          </h1>
+        </div>
         <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold" onClick={onStartNew}>
           <Plus className="h-4 w-4 mr-1" /> Nuevo
         </Button>
