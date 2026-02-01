@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
     ChevronLeft, Briefcase, Plus, Trash2, Save, Loader2, 
-    Instagram, MessageCircle, Globe, DollarSign, Award, Settings
+    Instagram, MessageCircle, Globe, DollarSign, Award, Settings, Info, BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
+import { cn } from "@/lib/utils";
 
 export default function CoachBusiness() {
   const navigate = useNavigate();
@@ -81,7 +82,7 @@ export default function CoachBusiness() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 pb-24 max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
+    <div className="min-h-screen bg-black text-white p-4 pb-32 max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center gap-3 border-b border-zinc-900 pb-6">
         <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-zinc-500"><ChevronLeft className="h-6 w-6" /></Button>
         <div>
@@ -160,6 +161,36 @@ export default function CoachBusiness() {
             </div>
         </div>
 
+        {/* GUÍA DE GESTIÓN */}
+        <div className="space-y-4 pt-4">
+            <div className="flex items-center gap-2 px-1">
+                <BookOpen className="h-3.5 w-3.5 text-zinc-500" />
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Glosario de Gestión de Cobro</h3>
+            </div>
+            <div className="grid gap-3">
+                <StatusInfoItem 
+                    title="Al Día" 
+                    color="text-green-500" 
+                    desc="El atleta ha pagado el mes actual. El sistema extenderá automáticamente su acceso al próximo mes al registrar el cobro."
+                />
+                <StatusInfoItem 
+                    title="Con Deuda" 
+                    color="text-yellow-500" 
+                    desc="La fecha límite pasó. Úsalo para identificar alumnos con atrasos breves (<15 días) que requieren un recordatorio."
+                />
+                <StatusInfoItem 
+                    title="Impago" 
+                    color="text-red-500" 
+                    desc="Situación crítica. El atleta ha ignorado los avisos. Úsalo como filtro previo a la suspensión del servicio."
+                />
+                <StatusInfoItem 
+                    title="Beca / Cortesía" 
+                    color="text-blue-400" 
+                    desc="Atletas que no pagan (colaboraciones, favores, amigos). Se ignoran de las métricas de deuda y no requieren registro de pago."
+                />
+            </div>
+        </div>
+
         <Button onClick={handleSave} disabled={loading} className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-widest border border-red-500 shadow-xl">
             {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5 mr-2" />}
             GUARDAR ESTRATEGIA COMERCIAL
@@ -168,3 +199,12 @@ export default function CoachBusiness() {
     </div>
   );
 }
+
+const StatusInfoItem = ({ title, color, desc }: any) => (
+    <Card className="bg-zinc-900/40 border-zinc-800">
+        <CardContent className="p-4 space-y-1">
+            <p className={cn("text-xs font-black uppercase tracking-tighter", color)}>{title}</p>
+            <p className="text-[10px] text-zinc-500 leading-relaxed">{desc}</p>
+        </CardContent>
+    </Card>
+);

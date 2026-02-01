@@ -9,13 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   ChevronLeft, ChevronRight, Dumbbell, Utensils, Camera, Zap, Loader2, Save, Plus, Trash2, Lock, 
-  AlertCircle, DollarSign, Calendar, CheckCircle2, Bell, ClipboardList, TrendingUp
+  AlertCircle, DollarSign, Calendar, CheckCircle2, Bell, ClipboardList, TrendingUp, Gift
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { WorkoutDetailDialog } from "@/components/workout/WorkoutDetailDialog";
 import { toast } from "sonner";
-import { Routine } from "@/types";
 import { cn } from "@/lib/utils";
 import { CoachProtocolManager } from "@/components/coach/CoachProtocolManager";
 
@@ -77,12 +76,14 @@ export default function CoachAthleteDetail() {
         // NOTIFICAR AL ATLETA
         await supabase.from('notifications').insert({
             user_id: athleteId,
-            title: "Actualización de suscripción",
-            message: `Tu coach ha actualizado tu ficha. Cuota: $${fee}. Estado: ${paymentStatus === 'up_to_date' ? 'Al día' : 'Pendiente'}.`,
+            title: "Actualización de ficha",
+            message: paymentStatus === 'scholarship' 
+                ? "Tu coach te ha asignado una Beca/Cortesía. ¡Aprovecha el máximo rendimiento!"
+                : `Tu coach ha actualizado tu ficha de cobro. Cuota: $${fee}.`,
             type: 'billing_update'
         });
 
-        toast.success("Datos actualizados y atleta notificado");
+        toast.success("Datos actualizados");
     } catch (err: any) {
         toast.error(err.message);
     } finally {
@@ -137,8 +138,13 @@ export default function CoachAthleteDetail() {
         <div className="flex-1">
           <h1 className="text-2xl font-black uppercase italic tracking-tight">{profile?.display_name || "Atleta"}</h1>
           <div className="flex items-center gap-2">
-             <Badge className={cn("text-[8px] h-4", paymentStatus === 'up_to_date' ? "bg-green-600" : "bg-red-600")}>
-                {paymentStatus === 'up_to_date' ? "AL DÍA" : "CON DEUDA"}
+             <Badge className={cn(
+                "text-[8px] h-4", 
+                paymentStatus === 'up_to_date' ? "bg-green-600" : 
+                paymentStatus === 'scholarship' ? "bg-blue-600" : "bg-red-600"
+             )}>
+                {paymentStatus === 'up_to_date' ? "AL DÍA" : 
+                 paymentStatus === 'scholarship' ? "BECA / FAVOR" : "DEUDA"}
              </Badge>
              <span className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">{profile?.discipline}</span>
           </div>
@@ -195,30 +201,39 @@ export default function CoachAthleteDetail() {
                                 type="number" 
                                 value={fee} 
                                 onChange={e => setFee(e.target.value)} 
-                                className="bg-zinc-900 border-zinc-800 font-mono font-bold"
+                                disabled={paymentStatus === 'scholarship'}
+                                className="bg-zinc-900 border-zinc-800 font-mono font-bold disabled:opacity-30"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] text-zinc-500 uppercase font-bold">Estado Manual</Label>
+                            <Label className="text-[10px] text-zinc-500 uppercase font-bold">Estado del Alumno</Label>
                             <select 
                                 value={paymentStatus}
                                 onChange={e => setPaymentStatus(e.target.value)}
                                 className="w-full h-10 px-3 bg-zinc-900 border border-zinc-800 rounded-md text-sm font-bold"
                             >
-                                <option value="up_to_date">Al Día</option>
-                                <option value="late">Con Deuda</option>
-                                <option value="unpaid">Impago</option>
+                                <option value="up_to_date">✅ Al Día</option>
+                                <option value="late">⚠️ Con Deuda</option>
+                                <option value="unpaid">🛑 Impago</option>
+                                <option value="scholarship">💎 Beca / Favor</option>
                             </select>
                         </div>
                     </div>
 
                     <div className="flex gap-2">
                         <Button onClick={handleUpdateFinance} disabled={saving} className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-[10px] uppercase h-12">
-                           <Bell className="h-3 w-3 mr-2 text-red-500" /> Guardar y Avisar
+                           <Save className="h-3 w-3 mr-2" /> Guardar Cambios
                         </Button>
-                        <Button onClick={markAsPaid} disabled={saving || paymentStatus === 'up_to_date'} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-black text-[10px] uppercase h-12">
-                           <CheckCircle2 className="h-4 w-4 mr-2" /> Marcar Pago Hoy
-                        </Button>
+                        {paymentStatus !== 'scholarship' && (
+                             <Button onClick={markAsPaid} disabled={saving || paymentStatus === 'up_to_date'} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-black text-[10px] uppercase h-12">
+                                <CheckCircle2 className="h-4 w-4 mr-2" /> Marcar Pago Hoy
+                             </Button>
+                        )}
+                        {paymentStatus === 'scholarship' && (
+                            <div className="flex-1 bg-blue-900/20 border border-blue-800 rounded-md flex items-center justify-center text-[9px] font-black uppercase text-blue-400">
+                                <Gift className="h-3 w-3 mr-2" /> Atleta Becado
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
@@ -226,7 +241,7 @@ export default function CoachAthleteDetail() {
             <div className="bg-zinc-900/30 p-4 rounded-xl border border-zinc-800 flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-zinc-500 shrink-0 mt-0.5" />
                 <p className="text-xs text-zinc-400 leading-relaxed">
-                   Al guardar cambios financieros, el atleta recibirá una notificación inmediata en su panel principal.
+                   Si cambias el estado a <strong>Beca</strong>, el sistema ignorará las métricas de deuda para este alumno. El atleta recibirá una notificación push sobre cualquier cambio en su ficha.
                 </p>
             </div>
         </TabsContent>
