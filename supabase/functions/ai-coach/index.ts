@@ -70,7 +70,6 @@ Deno.serve(async (req) => {
       console.error("[ai-coach] DB Knowledge Error:", kbErr);
     }
 
-    // ACTUALIZACIÓN DE ESQUEMA: Se agrega 'judgment'
     const schemas = {
       preworkout: `
       {
@@ -136,8 +135,11 @@ Deno.serve(async (req) => {
       return response.json();
     };
 
+    // USAR MODELOS ESTABLES
     let usedModel = 'gemini-2.0-flash';
-    if (action === 'globalanalysis') usedModel = 'gemini-2.0-pro-exp-02-05';
+    if (action === 'globalanalysis') {
+      usedModel = 'gemini-1.5-pro'; // Modelo estable de alta capacidad
+    }
 
     const aiResult = await callGemini(usedModel);
     const generatedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
