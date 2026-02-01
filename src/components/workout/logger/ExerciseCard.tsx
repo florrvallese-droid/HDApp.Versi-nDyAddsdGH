@@ -43,6 +43,36 @@ export function ExerciseCard({
     tempo: "3-0-1"
   };
 
+  // Helper to format techniques display
+  const renderTechniques = (set: WorkoutSet) => {
+    if (!set.techniques || set.techniques.length === 0) return null;
+
+    return (
+      <div className="flex flex-wrap gap-1 max-w-[120px] mt-1">
+        {set.techniques.map(tech => {
+          const count = set.technique_counts?.[tech];
+          const label = getTechLabel(tech);
+          
+          // If it has a count, show "+2 FORZ"
+          if (count) {
+            return (
+              <Badge key={tech} variant="outline" className={cn("text-[9px] px-1 py-0 h-4 border font-bold", getTechColor(tech))}>
+                +{count} {label}
+              </Badge>
+            );
+          }
+          
+          // Otherwise just the tag
+          return (
+            <Badge key={tech} variant="outline" className={cn("text-[9px] px-1 py-0 h-4 border", getTechColor(tech))}>
+              {label}
+            </Badge>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div 
       className={cn(
@@ -112,7 +142,7 @@ export function ExerciseCard({
 
       {exercise.sets.map((set, si) => (
         <div key={si} className="flex items-center justify-between bg-zinc-900/50 border border-zinc-800 p-3 rounded relative overflow-hidden group hover:border-zinc-700 transition-colors">
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-4 items-center flex-1">
             <div className="flex flex-col">
               <span className="text-[10px] text-zinc-500 uppercase font-bold">Peso</span>
               <span className="text-xl font-bold text-white">{set.weight}<span className="text-xs text-zinc-500 ml-1">{units}</span></span>
@@ -123,18 +153,12 @@ export function ExerciseCard({
             </div>
             
             {/* TAGS DISPLAY */}
-            {set.techniques && set.techniques.length > 0 && (
-              <div className="flex flex-wrap gap-1 max-w-[100px]">
-                {set.techniques.map(tech => (
-                  <Badge key={tech} variant="outline" className={cn("text-[9px] px-1 py-0 h-4 border", getTechColor(tech))}>
-                    {getTechLabel(tech)}
-                  </Badge>
-                ))}
-              </div>
-            )}
+            <div className="ml-2">
+               {renderTechniques(set)}
+            </div>
 
             {exercise.previous && (
-              <div className="flex flex-col justify-center ml-2">
+              <div className="flex flex-col justify-center ml-auto mr-4">
                 {set.weight > exercise.previous.weight || (set.weight === exercise.previous.weight && set.reps > exercise.previous.reps) ? (
                   <TrendingUp className="h-5 w-5 text-green-500" />
                 ) : (

@@ -15,12 +15,16 @@ interface SetFormProps {
   isSuperset: boolean;
 }
 
+// Techniques that require a rep count
+const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial', 'negatives', 'rest_pause'];
+
 export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormProps) {
   const [weight, setWeight] = useState(defaultValues?.weight || "");
   const [reps, setReps] = useState("");
   const [tempo, setTempo] = useState(defaultValues?.tempo || "3-0-1");
   const [rest, setRest] = useState("2");
   const [techniques, setTechniques] = useState<string[]>([]);
+  const [techniqueCounts, setTechniqueCounts] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (defaultValues?.weight) setWeight(defaultValues.weight);
@@ -30,16 +34,30 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
   const handleAdd = () => {
     if (!weight || !reps) return;
 
+    // Convert string counts to numbers
+    const finalCounts: Record<string, number> = {};
+    Object.keys(techniqueCounts).forEach(key => {
+      if (techniques.includes(key) && techniqueCounts[key]) {
+        finalCounts[key] = parseFloat(techniqueCounts[key]);
+      }
+    });
+
     onAddSet({
       weight: parseFloat(weight),
       reps: parseFloat(reps),
       tempo,
       rest_seconds: parseFloat(rest) * 60,
-      techniques
+      techniques,
+      technique_counts: finalCounts
     });
 
     setReps("");
     setTechniques([]);
+    setTechniqueCounts({});
+  };
+
+  const handleTechniqueCountChange = (techId: string, val: string) => {
+    setTechniqueCounts(prev => ({ ...prev, [techId]: val }));
   };
 
   return (
@@ -95,7 +113,28 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
           />
         </div>
 
-        {techniques.length > 0 && (
+        {/* Dynamic Inputs for Countable Techniques */}
+        {techniques.some(t => COUNTABLE_TECHNIQUES.includes(t)) && (
+          <div className="bg-zinc-900/50 p-2 rounded border border-zinc-800/50 grid grid-cols-2 gap-2 animate-in slide-in-from-top-1">
+            {techniques.filter(t => COUNTABLE_TECHNIQUES.includes(t)).map(tech => (
+              <div key={tech} className="flex items-center gap-2">
+                <span className={cn("text-[10px] font-bold uppercase", getTechColor(tech).split(' ')[0])}>
+                  + {getTechLabel(tech)}
+                </span>
+                <Input 
+                  type="number" 
+                  className="h-7 w-14 text-xs text-center bg-zinc-950 border-zinc-800"
+                  placeholder="#"
+                  value={techniqueCounts[tech] || ""}
+                  onChange={(e) => handleTechniqueCountChange(tech, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Tags Display (Non-countable only or visual summary) */}
+        {techniques.length > 0 && !techniques.some(t => COUNTABLE_TECHNIQUES.includes(t)) && (
           <div className="flex flex-wrap gap-1 pt-1">
             {techniques.map(tech => (
               <span key={tech} className={cn("text-[9px] px-1.5 py-0.5 rounded border flex items-center gap-1", getTechColor(tech))}>
