@@ -1,11 +1,13 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Plus, Clock, Save, X, ChevronLeft } from "lucide-react";
+import { Plus, Clock, ChevronLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { WorkoutExercise, WorkoutSet, UserProfile } from "@/types";
+import { WorkoutExercise, UserProfile } from "@/types";
 import { calculateTotalVolume } from "@/utils/calculations";
 import { RestTimer } from "@/components/workout/RestTimer";
 import { ExerciseSelector } from "@/components/workout/ExerciseSelector";
@@ -26,7 +28,6 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
   const [loading, setLoading] = useState(false);
   const [loadingPrevious, setLoadingPrevious] = useState(false);
   
-  // Finish Modal State
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [manualDuration, setManualDuration] = useState("");
   const [startTime] = useState(Date.now());
@@ -65,6 +66,9 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
     setExercises([...exercises, newEx]);
     setNewExerciseName("");
     setLoadingPrevious(false);
+    
+    // Auto-scroll to bottom to show new exercise
+    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
   };
 
   const handleOpenFinish = () => {
@@ -118,26 +122,23 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
   };
 
   return (
-    <div className="p-4 pb-32 max-w-md mx-auto min-h-screen bg-black text-white space-y-6 relative">
+    <div className="p-4 pb-40 max-w-md mx-auto min-h-screen bg-black text-white space-y-8 relative animate-in fade-in duration-500">
       <RestTimer />
 
-      <div className="flex justify-between items-start border-b border-zinc-900 pb-4">
-        <div className="flex items-start gap-1">
-          <Button variant="ghost" size="icon" onClick={onCancel} className="text-zinc-500 mt-1">
-            <ChevronLeft className="h-6 w-6" />
-          </Button>
-          <div>
-            <div className="bg-zinc-900 text-white px-3 py-1 rounded text-sm font-bold inline-block mb-1">
-              {new Date().toLocaleDateString()}
-            </div>
-            <h2 className="text-3xl font-black italic uppercase text-white leading-none">
-              {muscleGroup}
-            </h2>
-          </div>
+      {/* Header Fijo */}
+      <div className="flex items-center gap-3 border-b border-zinc-900 pb-4 sticky top-0 bg-black/80 backdrop-blur-md z-50 -mx-4 px-4 pt-2">
+        <Button variant="ghost" size="icon" onClick={onCancel} className="text-zinc-500 h-10 w-10">
+          <ChevronLeft className="h-6 w-6" />
+        </Button>
+        <div>
+          <h2 className="text-xl font-black italic uppercase text-white leading-none truncate max-w-[200px]">
+            {muscleGroup}
+          </h2>
+          <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] mt-1">Sesión en Curso</p>
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-10">
         {exercises.map((ex, i) => (
           <ExerciseCard
             key={i}
@@ -146,8 +147,18 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
             exercise={ex}
             units={profile?.units || 'kg'}
             onRemoveExercise={() => setExercises(exercises.filter((_, idx) => idx !== i))}
-            onMoveUp={() => {}} 
-            onMoveDown={() => {}} 
+            onMoveUp={() => {
+                if (i === 0) return;
+                const updated = [...exercises];
+                [updated[i], updated[i - 1]] = [updated[i - 1], updated[i]];
+                setExercises(updated);
+            }} 
+            onMoveDown={() => {
+                if (i === exercises.length - 1) return;
+                const updated = [...exercises];
+                [updated[i], updated[i + 1]] = [updated[i + 1], updated[i]];
+                setExercises(updated);
+            }} 
             onToggleSuperset={() => {
                 const updated = [...exercises];
                 updated[i].is_superset = !updated[i].is_superset;
@@ -176,8 +187,9 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
           />
         ))}
 
-        <div className="pt-4 border-t border-zinc-900">
-          <Label className="text-zinc-500 font-bold uppercase text-xs mb-2 block">Agregar Ejercicio</Label>
+        {/* Agregar Ejercicio */}
+        <div className="pt-8 border-t border-zinc-900 bg-zinc-950/30 p-4 rounded-2xl">
+          <Label className="text-red-600 font-black uppercase text-[10px] tracking-widest mb-3 block">Próximo Ejercicio</Label>
           <div className="flex gap-2 w-full">
             <div className="flex-1">
               <ExerciseSelector 
@@ -186,41 +198,46 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
                 targetMuscleGroup={muscleGroup}
               />
             </div>
-            <Button className="h-12 w-12 bg-zinc-800 hover:bg-zinc-700 text-white shrink-0" onClick={addExercise} disabled={loadingPrevious || !newExerciseName}>
-              <Plus className="h-6 w-6" />
+            <Button className="h-12 w-12 bg-red-600/10 border border-red-600/20 text-red-500 hover:bg-red-600 hover:text-white shrink-0" onClick={addExercise} disabled={loadingPrevious || !newExerciseName}>
+              {loadingPrevious ? <Loader2 className="animate-spin h-5 w-5" /> : <Plus className="h-6 w-6" />}
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/90 backdrop-blur-md border-t border-zinc-900 grid grid-cols-2 gap-3 z-[100] safe-area-bottom pb-8">
-        <Button variant="outline" className="h-14 bg-black border-zinc-800 text-zinc-400 font-bold uppercase" onClick={onCancel}>Cancelar</Button>
-        <Button className="h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-wider border border-red-500 shadow-[0_-4px_20px_rgba(220,38,38,0.2)]" onClick={handleOpenFinish}>Finalizar Sesión</Button>
+      {/* Footer Mobile Fijo */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-900 grid grid-cols-[1fr_2fr] gap-3 z-[100] safe-area-bottom pb-8 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        <Button variant="ghost" className="h-14 bg-zinc-900/50 border border-zinc-800 text-zinc-500 font-bold uppercase text-xs" onClick={onCancel}>
+            Salir
+        </Button>
+        <Button className="h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-widest border border-red-500 shadow-[0_0_30px_rgba(220,38,38,0.2)]" onClick={handleOpenFinish}>
+            FINALIZAR SESIÓN
+        </Button>
       </div>
 
       <Dialog open={showFinishModal} onOpenChange={setShowFinishModal}>
-        <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-xs">
+        <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-xs max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-center font-black uppercase italic text-xl">¿Entrenamiento Terminado?</DialogTitle>
-            <DialogDescription className="text-center text-zinc-500">Confirma la duración real de tu esfuerzo.</DialogDescription>
+            <DialogTitle className="text-center font-black uppercase italic text-xl">¿Sesión Terminada?</DialogTitle>
+            <DialogDescription className="text-center text-zinc-500">Confirma el tiempo bajo tensión total.</DialogDescription>
           </DialogHeader>
-          <div className="py-4 space-y-4">
-             <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-zinc-400 flex items-center gap-2">
-                    <Clock className="w-3 h-3" /> Duración Total (Minutos)
+          <div className="py-6 space-y-6">
+             <div className="space-y-3">
+                <Label className="text-xs font-black uppercase text-zinc-400 flex items-center justify-center gap-2">
+                    <Clock className="w-4 h-4 text-red-600" /> Minutos de Entrenamiento
                 </Label>
                 <Input 
                     type="number" 
+                    inputMode="numeric"
                     value={manualDuration} 
                     onChange={(e) => setManualDuration(e.target.value)}
-                    className="bg-zinc-900 border-zinc-800 text-2xl font-black text-center h-14"
+                    className="bg-zinc-900 border-zinc-800 text-3xl font-black text-center h-20 text-red-500"
                 />
-                <p className="text-[10px] text-center text-zinc-600">Calculamos {manualDuration} min basándonos en tu uso de la app.</p>
              </div>
           </div>
           <DialogFooter>
-             <Button className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase" onClick={finishWorkout} disabled={loading}>
-                {loading ? "GUARDANDO..." : "GUARDAR Y ANALIZAR"}
+             <Button className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-black uppercase tracking-widest" onClick={finishWorkout} disabled={loading}>
+                {loading ? "PROCESANDO..." : "GUARDAR Y ANALIZAR"}
              </Button>
           </DialogFooter>
         </DialogContent>

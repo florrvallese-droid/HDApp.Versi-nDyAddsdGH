@@ -1,9 +1,11 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { X, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IntensitySelector, getTechColor, getTechLabel } from "./IntensitySelector";
 import { WorkoutSet, UnitSystem, SetExtension } from "@/types";
@@ -17,7 +19,6 @@ interface SetFormProps {
 }
 
 const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial', 'static'];
-const EXTENSION_TECHNIQUES = ['rest_pause', 'drop_set'];
 
 export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormProps) {
   const [weight, setWeight] = useState(defaultValues?.weight || "");
@@ -44,14 +45,10 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
   };
 
   const handleAdd = () => {
-    const w = parseFloat(weight) || 0;
-    const r = parseFloat(reps) || 0;
-    
-    // Nueva validación: permite 0/vacio si hay alguna técnica (como isometría)
     const hasAnyData = weight !== "" || reps !== "" || techniques.length > 0;
     
     if (!hasAnyData) {
-      toast.error("Ingresa al menos un valor");
+      toast.error("Ingresa peso o repeticiones");
       return;
     }
 
@@ -71,8 +68,8 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
     }
 
     onAddSet({
-      weight: w,
-      reps: r,
+      weight: parseFloat(weight) || 0,
+      reps: parseFloat(reps) || 0,
       tempo,
       is_unilateral: isUnilateral,
       rest_seconds: parseFloat(rest) * 60,
@@ -91,54 +88,70 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
 
   return (
     <Card className={cn("bg-zinc-950 border border-zinc-800", isSuperset ? "border-dashed border-zinc-700" : "")}>
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-4 space-y-4">
+        {/* Input Principal */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label className="text-[10px] text-zinc-500 uppercase font-bold">Peso ({units})</Label>
-            <Input type="number" className="bg-zinc-900 border-zinc-800 text-white h-10 font-bold" placeholder="0" value={weight} onChange={(e) => setWeight(e.target.value)} />
+          <div className="space-y-1.5">
+            <Label className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Peso ({units})</Label>
+            <Input 
+                type="number" 
+                inputMode="decimal"
+                className="bg-zinc-900 border-zinc-800 text-white h-12 font-black text-lg text-center" 
+                placeholder="0" 
+                value={weight} 
+                onChange={(e) => setWeight(e.target.value)} 
+            />
           </div>
-          <div className="space-y-1">
-            <Label className="text-[10px] text-zinc-500 uppercase font-bold">Reps</Label>
-            <Input type="number" className="bg-zinc-900 border-zinc-800 text-white h-10 font-bold" placeholder="0" value={reps} onChange={(e) => setReps(e.target.value)} />
+          <div className="space-y-1.5">
+            <Label className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Reps</Label>
+            <Input 
+                type="number" 
+                inputMode="numeric"
+                className="bg-zinc-900 border-zinc-800 text-white h-12 font-black text-lg text-center" 
+                placeholder="0" 
+                value={reps} 
+                onChange={(e) => setReps(e.target.value)} 
+            />
           </div>
         </div>
         
-        <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-2 items-end">
-          <div className="space-y-1">
-            <Label className="text-[10px] text-zinc-500 uppercase font-bold">Cadencia</Label>
-            <Input className="bg-zinc-900 border-zinc-800 text-zinc-400 h-9 text-xs" placeholder="3-0-1" value={tempo} onChange={(e) => setTempo(e.target.value)} />
+        {/* Controles de Intensidad */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex-1 min-w-[80px] space-y-1">
+             <Label className="text-[9px] text-zinc-600 uppercase font-bold">Cadencia</Label>
+             <Input className="bg-zinc-900 border-zinc-800 text-zinc-400 h-9 text-xs font-mono" placeholder="3-0-1" value={tempo} onChange={(e) => setTempo(e.target.value)} />
           </div>
-          <div className="space-y-1">
-            <Label className="text-[10px] text-zinc-500 uppercase font-bold">Descanso</Label>
-            <Input type="number" className="bg-zinc-900 border-zinc-800 text-zinc-400 h-9 text-xs" placeholder="2" value={rest} onChange={(e) => setRest(e.target.value)} />
+          <div className="flex-1 min-w-[80px] space-y-1">
+             <Label className="text-[9px] text-zinc-600 uppercase font-bold">Descanso (m)</Label>
+             <Input type="number" className="bg-zinc-900 border-zinc-800 text-zinc-400 h-9 text-xs" placeholder="2" value={rest} onChange={(e) => setRest(e.target.value)} />
           </div>
           
-          <Button 
-            variant="outline" 
-            className={cn(
-              "h-9 px-2 border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-[10px] font-black uppercase tracking-tighter transition-all",
-              isUnilateral 
-                ? "border-blue-600 bg-blue-600/10 text-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.1)]" 
-                : "text-zinc-600"
-            )}
-            onClick={() => setIsUnilateral(!isUnilateral)}
-          >
-            Unilat
-          </Button>
-
-          <IntensitySelector selectedTechniques={techniques} onChange={setTechniques} />
+          <div className="flex gap-2 pt-4">
+            <Button 
+                variant="outline" 
+                className={cn(
+                    "h-9 px-3 border-zinc-800 bg-zinc-900 text-[10px] font-black uppercase tracking-tighter",
+                    isUnilateral ? "border-blue-600 bg-blue-600/10 text-blue-400" : "text-zinc-600"
+                )}
+                onClick={() => setIsUnilateral(!isUnilateral)}
+            >
+                Unilat
+            </Button>
+            <IntensitySelector selectedTechniques={techniques} onChange={setTechniques} />
+          </div>
         </div>
 
+        {/* Técnicas Contables */}
         {techniques.some(t => COUNTABLE_TECHNIQUES.includes(t)) && (
           <div className="bg-zinc-900/50 p-2 rounded border border-zinc-800/50 grid grid-cols-2 gap-2">
             {techniques.filter(t => COUNTABLE_TECHNIQUES.includes(t)).map(tech => (
               <div key={tech} className="flex items-center gap-2">
-                <span className={cn("text-[10px] font-bold uppercase", getTechColor(tech).split(' ')[0])}>
+                <span className={cn("text-[9px] font-black uppercase shrink-0", getTechColor(tech).split(' ')[0])}>
                     {tech === 'static' ? 'Hold' : `+ ${getTechLabel(tech)}`}
                 </span>
                 <Input 
                     type="number" 
-                    className="h-7 w-full text-xs text-center bg-zinc-950 border-zinc-800" 
+                    className="h-8 w-full text-xs text-center bg-zinc-950 border-zinc-800" 
                     placeholder={tech === 'static' ? "seg" : "#"}
                     value={techniqueCounts[tech] || ""} 
                     onChange={(e) => handleTechniqueCountChange(tech, e.target.value)} 
@@ -148,29 +161,32 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
           </div>
         )}
 
+        {/* Extensiones Visuales */}
         {techniques.includes('rest_pause') && (
-          <div className="bg-blue-950/20 border border-blue-900/30 p-2 rounded space-y-2">
-            <div className="flex items-center gap-2 text-blue-400 text-[10px] font-bold uppercase">Rest Pause</div>
-            <div className="flex items-center gap-2">
-              <Input type="number" className="h-8 bg-black/50 border-blue-900/30 text-xs text-center" placeholder="seg" value={rpRest} onChange={(e) => setRpRest(e.target.value)} />
-              <ArrowRight className="h-4 w-4 opacity-50" />
-              <Input type="number" className="h-8 bg-black/50 border-blue-900/30 text-xs text-center font-bold" placeholder="+Reps" value={rpReps} onChange={(e) => setRpReps(e.target.value)} />
+          <div className="bg-blue-950/20 border border-blue-900/30 p-3 rounded-lg space-y-2">
+            <div className="flex items-center gap-2 text-blue-400 text-[10px] font-black uppercase tracking-widest">Rest Pause</div>
+            <div className="flex items-center gap-3">
+              <Input type="number" className="h-9 bg-black/50 border-blue-900/30 text-xs text-center text-white" placeholder="seg" value={rpRest} onChange={(e) => setRpRest(e.target.value)} />
+              <ArrowRight className="h-4 w-4 text-blue-500 opacity-50" />
+              <Input type="number" className="h-9 bg-black/50 border-blue-900/30 text-xs text-center font-black text-white" placeholder="+Reps" value={rpReps} onChange={(e) => setRpReps(e.target.value)} />
             </div>
           </div>
         )}
 
         {techniques.includes('drop_set') && (
-          <div className="bg-red-950/20 border border-red-900/30 p-2 rounded space-y-2">
-            <div className="flex items-center gap-2 text-red-400 text-[10px] font-bold uppercase">Drop Set</div>
-            <div className="flex items-center gap-2">
-              <Input type="number" className="h-8 bg-black/50 border-blue-900/30 text-xs text-center" placeholder="Peso" value={dropWeight} onChange={(e) => setDropWeight(e.target.value)} />
-              <ArrowRight className="h-4 w-4 opacity-50" />
-              <Input type="number" className="h-8 bg-black/50 border-blue-900/30 text-xs text-center font-bold" placeholder="+Reps" value={dropReps} onChange={(e) => setDropReps(e.target.value)} />
+          <div className="bg-red-950/20 border border-red-900/30 p-3 rounded-lg space-y-2">
+            <div className="flex items-center gap-2 text-red-400 text-[10px] font-black uppercase tracking-widest">Drop Set</div>
+            <div className="flex items-center gap-3">
+              <Input type="number" className="h-9 bg-black/50 border-red-900/30 text-xs text-center text-white" placeholder="Peso" value={dropWeight} onChange={(e) => setDropWeight(e.target.value)} />
+              <ArrowRight className="h-4 w-4 text-red-500 opacity-50" />
+              <Input type="number" className="h-9 bg-black/50 border-red-900/30 text-xs text-center font-black text-white" placeholder="+Reps" value={dropReps} onChange={(e) => setDropReps(e.target.value)} />
             </div>
           </div>
         )}
 
-        <Button className="w-full h-10 bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold uppercase text-xs" onClick={handleAdd}>Registrar Serie</Button>
+        <Button className="w-full h-12 bg-white text-black hover:bg-zinc-200 font-black uppercase tracking-widest text-xs" onClick={handleAdd}>
+            Registrar Serie
+        </Button>
       </CardContent>
     </Card>
   );
