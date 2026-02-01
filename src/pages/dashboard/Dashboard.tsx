@@ -20,7 +20,7 @@ import { RestDayModal } from "@/components/dashboard/RestDayModal";
 import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -87,63 +87,68 @@ export default function Dashboard() {
     setIsSharing(true);
     
     try {
-      // 1. Obtener último peso
-      const { data: checkins } = await supabase
-        .from('logs')
-        .select('data')
-        .eq('user_id', profile.user_id)
-        .eq('type', 'checkin')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      // 2. Obtener último entrenamiento
-      const { data: workouts } = await supabase
-        .from('logs')
-        .select('muscle_group, data')
-        .eq('user_id', profile.user_id)
-        .eq('type', 'workout')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      // 3. Obtener adherencia nutricional hoy
-      const startOfDay = new Date();
-      startOfDay.setHours(0,0,0,0);
-      const { data: nutrition } = await supabase
-        .from('logs')
-        .select('data')
-        .eq('user_id', profile.user_id)
-        .eq('type', 'nutrition')
-        .gte('created_at', startOfDay.toISOString())
-        .maybeSingle();
-
-      const lastWeight = checkins?.[0]?.data?.weight || "N/A";
-      const weightDelta = checkins?.[0]?.data?.weight_delta || 0;
-      const lastWorkout = workouts?.[0];
-      const nutritionAdherence = nutrition?.data?.adherence || "N/A";
-
-      const message = `🏋️ *REPORTE HEAVY DUTY* - ${format(new Date(), 'dd/MM/yyyy')}\n` +
-        `👤 *Atleta:* ${profile.display_name || 'Sin nombre'}\n\n` +
-        `📉 *ESTADO FÍSICO*\n` +
-        `Peso actual: ${lastWeight} ${profile.units} (${weightDelta >= 0 ? '+' : ''}${weightDelta}${profile.units})\n\n` +
-        `💪 *ÚLTIMO ENTRENO*\n` +
-        `${lastWorkout ? `${lastWorkout.muscle_group}: ${lastWorkout.data.exercises.length} ejercicios registrados` : 'Sin entrenos recientes'}\n\n` +
-        `🥗 *NUTRICIÓN*\n` +
-        `Adherencia hoy: ${nutritionAdherence}%\n\n` +
-        `_Enviado desde Heavy Duty Di Iorio System_`;
-
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      const sevenDaysAgo = subDays(new Date(), 7).toISOString();
       
+      // 1. Obtener todos los logs de la última semana
+      const { data: logs } = await supabase
+        .from('logs')
+        .select('type, data, created_at, muscle_group')
+        .eq('user_id', profile.user_id)
+        .gte('created_at', sevenDaysAgo)
+        .order('created_at', { ascending: false });
+
+      if (!logs) throw new Error("No se pudieron cargar los datos");
+
+      // Procesar datos de la semana
+      const checkins = logs.filter(l => l.type === 'checkin');
+      const workouts = logs.filter(l => l.type === 'workout');
+      const nutrition = logs.filter(l => l.type === 'nutrition');
+
+      // Peso: Último vs Primero de la semana
+      const currentWeight = checkins.length > 0 ? checkins[0].data.weight : "N/A";
+      const startWeight = checkins.length > 0 ? checkins[checkins.length - 1].data.weight : currentWeight;
+      const weeklyWeightDelta = typeof currentWeight === 'number' && typeof startWeight === 'number' 
+        ? (currentWeight - startWeight).toFixed(1) 
+        : "0.0";
+
+      // Entrenos: Lista de músculos
+      const trainedMuscles = [...new Set(workouts.map(w => w.muscle_group || "General"))];
+      
+      // Nutrición: Promedio de adherencia
+      const avgAdherence = nutrition.length > 0 
+        ? Math.round(nutrition.reduce((acc, n) => acc + (n.data.adherence || 0), 0) / nutrition.length)
+        : "N/A";
+
+      const galleryLink = `${window.location.origin}/checkin`;
+
+      const message = `📋 *CHEQUEO SEMANAL HEAVY DUTY*\n` +
+        `📅 *Semana del:* ${format(subDays(new Date(), 7), 'dd/MM')} al ${format(new Date(), 'dd/MM')}\n` +
+        `👤 *Atleta:* ${profile.display_name || 'Sin nombre'}\n\n` +
+        `⚖️ *EVOLUCIÓN DE PESO*\n` +
+        `• Peso Actual: ${currentWeight} ${profile.units}\n` +
+        `• Variación Semanal: ${Number(weeklyWeightDelta) >= 0 ? '+' : ''}${weeklyWeightDelta} ${profile.units}\n\n` +
+        `🏋️ *ACTIVIDAD FÍSICA*\n` +
+        `• Sesiones: ${workouts.length}\n` +
+        `• Músculos: ${trainedMuscles.length > 0 ? trainedMuscles.join(', ') : 'Sin registros'}\n\n` +
+        `🥗 *NUTRICIÓN*\n` +
+        `• Adherencia Media: ${avgAdherence}%\n\n` +
+        `📸 *PROGRESO VISUAL*\n` +
+        `Mira mi comparativa de fotos aquí:\n` +
+        `${galleryLink}\n\n` +
+        `_Generado por Heavy Duty Di Iorio System_`;
+
       if (navigator.share) {
         await navigator.share({
-          title: 'Mi Reporte Heavy Duty',
+          title: 'Mi Chequeo Semanal Heavy Duty',
           text: message
         });
       } else {
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
       }
       
-    } catch (err) {
-      toast.error("No se pudo generar el reporte");
+    } catch (err: any) {
+      toast.error("No se pudo generar el reporte: " + err.message);
     } finally {
       setIsSharing(false);
     }
@@ -258,10 +263,10 @@ export default function Dashboard() {
              disabled={isSharing}
            >
               {isSharing ? <Loader2 className="animate-spin h-5 w-5" /> : <Share2 className="h-5 w-5 text-green-500 group-hover:scale-110 transition-transform" />}
-              Enviar Reporte al Coach
+              Enviar Chequeo Semanal
            </Button>
            <p className="text-[9px] text-zinc-600 text-center mt-3 font-bold uppercase tracking-tighter">
-             Genera un resumen de peso, entreno y dieta para WhatsApp
+             Resumen semanal de peso, entreno y dieta con link a fotos
            </p>
         </div>
       </div>
