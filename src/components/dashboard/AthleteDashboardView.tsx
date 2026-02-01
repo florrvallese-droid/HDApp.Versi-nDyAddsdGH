@@ -108,7 +108,7 @@ export default function AthleteDashboardView() {
         {!profile?.is_coach && profile?.user_id && <CoachInvitationAlert userId={profile.user_id} />}
 
         <div className="flex flex-col items-center gap-1">
-          <h2 className="text-lg font-black uppercase tracking-wider text-white text-center">BITÁCORA DE ENTRENAMIENTO</h2>
+          <h2 className="text-lg font-black uppercase tracking-wider text-white text-center">TU CUADERNO DE ENTRENAMIENTO</h2>
           <div className="w-24 h-1 bg-red-600 rounded-full" />
         </div>
 
