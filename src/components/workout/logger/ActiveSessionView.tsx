@@ -76,12 +76,10 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
     setExercises(updated);
   };
 
-  // NUEVO: Actualizar nombre de ejercicio existente
   const updateExerciseName = async (index: number, newName: string) => {
     const updated = [...exercises];
     updated[index].name = newName;
     
-    // Opcional: Intentar buscar stats previos para el nuevo nombre si el ejercicio no tiene sets aún
     if (updated[index].sets.length === 0) {
         const prevStats = await findPreviousExerciseStats(newName);
         if (prevStats) {
@@ -167,7 +165,7 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
   };
 
   return (
-    <div className="p-4 pb-28 max-w-md mx-auto min-h-screen bg-black text-white space-y-6 relative">
+    <div className="p-4 pb-32 max-w-md mx-auto min-h-screen bg-black text-white space-y-6 relative">
       <RestTimer />
 
       <div className="flex justify-between items-end border-b border-zinc-900 pb-4">
@@ -217,16 +215,17 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-black border-t border-zinc-900 grid grid-cols-2 gap-3 z-50 safe-area-bottom">
+      {/* FOOTER FIX: Usamos z-[100] para que esté por encima de la navegación principal */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/90 backdrop-blur-md border-t border-zinc-900 grid grid-cols-2 gap-3 z-[100] safe-area-bottom pb-8">
         <Button 
           variant="outline" 
-          className="h-12 bg-black border-zinc-800 text-zinc-400 font-bold uppercase"
+          className="h-14 bg-black border-zinc-800 text-zinc-400 font-bold uppercase"
           onClick={onCancel}
         >
           Cancelar
         </Button>
         <Button 
-          className="h-12 bg-red-900/80 hover:bg-red-800 text-red-100 font-black italic uppercase tracking-wider border border-red-900"
+          className="h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-wider border border-red-500 shadow-[0_-4px_20px_rgba(220,38,38,0.2)]"
           onClick={finishWorkout}
           disabled={loading}
         >
