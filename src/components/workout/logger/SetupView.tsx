@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Target, BookOpen, ListPlus, Check } from "lucide-react";
+import { ChevronLeft, Target, BookOpen, ListPlus, Check, ShieldCheck } from "lucide-react";
 import { LoggingPreference, Routine } from "@/types";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
@@ -64,19 +64,35 @@ export function SetupView({ muscleGroup, setMuscleGroup, onStart, onCancel }: Se
             <ListPlus className="h-3 w-3" /> Cargar rutina guardada
           </Label>
           <div className="grid gap-2">
-            {routines.map(r => (
-               <button
-                 key={r.id}
-                 onClick={() => handleRoutineSelect(r)}
-                 className={cn(
-                    "p-4 rounded-lg border text-left flex justify-between items-center transition-all",
-                    selectedRoutine === r.id ? "bg-zinc-800 border-white text-white" : "bg-zinc-950 border-zinc-800 text-zinc-500"
-                 )}
-               >
-                  <span className="font-bold uppercase text-sm">{r.name}</span>
-                  {selectedRoutine === r.id && <Check className="h-4 w-4 text-white" />}
-               </button>
-            ))}
+            {routines.map(r => {
+               // Si la rutina fue creada por alguien que no es el usuario actual, es del coach
+               const isCoachRoutine = r.user_id !== profile?.user_id;
+               
+               return (
+                  <button
+                    key={r.id}
+                    onClick={() => handleRoutineSelect(r)}
+                    className={cn(
+                        "p-4 rounded-lg border text-left flex justify-between items-center transition-all",
+                        selectedRoutine === r.id 
+                            ? "bg-zinc-800 border-white text-white" 
+                            : isCoachRoutine 
+                                ? "bg-red-950/10 border-red-900/30 text-zinc-300"
+                                : "bg-zinc-950 border-zinc-800 text-zinc-500"
+                    )}
+                  >
+                    <div className="flex flex-col gap-0.5">
+                        <span className="font-bold uppercase text-sm">{r.name}</span>
+                        {isCoachRoutine && (
+                            <span className="text-[8px] font-black text-red-500 flex items-center gap-1 uppercase tracking-widest">
+                                <ShieldCheck className="h-2 w-2" /> Protocolo Oficial Di Iorio
+                            </span>
+                        )}
+                    </div>
+                    {selectedRoutine === r.id && <Check className="h-4 w-4 text-white" />}
+                  </button>
+               );
+            })}
           </div>
           <div className="flex items-center gap-2 py-2">
              <div className="h-px bg-zinc-900 flex-1" />
