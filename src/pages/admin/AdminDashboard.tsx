@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/services/supabase";
 import { Users, Activity, DollarSign, Brain, Zap, Download, Copy, TrendingUp, Mail, CreditCard } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format, subDays } from "date-fns";
 import { toast } from "sonner";
@@ -23,7 +23,6 @@ export default function AdminDashboard() {
   const [userList, setUserList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Pricing constants (Provisional until Mercado Pago integration)
   const PRICE_MONTHLY = 9.99; 
 
   useEffect(() => {
@@ -43,7 +42,7 @@ export default function AdminDashboard() {
     const { data: tokenData } = await supabase.from('ai_logs').select('tokens_used');
     const totalTokens = tokenData?.reduce((sum, row) => sum + (row.tokens_used || 0), 0) || 0;
 
-    // 3. Fetch Users for Mailing List (Limit to 100 for recent display, export handles all theoretically)
+    // 3. Fetch Users for Mailing List
     const { data: users } = await supabase
         .from('profiles')
         .select('user_id, display_name, created_at, is_premium, coach_tone, discipline')
@@ -92,10 +91,8 @@ export default function AdminDashboard() {
   const handleExportCSV = () => {
     if (!userList.length) return;
 
-    // Headers
     const headers = ["ID", "Nombre", "Fecha Registro", "Premium", "Disciplina", "Coach"];
     
-    // Rows
     const rows = userList.map(u => [
       u.user_id,
       u.display_name || "Sin Nombre",
@@ -121,8 +118,6 @@ export default function AdminDashboard() {
   };
 
   const handleCopyMailing = () => {
-    // Simulating copying names/IDs for now as email is protected in auth schema
-    // In a real scenario with a Sync Trigger, we would copy emails here.
     const dataString = userList.map(u => `${u.display_name} [ID: ${u.user_id}]`).join("\n");
     navigator.clipboard.writeText(dataString);
     toast.success("Lista copiada al portapapeles (Nombres + IDs)");
@@ -139,7 +134,6 @@ export default function AdminDashboard() {
         </div>
       </div>
       
-      {/* 1. TOP METRICS ROW */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Revenue Card */}
         <Card className="bg-green-950/20 border-green-900/50 relative overflow-hidden">
@@ -202,10 +196,7 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* 2. MIDDLE ROW: CHARTS & BUSINESS BREAKDOWN */}
       <div className="grid gap-4 md:grid-cols-7">
-        
-        {/* Activity Chart (4 columns) */}
         <Card className="col-span-4 bg-zinc-950 border-zinc-800">
           <CardHeader>
             <CardTitle className="text-base font-bold flex items-center gap-2">
@@ -236,7 +227,6 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Business Health (3 columns) */}
         <Card className="col-span-3 bg-zinc-900 border-zinc-800 flex flex-col">
           <CardHeader>
             <CardTitle className="text-base font-bold flex items-center gap-2 text-white">
@@ -246,7 +236,6 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="flex-1 flex flex-col justify-center gap-6">
             
-            {/* KPI 1: ARR */}
             <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
                 <div>
                     <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider">ARR (Anual)</p>
@@ -258,7 +247,6 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
-            {/* KPI 2: Churn / Growth Visual */}
             <div className="space-y-2">
                 <div className="flex justify-between text-xs">
                     <span className="text-zinc-400">Distribución Free vs Pro</span>
@@ -280,7 +268,6 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* 3. MAILING & DATA COLLECTION */}
       <Card className="bg-zinc-950 border-zinc-800">
         <CardHeader className="flex flex-row items-center justify-between">
             <div>

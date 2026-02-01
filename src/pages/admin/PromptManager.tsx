@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { Save, RefreshCw, PlusCircle, BookOpen, Database } from "lucide-react";
+import { Save, RefreshCw, PlusCircle, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function PromptManager() {
@@ -161,10 +161,8 @@ export default function PromptManager() {
           <TabsTrigger value="knowledge">Conocimiento Global</TabsTrigger>
         </TabsList>
 
-        {/* --- TAB: PROMPTS --- */}
         <TabsContent value="prompts" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Sidebar */}
             <Card className="h-fit">
               <CardHeader>
                 <CardTitle>Selector</CardTitle>
@@ -196,7 +194,6 @@ export default function PromptManager() {
               </CardContent>
             </Card>
 
-            {/* Editor */}
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle>Editor de Personalidad</CardTitle>
@@ -230,7 +227,6 @@ export default function PromptManager() {
           </div>
         </TabsContent>
 
-        {/* --- TAB: GLOBAL KNOWLEDGE --- */}
         <TabsContent value="knowledge" className="mt-6">
           <Card className="border-blue-500/20 bg-blue-500/5">
             <CardHeader>

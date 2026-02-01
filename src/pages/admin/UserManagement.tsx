@@ -150,7 +150,6 @@ export default function UserManagement() {
         </CardContent>
       </Card>
 
-      {/* DETAIL SHEET */}
       <Sheet open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)}>
         <SheetContent className="sm:max-w-md overflow-y-auto">
             <SheetHeader>
@@ -165,7 +164,6 @@ export default function UserManagement() {
 
             {selectedUser && (
                 <div className="mt-6 space-y-6">
-                    {/* Actions */}
                     <div className="flex gap-2">
                         <Button 
                             className={`flex-1 ${selectedUser.is_premium ? 'bg-zinc-200 text-black hover:bg-zinc-300' : 'bg-yellow-600 hover:bg-yellow-700 text-white'}`}
@@ -175,7 +173,6 @@ export default function UserManagement() {
                         </Button>
                     </div>
 
-                    {/* Stats Grid */}
                     <div className="grid grid-cols-2 gap-4">
                         <Card className="bg-muted/50 border-none">
                             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
@@ -204,7 +201,6 @@ export default function UserManagement() {
                         </Card>
                     </div>
 
-                    {/* Profile Details */}
                     <div className="space-y-4 border-t pt-4">
                         <h4 className="font-bold uppercase text-xs text-muted-foreground tracking-wider">Configuración</h4>
                         <div className="grid grid-cols-2 gap-y-4 text-sm">
@@ -227,7 +223,6 @@ export default function UserManagement() {
                         </div>
                     </div>
 
-                    {/* AI Usage */}
                     <div className="space-y-2 border-t pt-4">
                         <div className="flex justify-between items-center">
                             <h4 className="font-bold uppercase text-xs text-muted-foreground tracking-wider">Consumo IA</h4>

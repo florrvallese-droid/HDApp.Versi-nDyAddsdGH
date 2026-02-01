@@ -24,7 +24,6 @@ export default function FeatureFlags() {
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
 
-  // New Flag Form
   const [newKey, setNewKey] = useState("");
   const [newDesc, setNewDesc] = useState("");
 
@@ -48,7 +47,6 @@ export default function FeatureFlags() {
   };
 
   const toggleFlag = async (id: string, currentValue: boolean) => {
-    // Optimistic update
     setFlags(flags.map(f => f.id === id ? { ...f, is_enabled: !currentValue } : f));
 
     const { error } = await supabase
@@ -58,19 +56,18 @@ export default function FeatureFlags() {
 
     if (error) {
       toast.error("Error al actualizar");
-      fetchFlags(); // Revert
+      fetchFlags(); 
     }
   };
 
   const updateRollout = async (id: string, value: number) => {
-    // Optimistic update handled by slider drag, commit on change end
     const { error } = await supabase
       .from('feature_flags')
       .update({ rollout_percentage: value })
       .eq('id', id);
 
     if (error) toast.error("Error actualizando rollout");
-    else fetchFlags(); // Refresh to be sure
+    else fetchFlags();
   };
 
   const createFlag = async () => {
