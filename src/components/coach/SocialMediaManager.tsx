@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { 
     Instagram, Share2, Sparkles, Loader2, Camera, 
-    ArrowRight, Trophy, Download, Copy, Check, MessageSquare
+    ArrowRight, Trophy, Download, Copy, Check, MessageSquare, Briefcase
 } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { aiService } from "@/services/ai";
@@ -15,9 +15,11 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import html2canvas from "html2canvas";
+import { useProfile } from "@/hooks/useProfile";
 
 export function SocialMediaManager() {
   const cardRef = useRef<HTMLDivElement>(null);
+  const { profile } = useProfile();
   const [athletes, setAthletes] = useState<any[]>([]);
   const [selectedAthleteId, setSelectedAthleteId] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -51,7 +53,6 @@ export function SocialMediaManager() {
 
     setGenerating(true);
     try {
-        // 1. Obtener datos del alumno para la IA
         const { data: logs } = await supabase
             .from('logs')
             .select('*')
@@ -68,7 +69,6 @@ export function SocialMediaManager() {
             recentActivity: logs?.map(l => ({ type: l.type, data: l.data }))
         };
 
-        // 2. Llamada a IA (usando un prompt específico)
         const result = await aiService.getGlobalAnalysis('motivational', summary);
         setContent({
             ...result,
@@ -94,17 +94,19 @@ export function SocialMediaManager() {
 
   const downloadCard = async () => {
     if (!cardRef.current) return;
-    const canvas = await html2canvas(cardRef.current, { scale: 2, backgroundColor: '#000' });
+    const canvas = await html2canvas(cardRef.current, { scale: 2, backgroundColor: '#000', useCORS: true });
     const link = document.createElement('a');
     link.download = `HD-MARKETING-${content.athleteName}.png`;
     link.href = canvas.toDataURL();
     link.click();
   };
 
+  const brandLogoUrl = profile?.business_info?.brand_logo_url;
+  const brandName = profile?.business_info?.brand_name || "DI IORIO HIGH PERFORMANCE";
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       
-      {/* SECTOR DE SELECCIÓN */}
       <Card className="bg-zinc-950 border-zinc-900">
         <CardHeader className="pb-4">
             <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
@@ -150,7 +152,6 @@ export function SocialMediaManager() {
         </CardContent>
       </Card>
 
-      {/* RESULTADO IA */}
       {generating && (
           <div className="py-20 flex flex-col items-center justify-center gap-4">
               <Loader2 className="h-10 w-10 animate-spin text-red-600" />
@@ -161,7 +162,6 @@ export function SocialMediaManager() {
       {content && (
           <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
              
-             {/* Preview de Tarjeta Social */}
              <div className="flex flex-col items-center gap-4">
                 <Label className="text-[10px] text-zinc-500 uppercase font-black tracking-[0.2em]">Vista Previa de la Placa</Label>
                 
@@ -171,9 +171,14 @@ export function SocialMediaManager() {
                 >
                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-600/20 blur-[60px] rounded-full" />
                     
-                    <div className="z-10">
-                        <h2 className="text-2xl font-black italic tracking-tighter uppercase text-white leading-none">HEAVY DUTY<br/>SYSTEM</h2>
-                        <div className="h-1 w-12 bg-red-600 mt-2" />
+                    <div className="z-10 flex justify-between items-start">
+                        <div>
+                            <h2 className="text-2xl font-black italic tracking-tighter uppercase text-white leading-none">HEAVY DUTY<br/>SYSTEM</h2>
+                            <div className="h-1 w-12 bg-red-600 mt-2" />
+                        </div>
+                        {brandLogoUrl && (
+                            <img src={brandLogoUrl} className="h-12 w-12 object-contain" alt="Logo" />
+                        )}
                     </div>
 
                     <div className="z-10 space-y-2">
@@ -187,7 +192,7 @@ export function SocialMediaManager() {
                     <div className="z-10 flex justify-between items-end border-t border-zinc-900 pt-4">
                         <div>
                             <p className="text-[8px] font-black uppercase text-zinc-600">Preparador</p>
-                            <p className="text-[10px] font-bold text-white uppercase italic">DI IORIO HIGH PERFORMANCE</p>
+                            <p className="text-[10px] font-bold text-white uppercase italic truncate max-w-[180px]">{brandName}</p>
                         </div>
                         <p className="text-[8px] font-mono text-zinc-700">{content.date}</p>
                     </div>
@@ -198,7 +203,6 @@ export function SocialMediaManager() {
                 </Button>
              </div>
 
-             {/* Copy para Instagram */}
              <Card className="bg-zinc-950 border-zinc-900">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-xs font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
@@ -216,7 +220,7 @@ export function SocialMediaManager() {
                         <div className="mt-4 pt-4 border-t border-zinc-900 flex flex-wrap gap-2">
                             <span className="text-xs text-blue-500 font-bold">#HeavyDutySystem</span>
                             <span className="text-xs text-blue-500 font-bold">#CulturismoInteligente</span>
-                            <span className="text-xs text-blue-500 font-bold">#HighPerformance</span>
+                            <span className="text-xs text-blue-500 font-bold">#{brandName.replace(/\s+/g, '')}</span>
                         </div>
                     </div>
                 </CardContent>

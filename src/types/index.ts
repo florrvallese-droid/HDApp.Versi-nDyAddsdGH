@@ -25,6 +25,7 @@ export interface UserProfile {
   referral_code?: string;
   business_info?: {
     brand_name?: string;
+    brand_logo_url?: string; // Propiedad añadida para corregir errores de compilación
     bio?: string;
     instagram?: string;
     whatsapp?: string;

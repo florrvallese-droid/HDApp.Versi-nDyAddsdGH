@@ -10,23 +10,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
     ChevronLeft, Briefcase, Plus, Trash2, Save, Loader2, 
     Instagram, MessageCircle, Globe, DollarSign, Award, Settings, Info, BookOpen, Brain, TrendingUp,
-    Sparkles, Share2
+    Sparkles, Share2, Image as ImageIcon, Camera
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
 import { SocialMediaManager } from "@/components/coach/SocialMediaManager";
+import { uploadBrandLogo } from "@/services/storage";
 
 export default function CoachBusiness() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { profile } = useProfile();
   const [loading, setLoading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'strategy');
 
   // Business State
   const [brandName, setBrandName] = useState("");
+  const [brandLogo, setBrandLogo] = useState<string | null>(null);
   const [bio, setBio] = useState("");
   const [instagram, setInstagram] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -37,6 +40,7 @@ export default function CoachBusiness() {
     if (profile?.business_info) {
         const info = profile.business_info;
         setBrandName(info.brand_name || "");
+        setBrandLogo(info.brand_logo_url || null);
         setBio(info.bio || "");
         setInstagram(info.instagram || "");
         setWhatsapp(info.whatsapp || "");
@@ -48,6 +52,21 @@ export default function CoachBusiness() {
   const handleTabChange = (val: string) => {
     setActiveTab(val);
     setSearchParams({ tab: val });
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0] || !profile) return;
+    setUploadingLogo(true);
+    
+    const { url, error } = await uploadBrandLogo(profile.user_id, e.target.files[0]);
+    
+    if (error) {
+        toast.error("Error al subir el logo");
+    } else {
+        setBrandLogo(url);
+        toast.success("Logo de marca actualizado");
+    }
+    setUploadingLogo(false);
   };
 
   const addPlan = () => {
@@ -74,6 +93,7 @@ export default function CoachBusiness() {
                 business_info: {
                     ...profile.business_info,
                     brand_name: brandName,
+                    brand_logo_url: brandLogo,
                     bio,
                     instagram,
                     whatsapp,
@@ -142,7 +162,40 @@ export default function CoachBusiness() {
                         <Briefcase className="h-4 w-4 text-red-500" /> Identidad Visual
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
+                    
+                    {/* Logo Upload Section */}
+                    <div className="flex flex-col items-center gap-4 py-2">
+                        <div className="relative group">
+                            <div className="h-32 w-32 rounded-2xl bg-zinc-900 border-2 border-dashed border-zinc-800 flex items-center justify-center overflow-hidden transition-all group-hover:border-red-600/50">
+                                {brandLogo ? (
+                                    <img src={brandLogo} className="w-full h-full object-contain p-2" alt="Logo de Marca" />
+                                ) : (
+                                    <div className="flex flex-col items-center gap-1 text-zinc-600">
+                                        <ImageIcon className="h-8 w-8" />
+                                        <span className="text-[8px] font-black uppercase">Subir Logo</span>
+                                    </div>
+                                )}
+                                {uploadingLogo && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                                        <Loader2 className="h-6 w-6 animate-spin text-red-600" />
+                                    </div>
+                                )}
+                                <input 
+                                    type="file" 
+                                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                                    accept="image/*" 
+                                    onChange={handleLogoUpload}
+                                    disabled={uploadingLogo}
+                                />
+                            </div>
+                            <Button size="icon" className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-red-600 hover:bg-red-700 shadow-xl border-2 border-black">
+                                <Camera className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Logo de Marca (.PNG recomendado)</p>
+                    </div>
+
                     <div className="space-y-2">
                         <Label className="text-[10px] text-zinc-500 uppercase font-bold">Nombre de Marca / Team</Label>
                         <Input value={brandName} onChange={e => setBrandName(e.target.value)} placeholder="Ej: Di Iorio High Performance" className="bg-zinc-900 border-zinc-800 h-12 font-bold" />
