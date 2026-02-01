@@ -111,7 +111,6 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess = 
 
     if (profile?.sex === 'female' && !lastPeriodDate) {
       toast.warning("Para mayor precisión, ingresa la fecha de tu último periodo (o selecciona una aproximada).");
-      // Allow continue, but maybe show warning? For now we allow it.
     }
 
     setStep('processing');
