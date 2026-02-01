@@ -24,7 +24,7 @@ export default function Nutrition() {
   const [loading, setLoading] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
-  // Tab State - Defaulting to 'strategy' as requested
+  // Tab State - Defaulting to 'strategy'
   const [activeTab, setActiveTab] = useState("strategy"); 
 
   // Macro Structure State
@@ -88,7 +88,7 @@ export default function Nutrition() {
   useEffect(() => {
     if (strategyType === 'single') {
         if (variants.length > 1) {
-            // Keep data but UI only shows first
+            // Keep data
         } else if (variants.length === 0) {
             setVariants([{
                 id: crypto.randomUUID(),
@@ -158,7 +158,7 @@ export default function Nutrition() {
           </Button>
           <div>
              <h1 className="text-xl font-black italic uppercase tracking-tighter text-white">Nutrición</h1>
-             <p className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">Protocolo & Log</p>
+             <p className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">Estrategia & Seguimiento</p>
           </div>
         </div>
         {!hasProAccess && (
@@ -178,7 +178,7 @@ export default function Nutrition() {
           </TabsTrigger>
         </TabsList>
 
-        {/* --- STRATEGY TAB (NOW FIRST) --- */}
+        {/* --- STRATEGY TAB (DEFAULT) --- */}
         <TabsContent value="strategy" className="space-y-8 animate-in slide-in-from-left-2">
           
           <MacroStructure 
