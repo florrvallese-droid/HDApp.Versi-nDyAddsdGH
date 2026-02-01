@@ -32,51 +32,51 @@ export default function Dashboard() {
   const [daysSinceCheckin, setDaysSinceCheckin] = useState(0);
 
   useEffect(() => {
+    const checkCheckin = async () => {
+        if (!profile) return;
+
+        try {
+        const { data, error } = await supabase
+            .from('logs')
+            .select('created_at')
+            .eq('user_id', profile.user_id)
+            .eq('type', 'checkin')
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        if (error) return;
+
+        if (data && data.length > 0) {
+            const lastDate = new Date(data[0].created_at);
+            const now = new Date();
+            const diffTime = Math.abs(now.getTime() - lastDate.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
+            if (diffDays > 15) {
+            setDaysSinceCheckin(diffDays);
+            setShowCheckinReminder(true);
+            }
+        } else {
+            // If no checkins ever, check account age
+            const createdAt = new Date(profile.created_at);
+            const now = new Date();
+            const diffTime = Math.abs(now.getTime() - createdAt.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays > 3) {
+            setDaysSinceCheckin(diffDays);
+            setShowCheckinReminder(true);
+            }
+        }
+        } catch (err) {
+        console.error("Error in checkLastCheckin:", err);
+        }
+    };
+
     if (profile) {
-      checkLastCheckin();
+      checkCheckin();
     }
   }, [profile]);
-
-  const checkLastCheckin = async () => {
-    if (!profile) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('logs')
-        .select('created_at')
-        .eq('user_id', profile.user_id)
-        .eq('type', 'checkin')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (error) return;
-
-      if (data && data.length > 0) {
-        const lastDate = new Date(data[0].created_at);
-        const now = new Date();
-        const diffTime = Math.abs(now.getTime() - lastDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-        
-        if (diffDays > 15) {
-          setDaysSinceCheckin(diffDays);
-          setShowCheckinReminder(true);
-        }
-      } else {
-        // If no checkins ever, check account age
-        const createdAt = new Date(profile.created_at);
-        const now = new Date();
-        const diffTime = Math.abs(now.getTime() - createdAt.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays > 3) {
-           setDaysSinceCheckin(diffDays);
-           setShowCheckinReminder(true);
-        }
-      }
-    } catch (err) {
-      console.error("Error in checkLastCheckin:", err);
-    }
-  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
