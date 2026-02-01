@@ -24,8 +24,8 @@ export default function Nutrition() {
   const [loading, setLoading] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
-  // Tab State
-  const [activeTab, setActiveTab] = useState("log"); // Default to log for daily use
+  // Tab State - Defaulting to 'strategy' as requested
+  const [activeTab, setActiveTab] = useState("strategy"); 
 
   // Macro Structure State
   const [currentDate] = useState(format(new Date(), "dd/MM/yyyy"));
@@ -170,21 +170,16 @@ export default function Nutrition() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="w-full bg-zinc-900 border border-zinc-800">
-          <TabsTrigger value="log" className="flex-1 font-bold uppercase text-xs">
-            <ClipboardList className="w-3 h-3 mr-2" /> Diario
-          </TabsTrigger>
           <TabsTrigger value="strategy" className="flex-1 font-bold uppercase text-xs">
             <Settings2 className="w-3 h-3 mr-2" /> Estrategia
           </TabsTrigger>
+          <TabsTrigger value="log" className="flex-1 font-bold uppercase text-xs">
+            <ClipboardList className="w-3 h-3 mr-2" /> Diario
+          </TabsTrigger>
         </TabsList>
 
-        {/* --- LOG TAB --- */}
-        <TabsContent value="log" className="animate-in slide-in-from-left-2">
-          <NutritionLogger />
-        </TabsContent>
-
-        {/* --- STRATEGY TAB --- */}
-        <TabsContent value="strategy" className="space-y-8 animate-in slide-in-from-right-2">
+        {/* --- STRATEGY TAB (NOW FIRST) --- */}
+        <TabsContent value="strategy" className="space-y-8 animate-in slide-in-from-left-2">
           
           <MacroStructure 
             currentDate={currentDate}
@@ -230,6 +225,11 @@ export default function Nutrition() {
             {!hasProAccess && <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center z-10 text-white"><Lock className="w-4 h-4 mr-2"/> PRO</div>}
             {loading ? "Guardando..." : "GUARDAR PROTOCOLO"}
           </Button>
+        </TabsContent>
+
+        {/* --- LOG TAB --- */}
+        <TabsContent value="log" className="animate-in slide-in-from-right-2">
+          <NutritionLogger />
         </TabsContent>
       </Tabs>
 
