@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/services/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -27,7 +29,6 @@ const Auth = () => {
   }, []);
 
   const checkProfileAndRedirect = async (userId: string) => {
-    // Check if onboarding is complete by looking at a required field (e.g., display_name or sex updated from default)
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('sex, display_name')
@@ -36,12 +37,10 @@ const Auth = () => {
 
     if (error) {
       console.error("Error fetching profile:", error);
-      // Fallback to onboarding if error (safest)
       navigate('/onboarding');
       return;
     }
 
-    // If profile is still "raw" (default values), go to onboarding
     if (profile?.sex === 'other' && !profile?.display_name) {
       navigate('/onboarding');
     } else {
@@ -54,20 +53,25 @@ const Auth = () => {
     setLoading(true);
     setError(null);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      setError(error.message);
-      toast.error(error.message);
-      setLoading(false);
-    } else {
-      toast.success("Bienvenido de nuevo");
-      if (data.user) {
-        checkProfileAndRedirect(data.user.id);
+      if (error) {
+        setError(error.message);
+        toast.error(error.message);
+        setLoading(false);
+      } else {
+        toast.success("Bienvenido de nuevo");
+        if (data.user) {
+          checkProfileAndRedirect(data.user.id);
+        }
       }
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
     }
   };
 
@@ -143,6 +147,21 @@ const Auth = () => {
                     required 
                   />
                 </div>
+
+                <div className="flex items-center space-x-2 py-2">
+                  <Checkbox 
+                    id="remember" 
+                    defaultChecked={true}
+                    disabled
+                  />
+                  <Label 
+                    htmlFor="remember" 
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground"
+                  >
+                    Mantener sesión iniciada
+                  </Label>
+                </div>
+
                 <Button className="w-full" type="submit" disabled={loading}>
                   {loading ? "Cargando..." : "Iniciar Sesión"}
                 </Button>
