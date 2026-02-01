@@ -9,6 +9,7 @@ import { ProfileForm } from "@/components/settings/ProfileForm";
 import { BillingSettings } from "@/components/settings/BillingSettings";
 import { DataManagement } from "@/components/settings/DataManagement";
 
+// Explicitly synchronous component
 export default function Settings() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -75,8 +76,6 @@ export default function Settings() {
       <div className="text-center pt-10 pb-4 border-t border-zinc-900 mt-10">
         <p className="text-[10px] text-zinc-700 font-mono">
            Heavy Duty Di Iorio System
-           <br/>
-           UID: {supabase.auth.getUser().then(u => u.data.user?.id.substring(0,8))}
         </p>
       </div>
 

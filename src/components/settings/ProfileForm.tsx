@@ -6,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save, AlertCircle } from "lucide-react";
+import { User, Camera, Loader2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Strictly synchronous component
 export function ProfileForm() {
   const { profile, loading: profileLoading } = useProfile();
   const [loading, setLoading] = useState(false);
@@ -27,14 +28,12 @@ export function ProfileForm() {
     if (profile) {
       setDisplayName(profile.display_name || "");
       
-      // Safe cast if possible, fallback to male if not set or 'other'
       if (profile.sex === 'male' || profile.sex === 'female') {
           setSex(profile.sex);
       }
       
       setAvatarUrl(profile.avatar_url || null);
       
-      // Load extra fields from settings jsonb
       if (profile.settings) {
         setAge(profile.settings.age || "");
         setHeight(profile.settings.height || "");
@@ -80,24 +79,20 @@ export function ProfileForm() {
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setUploadingAvatar(true);
-      if (!event.target.files || event.target.files.length === 0) {
-        return; // User cancelled
-      }
-
-      if (!profile) throw new Error("Perfil no cargado");
+      if (!event.target.files || event.target.files.length === 0) return;
+      if (!profile) return;
 
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
       const fileName = `${profile.user_id}/avatar_${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
 
       const { error: updateError } = await supabase
         .from('profiles')
@@ -110,32 +105,19 @@ export function ProfileForm() {
       toast.success("Foto actualizada");
 
     } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || "Error al subir imagen");
+      toast.error("Error al subir imagen");
     } finally {
       setUploadingAvatar(false);
     }
   };
 
   if (profileLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 text-zinc-500 gap-4">
-        <Loader2 className="animate-spin h-8 w-8" />
-        <p className="text-sm">Cargando ficha técnica...</p>
-      </div>
-    );
+    return <div className="p-12 text-center text-zinc-500">Cargando datos...</div>;
   }
 
+  // Fallback if no profile is found but loading finished (shouldn't happen if auth guard works)
   if (!profile) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 text-red-500 gap-4 bg-red-950/10 rounded-lg border border-red-900/50">
-        <AlertCircle className="h-10 w-10" />
-        <p className="font-bold">No se pudo cargar el perfil.</p>
-        <Button onClick={() => window.location.reload()} variant="outline" className="border-red-900 text-red-500 hover:bg-red-950">
-          Reintentar
-        </Button>
-      </div>
-    );
+    return <div className="p-12 text-center text-red-500">Error cargando perfil.</div>;
   }
 
   return (
@@ -153,20 +135,16 @@ export function ProfileForm() {
         {/* LEFT COLUMN: AVATAR & BADGE */}
         <div className="flex flex-col items-center gap-6">
           <div className="relative group cursor-pointer">
-            {/* Red Glow Ring */}
             <div className="absolute inset-0 rounded-full border-2 border-red-600 blur-[4px] opacity-70" />
-            <div className="absolute inset-0 rounded-full border border-red-600/50" />
-            
-            <div className="h-48 w-48 rounded-full border-4 border-zinc-950 overflow-hidden bg-zinc-900 flex items-center justify-center relative z-10 shadow-2xl">
+            <div className="h-48 w-48 rounded-full border-4 border-zinc-950 overflow-hidden bg-zinc-900 flex items-center justify-center relative z-10">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <User className="h-20 w-20 text-zinc-700 stroke-1" />
+                <User className="h-20 w-20 text-zinc-700" />
               )}
               
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                 <Camera className="text-white h-8 w-8" />
-                <span className="text-xs text-white font-bold absolute bottom-12">CAMBIAR</span>
               </div>
             </div>
             <input 
@@ -176,11 +154,6 @@ export function ProfileForm() {
               onChange={handleAvatarUpload}
               disabled={uploadingAvatar}
             />
-            {uploadingAvatar && (
-              <div className="absolute inset-0 flex items-center justify-center z-30 bg-black/50 rounded-full">
-                <Loader2 className="h-8 w-8 text-white animate-spin" />
-              </div>
-            )}
           </div>
           
           {profile.is_premium ? (
@@ -196,99 +169,49 @@ export function ProfileForm() {
 
         {/* RIGHT COLUMN: FORM */}
         <div className="space-y-6 w-full">
-          
           <div className="space-y-2">
             <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Nombre Completo</Label>
             <Input 
               value={displayName} 
               onChange={(e) => setDisplayName(e.target.value)} 
               className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0 placeholder:text-zinc-700"
-              placeholder="Tu nombre..."
             />
           </div>
 
           <div className="space-y-2">
             <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Sexo Biológico</Label>
             <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={() => setSex('male')}
-                className={cn(
-                  "h-12 rounded-md border text-sm font-bold uppercase transition-all tracking-wider",
-                  sex === 'male' 
-                    ? "bg-[#1a2332] border-blue-900/50 text-white shadow-[0_0_10px_rgba(30,58,138,0.2)]" 
-                    : "bg-black/50 border-zinc-800 text-zinc-500 hover:text-zinc-300"
-                )}
-              >
-                Masculino
-              </button>
-              <button
-                onClick={() => setSex('female')}
-                className={cn(
-                  "h-12 rounded-md border text-sm font-bold uppercase transition-all tracking-wider",
-                  sex === 'female' 
-                    ? "bg-[#321a25] border-pink-900/50 text-white shadow-[0_0_10px_rgba(131,24,67,0.2)]" 
-                    : "bg-black/50 border-zinc-800 text-zinc-500 hover:text-zinc-300"
-                )}
-              >
-                Femenino
-              </button>
+              <button onClick={() => setSex('male')} className={cn("h-12 rounded-md border text-sm font-bold uppercase transition-all tracking-wider", sex === 'male' ? "bg-[#1a2332] border-blue-900/50 text-white" : "bg-black/50 border-zinc-800 text-zinc-500")}>Masculino</button>
+              <button onClick={() => setSex('female')} className={cn("h-12 rounded-md border text-sm font-bold uppercase transition-all tracking-wider", sex === 'female' ? "bg-[#321a25] border-pink-900/50 text-white" : "bg-black/50 border-zinc-800 text-zinc-500")}>Femenino</button>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Edad</Label>
-              <Input 
-                type="number"
-                value={age} 
-                onChange={(e) => setAge(e.target.value)}
-                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0 placeholder:text-zinc-700"
-                placeholder="--"
-              />
+              <Input type="number" value={age} onChange={(e) => setAge(e.target.value)} className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg" />
             </div>
             <div className="space-y-2">
               <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Altura (cm)</Label>
-              <Input 
-                type="number"
-                value={height} 
-                onChange={(e) => setHeight(e.target.value)}
-                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0 placeholder:text-zinc-700"
-                placeholder="--"
-              />
+              <Input type="number" value={height} onChange={(e) => setHeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg" />
             </div>
             <div className="space-y-2">
               <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Peso (kg)</Label>
-              <Input 
-                type="number"
-                value={weight} 
-                onChange={(e) => setWeight(e.target.value)}
-                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0 placeholder:text-zinc-700"
-                placeholder="--"
-              />
+              <Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg" />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Objetivos Trimestrales</Label>
-            <Textarea 
-              value={objectives}
-              onChange={(e) => setObjectives(e.target.value)}
-              className="bg-black/50 border-zinc-800 text-zinc-300 min-h-[120px] resize-none focus:border-red-600/50 focus:ring-0 text-base placeholder:text-zinc-700"
-              placeholder="Describí tus metas: Subir 5kg limpios, mejorar banca plana, bajar % graso..."
-            />
+            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Objetivos</Label>
+            <Textarea value={objectives} onChange={(e) => setObjectives(e.target.value)} className="bg-black/50 border-zinc-800 text-zinc-300 min-h-[120px]" placeholder="Mis metas..." />
           </div>
 
           <div className="pt-4">
-            <Button 
-                className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-black italic uppercase tracking-wider text-lg shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-                onClick={handleSave}
-                disabled={loading}
-            >
+            <Button className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-black italic uppercase tracking-wider text-lg" onClick={handleSave} disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Save className="mr-2 h-5 w-5"/>}
                 {loading ? "Guardando..." : "GUARDAR CAMBIOS"}
             </Button>
           </div>
-
         </div>
       </div>
     </div>
