@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { Zap, Loader2, Footprints, Calendar } from "lucide-react";
+import { Zap, Loader2, Footprints, Calendar, ChevronLeft } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
 
@@ -32,9 +32,8 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
     setLoading(true);
 
     try {
-      // Create a date object with the selected date and current time (to avoid timezone shifts to previous day)
       const now = new Date();
-      const timeString = now.toTimeString().split(' ')[0]; // HH:MM:SS
+      const timeString = now.toTimeString().split(' ')[0]; 
       const finalDate = new Date(`${date}T${timeString}`).toISOString();
 
       const { error } = await supabase.from('logs').insert({
@@ -55,7 +54,6 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
       toast.success("Sesión de cardio registrada");
       onOpenChange(false);
       
-      // Reset form
       setDuration("");
       setCalories("");
       setSteps("");
@@ -72,23 +70,22 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-zinc-950 border-zinc-800 text-white">
-        <DialogHeader>
-          <div className="flex items-center gap-2 text-yellow-500 mb-1">
-            <Zap className="h-5 w-5" />
-            <span className="text-xs font-bold uppercase tracking-widest">Actividad Cardiovascular</span>
+      <DialogContent className="sm:max-w-md bg-zinc-950 border-zinc-800 text-white p-0 overflow-hidden">
+        <div className="flex items-center gap-2 p-4 border-b border-zinc-900 bg-zinc-900/30">
+          <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="text-zinc-500 h-8 w-8">
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+          <div>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+               <Zap className="h-4 w-4 text-yellow-500" /> Registrar Cardio
+            </DialogTitle>
           </div>
-          <DialogTitle className="text-xl font-bold">Registrar Cardio</DialogTitle>
-          <DialogDescription className="text-zinc-500">
-            Post-entreno o actividad diaria.
-          </DialogDescription>
-        </DialogHeader>
+        </div>
 
-        <div className="space-y-4 py-2">
-          
+        <div className="space-y-4 p-6">
           <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-                <Calendar className="h-3 w-3 text-zinc-400" /> Fecha de Actividad
+            <Label className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500">
+                <Calendar className="h-3 w-3" /> Fecha de Actividad
             </Label>
             <Input 
                 type="date"
@@ -99,7 +96,7 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
           </div>
 
           <div className="space-y-2">
-            <Label>Tipo de Actividad</Label>
+            <Label className="text-xs font-bold uppercase text-zinc-500">Tipo de Actividad</Label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger className="bg-zinc-900 border-zinc-800 h-11">
                 <SelectValue />
@@ -117,7 +114,7 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Duración (min)</Label>
+              <Label className="text-xs font-bold uppercase text-zinc-500">Duración (min)</Label>
               <Input 
                 type="number" 
                 placeholder="30"
@@ -127,7 +124,7 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Calorías (Opcional)</Label>
+              <Label className="text-xs font-bold uppercase text-zinc-500">Kcal (Opcional)</Label>
               <Input 
                 type="number" 
                 placeholder="kcal"
@@ -140,9 +137,8 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
 
           {type === 'walking' && (
             <div className="space-y-2 animate-in slide-in-from-top-2">
-              <Label className="flex items-center gap-2">
-                <Footprints className="h-3 w-3 text-zinc-500" /> 
-                Cantidad de Pasos (Opcional)
+              <Label className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500">
+                <Footprints className="h-3 w-3" /> Pasos (Opcional)
               </Label>
               <Input 
                 type="number" 
@@ -155,7 +151,7 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
           )}
 
           <div className="space-y-2">
-            <Label>Notas</Label>
+            <Label className="text-xs font-bold uppercase text-zinc-500">Notas</Label>
             <Textarea 
               placeholder="Sensaciones, inclinación, velocidad..."
               value={notes}
@@ -163,18 +159,16 @@ export function CardioModal({ open, onOpenChange }: CardioModalProps) {
               className="bg-zinc-900 border-zinc-800 min-h-[80px]"
             />
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button 
-            className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold"
+            className="w-full h-12 bg-yellow-600 hover:bg-yellow-700 text-white font-bold uppercase"
             onClick={handleSubmit}
             disabled={loading || !duration}
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar Sesión"}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Guardar Sesión
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
