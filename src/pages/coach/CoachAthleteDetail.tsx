@@ -66,7 +66,6 @@ export default function CoachAthleteDetail() {
   const handleUpdateFinance = async () => {
     setSaving(true);
     try {
-        // Actualizar finanzas
         await supabase
             .from('coach_assignments')
             .update({ 
@@ -76,17 +75,26 @@ export default function CoachAthleteDetail() {
             })
             .eq('athlete_id', athleteId);
 
-        // Actualizar estado de competidor
         await supabase
             .from('profiles')
             .update({ is_competitor: isCompetitor })
             .eq('user_id', athleteId);
 
-        toast.success("Ficha actualizada correctamente");
+        toast.success("Ficha actualizada");
     } catch (err: any) {
         toast.error(err.message);
     } finally {
         setSaving(false);
+    }
+  };
+
+  const toggleCompetitorQuick = async (val: boolean) => {
+    setIsCompetitor(val);
+    try {
+        await supabase.from('profiles').update({ is_competitor: val }).eq('user_id', athleteId);
+        toast.success(val ? "Modo Competidor ACTIVADO" : "Modo Competidor DESACTIVADO");
+    } catch (err) {
+        toast.error("Error al cambiar estado");
     }
   };
 
@@ -98,7 +106,7 @@ export default function CoachAthleteDetail() {
         await supabase.from('coach_assignments').update({ payment_status: 'up_to_date', next_payment_date: format(new Date(new Date().setMonth(new Date().getMonth() + 1)), 'yyyy-MM-dd') }).eq('athlete_id', athleteId);
         await supabase.from('notifications').insert({ user_id: athleteId, title: "Pago recibido ✅", message: `Tu coach ha registrado el pago de tu cuota mensual.`, type: 'payment_received' });
         setPaymentStatus('up_to_date');
-        toast.success("Pago registrado y notificado");
+        toast.success("Pago registrado");
     } catch (err: any) { toast.error(err.message); } finally { setSaving(false); }
   };
 
@@ -127,7 +135,7 @@ export default function CoachAthleteDetail() {
         <TabsList className="w-full bg-zinc-900 border border-zinc-800 p-1">
           <TabsTrigger value="progreso" className="flex-1 text-[9px] uppercase font-black"><TrendingUp className="w-3 h-3 mr-1.5"/> Log</TabsTrigger>
           <TabsTrigger value="protocolos" className="flex-1 text-[9px] uppercase font-black"><ClipboardList className="w-3 h-3 mr-1.5"/> Protocol</TabsTrigger>
-          {isCompetitor && <TabsTrigger value="competencia" className="flex-1 text-[9px] uppercase font-black"><Trophy className="w-3 h-3 mr-1.5 text-yellow-500"/> Show</TabsTrigger>}
+          <TabsTrigger value="competencia" className="flex-1 text-[9px] uppercase font-black"><Trophy className="w-3 h-3 mr-1.5 text-yellow-500"/> Show</TabsTrigger>
           <TabsTrigger value="finanzas" className="flex-1 text-[9px] uppercase font-black"><DollarSign className="w-3 h-3 mr-1.5"/> Biz</TabsTrigger>
         </TabsList>
 
@@ -150,11 +158,39 @@ export default function CoachAthleteDetail() {
             {athleteId && <CoachProtocolManager athleteId={athleteId} athleteName={profile?.display_name || "Atleta"} />}
         </TabsContent>
 
-        {isCompetitor && (
-          <TabsContent value="competencia" className="animate-in slide-in-from-bottom-2">
-             {athleteId && <CompetitionManager athleteId={athleteId} />}
-          </TabsContent>
-        )}
+        <TabsContent value="competencia" className="animate-in slide-in-from-bottom-2">
+             {!isCompetitor ? (
+                <div className="text-center py-16 bg-zinc-950 border border-dashed border-zinc-900 rounded-2xl space-y-6 px-6">
+                    <div className="mx-auto bg-yellow-500/10 p-4 rounded-full w-fit">
+                        <Trophy className="h-10 w-10 text-yellow-600 opacity-50" />
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-lg font-black uppercase italic">Calendario Bloqueado</h3>
+                        <p className="text-xs text-zinc-500 leading-relaxed">Este atleta no está configurado como competidor. Activa el modo para programar torneos y protocolos de puesta a punto.</p>
+                    </div>
+                    <Button 
+                        onClick={() => toggleCompetitorQuick(true)} 
+                        className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-black uppercase italic"
+                    >
+                        Activar Modo Competidor
+                    </Button>
+                </div>
+             ) : (
+                <div className="space-y-6">
+                    <div className="flex justify-end">
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => toggleCompetitorQuick(false)}
+                            className="text-[9px] uppercase font-bold text-zinc-600 hover:text-red-500"
+                        >
+                            Desactivar Modo Competidor
+                        </Button>
+                    </div>
+                    {athleteId && <CompetitionManager athleteId={athleteId} />}
+                </div>
+             )}
+        </TabsContent>
 
         <TabsContent value="finanzas" className="space-y-6 animate-in slide-in-from-bottom-2">
             <Card className="bg-zinc-950 border-zinc-900">
