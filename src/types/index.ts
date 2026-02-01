@@ -15,6 +15,7 @@ export interface UserProfile {
   sex: Sex;
   units: UnitSystem;
   avatar_url?: string;
+  birth_date?: string;
   
   // Registro
   logging_preference: LoggingPreference;
@@ -64,7 +65,6 @@ export interface Routine {
   created_at: string;
 }
 
-// ... (resto de interfaces se mantienen iguales)
 export type PhaseGoal = 'volume' | 'definition' | 'maintenance';
 
 export interface DietVariant {
