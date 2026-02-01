@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
     ChevronLeft, Briefcase, Plus, Trash2, Save, Loader2, 
-    Instagram, MessageCircle, Globe, DollarSign, Award, Settings, Info, BookOpen
+    Instagram, MessageCircle, Globe, DollarSign, Award, Settings, Info, BookOpen, Brain, TrendingUp
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
@@ -92,6 +92,27 @@ export default function CoachBusiness() {
       </div>
 
       <div className="space-y-8">
+        {/* QUICK ACCESS TO AUDIT */}
+        <Card className="bg-red-600/10 border-red-600/30 overflow-hidden group">
+            <CardContent className="p-0">
+                <button 
+                    onClick={() => navigate('/coach/business/audit')}
+                    className="w-full p-5 flex items-center justify-between transition-all hover:bg-red-600/10 text-left"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-red-600 rounded-xl shadow-[0_0_15px_rgba(220,38,38,0.3)]">
+                            <Brain className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="font-black uppercase italic text-sm text-white">Auditoría Estratégica (IA)</h3>
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Cruce de datos de rentabilidad y equipo</p>
+                        </div>
+                    </div>
+                    <ChevronLeft className="h-5 w-5 text-red-600 rotate-180 transition-transform group-hover:translate-x-1" />
+                </button>
+            </CardContent>
+        </Card>
+
         {/* Marca y Redes */}
         <Card className="bg-zinc-950 border-zinc-900">
             <CardHeader>

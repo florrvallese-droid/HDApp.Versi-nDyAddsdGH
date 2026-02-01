@@ -34,6 +34,7 @@ import FeatureFlags from "./pages/admin/FeatureFlags";
 import CoachDashboard from "./pages/coach/CoachDashboard";
 import CoachAthleteDetail from "./pages/coach/CoachAthleteDetail";
 import CoachBusiness from "./pages/coach/CoachBusiness";
+import CoachBusinessAudit from "./pages/coach/CoachBusinessAudit";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => {
               <Route path="/coach" element={<CoachDashboard />} />
               <Route path="/coach/athlete/:athleteId" element={<CoachAthleteDetail />} />
               <Route path="/coach/business" element={<CoachBusiness />} />
+              <Route path="/coach/business/audit" element={<CoachBusinessAudit />} />
             </Route>
             
             <Route path="/workout/analysis" element={<PostWorkout />} />
