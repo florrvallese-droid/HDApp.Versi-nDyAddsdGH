@@ -89,6 +89,7 @@ export interface Compound {
   name: string;
   dosage: string;
   type: 'injectable' | 'oral' | 'ancillary';
+  timing?: 'fasted' | 'pre' | 'intra' | 'post' | 'night' | 'meal';
 }
 
 export interface PharmaCycle {
@@ -126,7 +127,7 @@ export interface WorkoutSet {
   tempo?: string;
   rest_seconds?: number;
   rpe?: number;
-  is_unilateral?: boolean; // NUEVO
+  is_unilateral?: boolean; 
   techniques?: string[];
   technique_counts?: Record<string, number>;
   extensions?: SetExtension[];
