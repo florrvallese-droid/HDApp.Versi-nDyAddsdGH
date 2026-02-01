@@ -1,22 +1,25 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Home, Dumbbell, Utensils, User, TrendingUp } from "lucide-react";
+import { Home, Dumbbell, Utensils, User, TrendingUp, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { profile } = useProfile();
 
   const navItems = [
     { label: "Home", icon: Home, path: "/dashboard" },
     { label: "Train", icon: Dumbbell, path: "/workout" },
     { label: "Nutri", icon: Utensils, path: "/nutrition" },
-    { label: "Audit", icon: TrendingUp, path: "/analysis" },
+    profile?.is_coach 
+      ? { label: "Equipo", icon: Users, path: "/coach" }
+      : { label: "Audit", icon: TrendingUp, path: "/analysis" },
     { label: "Perfil", icon: User, path: "/settings" },
   ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Main Content Area - padded at bottom for nav bar */}
       <main className="flex-1 pb-16">
         <Outlet />
       </main>

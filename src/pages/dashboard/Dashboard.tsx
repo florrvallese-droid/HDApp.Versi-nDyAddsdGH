@@ -12,7 +12,8 @@ import {
   LogOut,
   User,
   Share2,
-  Loader2
+  Loader2,
+  Users
 } from "lucide-react";
 import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
 import { CardioModal } from "@/components/dashboard/CardioModal";
@@ -89,7 +90,6 @@ export default function Dashboard() {
     try {
       const sevenDaysAgo = subDays(new Date(), 7).toISOString();
       
-      // 1. Obtener todos los logs de la última semana
       const { data: logs } = await supabase
         .from('logs')
         .select('type, data, created_at, muscle_group')
@@ -99,22 +99,18 @@ export default function Dashboard() {
 
       if (!logs) throw new Error("No se pudieron cargar los datos");
 
-      // Procesar datos de la semana
       const checkins = logs.filter(l => l.type === 'checkin');
       const workouts = logs.filter(l => l.type === 'workout');
       const nutrition = logs.filter(l => l.type === 'nutrition');
 
-      // Peso: Último vs Primero de la semana
       const currentWeight = checkins.length > 0 ? checkins[0].data.weight : "N/A";
       const startWeight = checkins.length > 0 ? checkins[checkins.length - 1].data.weight : currentWeight;
       const weeklyWeightDelta = typeof currentWeight === 'number' && typeof startWeight === 'number' 
         ? (currentWeight - startWeight).toFixed(1) 
         : "0.0";
 
-      // Entrenos: Lista de músculos
       const trainedMuscles = [...new Set(workouts.map(w => w.muscle_group || "General"))];
       
-      // Nutrición: Promedio de adherencia
       const avgAdherence = nutrition.length > 0 
         ? Math.round(nutrition.reduce((acc, n) => acc + (n.data.adherence || 0), 0) / nutrition.length)
         : "N/A";
@@ -205,6 +201,17 @@ export default function Dashboard() {
 
       <div className="w-full max-w-md bg-black border border-zinc-900 rounded-2xl p-6 md:p-8 shadow-2xl relative z-10 flex flex-col gap-8">
         
+        {/* BOTÓN COACH (Si aplica) */}
+        {profile?.is_coach && (
+          <Button 
+            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest flex items-center justify-center gap-3 animate-in fade-in slide-in-from-top-4"
+            onClick={() => navigate('/coach')}
+          >
+             <Users className="h-5 w-5" />
+             GESTIONAR ALUMNOS
+          </Button>
+        )}
+
         <div className="flex flex-col items-center gap-1">
           <h2 className="text-lg md:text-xl font-black uppercase tracking-wider text-white text-center">
             TU CUADERNO DE ENTRENAMIENTO
@@ -255,7 +262,6 @@ export default function Dashboard() {
 
         </div>
 
-        {/* COMPARTIR BITÁCORA / CHEQUEO */}
         <div className="pt-2 border-t border-zinc-900">
            <Button 
              className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-bold uppercase tracking-widest flex items-center justify-center gap-3 group transition-all"
