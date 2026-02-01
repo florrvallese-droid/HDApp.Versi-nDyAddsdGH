@@ -52,20 +52,20 @@ export function HistoryView({ onStartNew, onManageRoutines }: HistoryViewProps) 
         workout={selectedWorkout} 
       />
 
-      <div className="p-4 border-b border-zinc-900 bg-black/50 backdrop-blur sticky top-0 z-10 flex justify-between items-center">
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-zinc-500 mr-1">
+      <div className="p-4 border-b border-zinc-900 bg-black/50 backdrop-blur sticky top-0 z-10 flex justify-between items-center gap-2">
+        <div className="flex items-center gap-1 min-w-0">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-zinc-500 mr-1 shrink-0">
             <ChevronLeft className="h-6 w-6" />
           </Button>
-          <h1 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2">
-            <History className="h-5 w-5 text-red-600" /> Bitácora
+          <h1 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2 truncate">
+            <History className="h-5 w-5 text-red-600 shrink-0" /> <span className="truncate">Bitácora</span>
           </h1>
         </div>
-        <div className="flex gap-2">
-            <Button variant="ghost" size="icon" className="text-zinc-500" onClick={onManageRoutines}>
+        <div className="flex gap-2 shrink-0">
+            <Button variant="ghost" size="icon" className="text-zinc-500 h-9 w-9" onClick={onManageRoutines}>
                 <ListPlus className="h-5 w-5" />
             </Button>
-            <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold" onClick={onStartNew}>
+            <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold h-9" onClick={onStartNew}>
             <Plus className="h-4 w-4 mr-1" /> Nuevo
             </Button>
         </div>
@@ -97,19 +97,19 @@ export function HistoryView({ onStartNew, onManageRoutines }: HistoryViewProps) 
                     setShowDetail(true);
                   }}
                 >
-                  <CardContent className="p-4 flex justify-between items-center">
-                    <div>
+                  <CardContent className="p-4 flex justify-between items-center gap-4">
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2 text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">
                         <Calendar className="h-3 w-3" />
                         {format(new Date(log.created_at), "d MMM", { locale: es })}
                       </div>
-                      <h3 className="text-lg font-black italic text-white uppercase">{log.muscle_group || "Entrenamiento"}</h3>
+                      <h3 className="text-lg font-black italic text-white uppercase truncate">{log.muscle_group || "Entrenamiento"}</h3>
                       <div className="flex gap-3 mt-2 text-xs text-zinc-400">
-                        <span className="flex items-center gap-1"><Dumbbell className="h-3 w-3" /> {log.data.exercises?.length || 0} Ejercicios</span>
-                        <span className="flex items-center gap-1 text-red-500"><Zap className="h-3 w-3" /> {setsCount} Series Totales</span>
+                        <span className="flex items-center gap-1"><Dumbbell className="h-3 w-3" /> {log.data.exercises?.length || 0}</span>
+                        <span className="flex items-center gap-1 text-red-500"><Zap className="h-3 w-3" /> {setsCount}</span>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0">
                        <ChevronLeft className="h-4 w-4 rotate-180 text-zinc-700" />
                     </div>
                   </CardContent>
