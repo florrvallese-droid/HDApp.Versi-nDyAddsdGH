@@ -19,6 +19,7 @@ import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
 import { CardioModal } from "@/components/dashboard/CardioModal";
 import { RestDayModal } from "@/components/dashboard/RestDayModal";
 import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
+import { CoachInvitationAlert } from "@/components/dashboard/CoachInvitationAlert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { format, subDays } from "date-fns";
@@ -201,6 +202,11 @@ export default function Dashboard() {
 
       <div className="w-full max-w-md bg-black border border-zinc-900 rounded-2xl p-6 md:p-8 shadow-2xl relative z-10 flex flex-col gap-8">
         
+        {/* ALERTA DE INVITACIÓN (Solo para atletas) */}
+        {!profile?.is_coach && profile?.user_id && (
+           <CoachInvitationAlert userId={profile.user_id} />
+        )}
+
         {/* BOTÓN COACH (Si aplica) */}
         {profile?.is_coach && (
           <Button 
@@ -240,7 +246,7 @@ export default function Dashboard() {
             onClick={() => setShowRest(true)}
             className="flex items-center justify-center gap-2 bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white rounded-lg py-4 transition-all group"
           >
-            <Moon className="w-4 h-4 text-zinc-500 group-hover:text-blue-400 transition-colors" />
+            <Moon className="h-4 w-4 text-zinc-500 group-hover:text-blue-400 transition-colors" />
             <span className="font-bold text-xs md:text-sm uppercase tracking-wider">DÍA DE DESCANSO</span>
           </button>
 
