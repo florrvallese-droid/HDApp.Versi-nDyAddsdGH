@@ -7,7 +7,6 @@ export const INTENSITY_TECHNIQUES = [
   { id: "rest_pause", label: "Rest Pause", short: "RP", color: "text-blue-400 border-blue-400" },
   { id: "drop_set", label: "Drop Set", short: "DROP", color: "text-red-400 border-red-400" },
   { id: "forced_reps", label: "Forzadas", short: "FORCE", color: "text-orange-400 border-orange-400" },
-  { id: "negatives", label: "Negativas", short: "NEG", color: "text-purple-400 border-purple-400" },
   { id: "static", label: "Isometría", short: "ISO", color: "text-yellow-400 border-yellow-400" },
   { id: "partial", label: "Parciales", short: "PART", color: "text-zinc-400 border-zinc-400" },
 ];

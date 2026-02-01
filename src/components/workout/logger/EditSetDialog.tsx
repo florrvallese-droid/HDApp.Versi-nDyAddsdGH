@@ -15,7 +15,7 @@ interface EditSetDialogProps {
   onSave: (updatedSet: WorkoutSet) => void;
 }
 
-const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial', 'negatives'];
+const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial'];
 const EXTENSION_TECHNIQUES = ['rest_pause', 'drop_set'];
 
 export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialogProps) {

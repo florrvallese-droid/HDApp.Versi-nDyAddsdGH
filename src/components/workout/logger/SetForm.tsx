@@ -16,7 +16,7 @@ interface SetFormProps {
 }
 
 // Techniques that modify the main set
-const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial', 'negatives'];
+const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial'];
 // Techniques that EXTEND the set
 const EXTENSION_TECHNIQUES = ['rest_pause', 'drop_set'];
 
@@ -147,7 +147,7 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
           />
         </div>
 
-        {/* --- MODIFIERS (Forced, Negative, etc) --- */}
+        {/* --- MODIFIERS (Forced, Partial) --- */}
         {techniques.some(t => COUNTABLE_TECHNIQUES.includes(t)) && (
           <div className="bg-zinc-900/50 p-2 rounded border border-zinc-800/50 grid grid-cols-2 gap-2 animate-in slide-in-from-top-1">
             {techniques.filter(t => COUNTABLE_TECHNIQUES.includes(t)).map(tech => (
