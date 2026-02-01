@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Plus, ChevronLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { Plus, ChevronLeft, Loader2, CheckCircle2, Target, BookOpen } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { WorkoutExercise, UserProfile } from "@/types";
+import { WorkoutExercise, UserProfile, LoggingPreference } from "@/types";
 import { RestTimer } from "@/components/workout/RestTimer";
 import { ExerciseSelector } from "@/components/workout/ExerciseSelector";
 import { ExerciseCard } from "./ExerciseCard";
@@ -16,10 +16,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 interface ActiveSessionViewProps {
   muscleGroup: string;
   profile: UserProfile | null;
+  loggingMode: LoggingPreference;
   onCancel: () => void;
 }
 
-export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSessionViewProps) {
+export function ActiveSessionView({ muscleGroup, profile, loggingMode, onCancel }: ActiveSessionViewProps) {
   const navigate = useNavigate();
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [newExerciseName, setNewExerciseName] = useState("");
@@ -89,7 +90,8 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
         workout_date: new Date().toISOString(),
         data: { 
           exercises,
-          total_effective_sets: totalSets
+          total_effective_sets: totalSets,
+          logging_mode: loggingMode
         }, 
         discipline: profile?.discipline || 'general'
       });
@@ -100,7 +102,8 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
           workoutData: { 
             muscleGroup: muscleGroup, 
             exercises: exercises,
-            totalSets: totalSets
+            totalSets: totalSets,
+            loggingMode: loggingMode
           } 
         } 
       });
@@ -111,6 +114,8 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
     }
   };
 
+  const isEffectiveOnly = loggingMode === 'effective_only';
+
   return (
     <div className="p-4 pb-40 max-w-md mx-auto min-h-screen bg-black text-white space-y-8 relative animate-in fade-in duration-500">
       <RestTimer />
@@ -119,13 +124,31 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
         <Button variant="ghost" size="icon" onClick={onCancel} className="text-zinc-500 h-10 w-10">
           <ChevronLeft className="h-6 w-6" />
         </Button>
-        <div>
-          <h2 className="text-xl font-black italic uppercase text-white leading-none truncate max-w-[200px]">
+        <div className="flex-1">
+          <h2 className="text-xl font-black italic uppercase text-white leading-none truncate max-w-[180px]">
             {muscleGroup}
           </h2>
-          <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] mt-1">Sesión en Curso</p>
+          <div className="flex items-center gap-1.5 mt-1">
+             {isEffectiveOnly ? (
+               <Target className="h-2.5 w-2.5 text-red-500" />
+             ) : (
+               <BookOpen className="h-2.5 w-2.5 text-zinc-500" />
+             )}
+             <p className="text-[9px] text-zinc-500 font-black uppercase tracking-widest">
+               {isEffectiveOnly ? 'HIT: SÓLO EFECTIVAS' : 'RUTINA COMPLETA'}
+             </p>
+          </div>
         </div>
       </div>
+
+      {isEffectiveOnly && (
+        <div className="bg-red-950/20 border border-red-900/30 p-3 rounded-lg flex items-start gap-3">
+           <Target className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+           <p className="text-[10px] text-red-200 font-medium leading-relaxed">
+             <span className="font-black">RECUERDA:</span> En este modo solo registramos las series llevadas al fallo muscular absoluto. No cargues calentamiento.
+           </p>
+        </div>
+      )}
 
       <div className="space-y-10">
         {exercises.map((ex, i) => (

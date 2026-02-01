@@ -4,6 +4,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { HistoryView } from "@/components/workout/logger/HistoryView";
 import { SetupView } from "@/components/workout/logger/SetupView";
 import { ActiveSessionView } from "@/components/workout/logger/ActiveSessionView";
+import { LoggingPreference } from "@/types";
 
 export default function WorkoutLogger() {
   const { profile } = useProfile();
@@ -11,12 +12,14 @@ export default function WorkoutLogger() {
   // View State: 'history' | 'setup' | 'active'
   const [view, setView] = useState<'history' | 'setup' | 'active'>('history');
   const [muscleGroupInput, setMuscleGroupInput] = useState("");
+  const [activeMode, setActiveMode] = useState<LoggingPreference>("effective_only");
 
-  const startWorkout = () => {
+  const startWorkout = (mode: LoggingPreference) => {
     if (!muscleGroupInput) {
       toast.error("Ingresa un grupo muscular");
       return;
     }
+    setActiveMode(mode);
     setView('active');
   };
 
@@ -42,6 +45,7 @@ export default function WorkoutLogger() {
     <ActiveSessionView 
       muscleGroup={muscleGroupInput}
       profile={profile}
+      loggingMode={activeMode}
       onCancel={() => setView('setup')}
     />
   );

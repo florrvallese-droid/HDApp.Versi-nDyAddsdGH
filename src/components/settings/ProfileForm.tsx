@@ -6,8 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save } from "lucide-react";
+import { User, Camera, Loader2, Save, Target, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LoggingPreference } from "@/types";
 
 export function ProfileForm() {
   const { profile, loading: profileLoading } = useProfile();
@@ -16,6 +17,7 @@ export function ProfileForm() {
   // Form State
   const [displayName, setDisplayName] = useState("");
   const [sex, setSex] = useState<'male'|'female'>("male");
+  const [loggingPreference, setLoggingPreference] = useState<LoggingPreference>("effective_only");
   const [age, setAge] = useState("");
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
@@ -26,13 +28,11 @@ export function ProfileForm() {
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || "");
-      
       if (profile.sex === 'male' || profile.sex === 'female') {
           setSex(profile.sex);
       }
-      
+      setLoggingPreference(profile.logging_preference || "effective_only");
       setAvatarUrl(profile.avatar_url || null);
-      
       if (profile.settings) {
         setAge(profile.settings.age || "");
         setHeight(profile.settings.height || "");
@@ -60,6 +60,7 @@ export function ProfileForm() {
         .update({
           display_name: displayName,
           sex: sex,
+          logging_preference: loggingPreference,
           settings: updatedSettings,
           updated_at: new Date().toISOString()
         })
@@ -114,7 +115,6 @@ export function ProfileForm() {
     return <div className="p-12 text-center text-zinc-500 flex flex-col items-center gap-2"><Loader2 className="animate-spin h-6 w-6"/> Cargando perfil...</div>;
   }
 
-  // Fallback if no profile is found but loading finished
   if (!profile) {
     return <div className="p-12 text-center text-red-500">No se pudo cargar el perfil.</div>;
   }
@@ -175,6 +175,32 @@ export function ProfileForm() {
               onChange={(e) => setDisplayName(e.target.value)} 
               className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0 placeholder:text-zinc-700"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Filosofía de Registro</Label>
+            <div className="grid grid-cols-1 gap-2">
+              <button 
+                onClick={() => setLoggingPreference('effective_only')} 
+                className={cn("p-4 rounded-md border text-left transition-all", loggingPreference === 'effective_only' ? "bg-red-950/20 border-red-900/50" : "bg-black/50 border-zinc-800")}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Target className={cn("h-4 w-4", loggingPreference === 'effective_only' ? "text-red-500" : "text-zinc-600")} />
+                  <span className={cn("font-bold text-sm uppercase tracking-tight", loggingPreference === 'effective_only' ? "text-white" : "text-zinc-500")}>Sólo Series Efectivas (Pure HIT)</span>
+                </div>
+                <p className="text-[10px] text-zinc-500 leading-tight">Registra solo las series llevadas al fallo muscular absoluto. Ideal para Heavy Duty.</p>
+              </button>
+              <button 
+                onClick={() => setLoggingPreference('full_routine')} 
+                className={cn("p-4 rounded-md border text-left transition-all", loggingPreference === 'full_routine' ? "bg-zinc-800 border-zinc-700" : "bg-black/50 border-zinc-800")}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <BookOpen className={cn("h-4 w-4", loggingPreference === 'full_routine' ? "text-white" : "text-zinc-600")} />
+                  <span className={cn("font-bold text-sm uppercase tracking-tight", loggingPreference === 'full_routine' ? "text-white" : "text-zinc-500")}>Rutina Completa (Volumen Total)</span>
+                </div>
+                <p className="text-[10px] text-zinc-500 leading-tight">Registra calentamiento, aproximación y series efectivas. Ideal para trackear volumen total.</p>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2">

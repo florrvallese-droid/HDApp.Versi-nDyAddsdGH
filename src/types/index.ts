@@ -2,6 +2,7 @@ export type CoachTone = 'strict' | 'motivational' | 'analytical' | 'friendly';
 export type Discipline = 'bodybuilding' | 'crossfit' | 'powerlifting' | 'general';
 export type UnitSystem = 'kg' | 'lb';
 export type Sex = 'male' | 'female' | 'other';
+export type LoggingPreference = 'effective_only' | 'full_routine';
 
 export interface UserProfile {
   user_id: string;
@@ -13,6 +14,9 @@ export interface UserProfile {
   sex: Sex;
   units: UnitSystem;
   avatar_url?: string;
+  
+  // Registro
+  logging_preference: LoggingPreference;
   
   // Premium
   is_premium: boolean;
@@ -131,6 +135,7 @@ export interface WorkoutSet {
   techniques?: string[];
   technique_counts?: Record<string, number>;
   extensions?: SetExtension[];
+  type?: 'warmup' | 'working' | 'failure';
 }
 
 export interface WorkoutExercise {
@@ -146,6 +151,7 @@ export interface WorkoutData {
   exercises: WorkoutExercise[];
   total_volume: number;
   duration_minutes: number;
+  logging_mode?: LoggingPreference;
 }
 
 export interface GlobalAnalysisResponse {
