@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { supabase } from "@/services/supabase";
 import { format, parseISO } from "date-fns";
-import { Dumbbell, TrendingUp, Target, Loader2, Search } from "lucide-react";
+import { Dumbbell, TrendingUp, Target, Loader2, Search, Link2, Info } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { calculateOneRM } from "@/utils/calculations";
 import { cn } from "@/lib/utils";
@@ -75,13 +75,27 @@ export function ExerciseProgressChart({ userId }: ExerciseProgressChartProps) {
             date: format(parseISO(log.created_at), 'dd/MM'),
             weight: bestSet.weight,
             oneRM: bestSet.oneRM,
-            reps: bestSet.reps
+            reps: bestSet.reps,
+            isSuperset: !!ex.is_superset
           };
         })
         .filter(Boolean);
 
       setChartData(history);
     }
+  };
+
+  const CustomDot = (props: any) => {
+    const { cx, cy, payload } = props;
+    if (payload.isSuperset) {
+      return (
+        <g>
+          <circle cx={cx} cy={cy} r={6} fill="#dc2626" stroke="#fbbf24" strokeWidth={2} />
+          <path d={`M${cx-2} ${cy-2} L${cx+2} ${cy+2} M${cx+2} ${cy-2} L${cx-2} ${cy+2}`} stroke="#fbbf24" strokeWidth={1} />
+        </g>
+      );
+    }
+    return <circle cx={cx} cy={cy} r={4} fill="#dc2626" stroke="none" />;
   };
 
   if (loading) return <div className="h-40 bg-zinc-900 animate-pulse rounded-xl" />;
@@ -94,7 +108,7 @@ export function ExerciseProgressChart({ userId }: ExerciseProgressChartProps) {
                 <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-white">
                     <Target className="h-4 w-4 text-primary" /> Foco en Ejercicio
                 </CardTitle>
-                <CardDescription className="text-[10px] uppercase font-bold text-zinc-500">Análisis de sobrecarga específica</CardDescription>
+                <CardDescription className="text-[10px] uppercase font-bold text-zinc-500">Sobrecarga y Volumen</CardDescription>
             </div>
             <div className="w-48">
                 <Select value={selectedExercise} onValueChange={setSelectedExercise}>
@@ -120,28 +134,63 @@ export function ExerciseProgressChart({ userId }: ExerciseProgressChartProps) {
                         <YAxis fontSize={9} tickLine={false} axisLine={false} tick={{fill: '#52525b'}} domain={['auto', 'auto']} />
                         <Tooltip 
                             contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '8px', fontSize: '10px' }}
-                            formatter={(value: any, name: string) => [
-                                `${value}kg`, 
-                                name === 'oneRM' ? '1RM Estimado' : 'Peso Máximo'
-                            ]}
+                            content={({ active, payload, label }) => {
+                                if (active && payload && payload.length) {
+                                    const data = payload[0].payload;
+                                    return (
+                                        <div className="bg-zinc-950 border border-zinc-800 p-2 rounded shadow-xl space-y-1">
+                                            <p className="text-[10px] font-black text-zinc-500 uppercase border-b border-zinc-800 pb-1 mb-1">{label}</p>
+                                            <div className="flex justify-between gap-4">
+                                                <span className="text-zinc-400">1RM Est:</span>
+                                                <span className="text-white font-bold">{data.oneRM}kg</span>
+                                            </div>
+                                            <div className="flex justify-between gap-4">
+                                                <span className="text-zinc-400">Mejor Serie:</span>
+                                                <span className="text-white font-bold">{data.weight}kg x {data.reps}</span>
+                                            </div>
+                                            {data.isSuperset && (
+                                                <div className="mt-1 pt-1 border-t border-yellow-900/30 flex items-center gap-1 text-yellow-500">
+                                                    <Link2 className="h-3 w-3" />
+                                                    <span className="text-[8px] font-black uppercase">Realizado en Superserie</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            }}
                         />
                         <Legend verticalAlign="top" height={36} iconType="circle" formatter={(value) => <span className="text-[10px] uppercase font-bold text-zinc-500">{value === 'oneRM' ? 'Fuerza (1RM)' : 'Carga Real'}</span>} />
-                        <Line type="monotone" dataKey="oneRM" stroke="#dc2626" strokeWidth={3} dot={{ r: 4, fill: '#dc2626', strokeWidth: 0 }} activeDot={{ r: 6 }} />
-                        <Line type="monotone" dataKey="weight" stroke="#52525b" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                        <Line 
+                           type="monotone" 
+                           dataKey="oneRM" 
+                           stroke="#dc2626" 
+                           strokeWidth={3} 
+                           dot={<CustomDot />} 
+                           activeDot={{ r: 8, stroke: '#fff', strokeWidth: 2 }} 
+                        />
+                        <Line 
+                           type="monotone" 
+                           dataKey="weight" 
+                           stroke="#52525b" 
+                           strokeWidth={2} 
+                           strokeDasharray="5 5" 
+                           dot={false} 
+                        />
                     </LineChart>
                 </ResponsiveContainer>
             </div>
         ) : (
             <div className="h-[250px] flex flex-col items-center justify-center text-zinc-600 gap-2">
                 <Search className="h-8 w-8 opacity-20" />
-                <p className="text-xs font-bold uppercase tracking-tighter">Sin datos suficientes para este ejercicio</p>
+                <p className="text-xs font-bold uppercase tracking-tighter">Sin datos suficientes</p>
             </div>
         )}
         
         {chartData.length > 1 && (
             <div className="p-4 bg-zinc-900/30 border-t border-zinc-900 flex justify-between items-center">
                 <div className="flex flex-col">
-                    <span className="text-[9px] font-black text-zinc-500 uppercase">Progreso Total</span>
+                    <span className="text-[9px] font-black text-zinc-500 uppercase">Progresión 1RM</span>
                     <span className={cn(
                         "text-lg font-black italic uppercase",
                         chartData[chartData.length-1].oneRM >= chartData[0].oneRM ? "text-green-500" : "text-red-500"
@@ -150,12 +199,24 @@ export function ExerciseProgressChart({ userId }: ExerciseProgressChartProps) {
                         {((chartData[chartData.length-1].oneRM - chartData[0].oneRM) / chartData[0].oneRM * 100).toFixed(1)}%
                     </span>
                 </div>
-                <div className="text-right">
+                <div className="flex flex-col items-end">
                     <span className="text-[9px] font-black text-zinc-500 uppercase">Último Récord</span>
                     <p className="text-sm font-bold text-white uppercase">{chartData[chartData.length-1].weight}kg x {chartData[chartData.length-1].reps}</p>
+                    {chartData[chartData.length-1].isSuperset && <span className="text-[8px] text-yellow-500 font-bold uppercase flex items-center gap-1"><Link2 className="h-2 w-2"/> Pre-fatigado</span>}
                 </div>
             </div>
         )}
+
+        <div className="p-2 px-4 bg-zinc-950 border-t border-zinc-900 flex items-center gap-4">
+             <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-red-600" />
+                <span className="text-[8px] text-zinc-500 font-bold uppercase">Serie Lineal</span>
+             </div>
+             <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-red-600 border border-yellow-500" />
+                <span className="text-[8px] text-zinc-500 font-bold uppercase">Superserie (Punto Crítico)</span>
+             </div>
+        </div>
       </CardContent>
     </Card>
   );
