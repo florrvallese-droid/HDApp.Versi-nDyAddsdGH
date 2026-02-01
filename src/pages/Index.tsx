@@ -2,13 +2,12 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/services/supabase";
-import { Brain, TrendingUp, ShieldCheck, ChevronRight, Star, Lock } from "lucide-react";
+import { Brain, TrendingUp, ShieldCheck, ChevronRight, Star, Lock, Users, Activity, Gavel } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/dashboard");
@@ -46,7 +45,7 @@ const Index = () => {
         
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-900/50 bg-red-900/10 text-red-500 text-[10px] font-bold uppercase tracking-widest mb-4">
-            <Star className="w-3 h-3 fill-current" /> Versión 17.09 integrada con IA
+            <Star className="w-3 h-3 fill-current" /> EL SISTEMA DEFINITIVO PARA EL ALTO RENDIMIENTO
           </div>
           
           <div className="space-y-2">
@@ -54,59 +53,72 @@ const Index = () => {
               HEAVY DUTY
             </h1>
             <h2 className="text-lg md:text-3xl font-bold tracking-[0.2em] text-red-500 uppercase">
-              TU <span className="text-white">CUADERNO</span> DE ENTRENAMIENTO
+              ENTRENAR <span className="text-white">INTELIGENTE</span> ES LA ÚNICA OPCIÓN
             </h2>
           </div>
           
           <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed pt-4 font-medium">
-            Dejá de adivinar y empezá a entrenar en serio. <br className="hidden md:block"/>
-            No podés saber si estás progresando si no medís lo que estás haciendo.
+            Ya seas un atleta buscando su límite o un coach gestionando un equipo, 
+            nuestra IA cruza datos de SNC, nutrición y carga para eliminar las suposiciones.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200 pt-2">
+        {/* Differentiated CTAs */}
+        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-2xl animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200 pt-2">
           <Button 
             size="lg" 
-            className="w-full h-14 text-lg font-black italic uppercase bg-red-600 hover:bg-red-700 text-white shadow-[0_0_30px_rgba(220,38,38,0.4)] border border-red-500/20"
+            className="flex-1 h-20 text-lg font-black italic uppercase bg-red-600 hover:bg-red-700 text-white shadow-[0_0_30px_rgba(220,38,38,0.4)] border border-red-500/20 rounded-xl flex flex-col items-center justify-center gap-0"
             onClick={() => navigate("/auth")}
           >
-            Comenzar Ahora <ChevronRight className="ml-2 w-5 h-5" />
+            <span className="text-2xl">SOY ATLETA</span>
+            <span className="text-[10px] font-bold tracking-widest opacity-70">QUIERO SUPERARME</span>
+          </Button>
+
+          <Button 
+            size="lg" 
+            variant="outline"
+            className="flex-1 h-20 text-lg font-black italic uppercase bg-zinc-950/50 hover:bg-zinc-900 border-zinc-800 text-zinc-100 rounded-xl flex flex-col items-center justify-center gap-0"
+            onClick={() => navigate("/auth")}
+          >
+            <span className="text-2xl">SOY COACH</span>
+            <span className="text-[10px] font-bold tracking-widest text-red-500">GESTIÓN MULTI-ATLETA</span>
           </Button>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 w-full animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300 text-left">
-          
-          <FeatureCard 
-            icon={<Brain className="w-6 h-6 text-red-500" />}
-            title="EVALUACIÓN SISTÉMICA"
-            desc="Analizá tu descanso y estrés para decidir tu fase de entrenamiento. A veces, la decisión más anabólica no es hacer otra serie, sino dormir una hora más para equilibrar tu dopamina y bajar el cortisol."
-          />
-          
-          <FeatureCard 
-            icon={<TrendingUp className="w-6 h-6 text-white" />}
-            title="SOBRECARGA PROGRESIVA"
-            desc="Tu guía. Abrís el cuaderno, mirás lo que hiciste la semana pasada y tu objetivo es simple: superarlo."
-          />
-          
-          <FeatureCard 
-            icon={<ShieldCheck className="w-6 h-6 text-blue-500" />}
-            title="AUDITORÍA"
-            desc="Detecta patrones ocultos y optimiza tu recuperación basándose en tus datos históricos."
-          />
-        </div>
+        {/* Persona Comparison Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-24 w-full text-left animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+            
+            {/* For Athletes */}
+            <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-600/20 rounded-lg"><Activity className="text-red-500 w-6 h-6"/></div>
+                    <h3 className="text-2xl font-black uppercase italic tracking-tighter">PARA EL ATLETA</h3>
+                </div>
+                <ul className="space-y-4">
+                    <BenefitItem icon={<Brain className="w-4 h-4 text-red-500"/>} title="Coach IA Pre-Entreno" desc="Evaluación de SNC para decidir si entrenar pesado o recuperar." />
+                    <BenefitItem icon={<TrendingUp className="w-4 h-4 text-red-500"/>} title="Sobrecarga Forzada" desc="Visualización directa de tu objetivo a batir en cada serie." />
+                    <BenefitItem icon={<Gavel className="w-4 h-4 text-red-500"/>} title="El Juicio (Fase 3)" desc="Análisis crítico de tu progreso vs sesiones anteriores." />
+                </ul>
+            </div>
 
-        {/* Social Proof / Stats */}
-        <div className="pt-16 grid grid-cols-2 md:grid-cols-4 gap-8 w-full border-t border-zinc-900/50 mt-12">
-            <Stat number="+10k" label="Sesiones" />
-            <Stat number="4.9/5" label="Rating IA" />
-            <Stat number="100%" label="Ciencia" />
-            <Stat number="0%" label="Excusas" />
+            {/* For Coaches */}
+            <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-600/20 rounded-lg"><Users className="text-blue-500 w-6 h-6"/></div>
+                    <h3 className="text-2xl font-black uppercase italic tracking-tighter">PARA EL COACH</h3>
+                </div>
+                <ul className="space-y-4">
+                    <BenefitItem icon={<Users className="w-4 h-4 text-blue-500"/>} title="Panel de Alumnos" desc="Supervisa múltiples atletas desde una sola interfaz centralizada." />
+                    <BenefitItem icon={<Activity className="w-4 h-4 text-blue-500"/>} title="Auditoría de Carga" desc="Mira exactamente qué pesos y reps hizo cada alumno en tiempo real." />
+                    <BenefitItem icon={<ShieldCheck className="w-4 h-4 text-blue-500"/>} title="Validación de Adherencia" desc="Monitorea el cumplimiento de dieta y check-ins físicos." />
+                </ul>
+            </div>
+
         </div>
 
       </div>
 
-      <footer className="p-8 text-center border-t border-zinc-900 relative z-10 bg-black/80 backdrop-blur-sm">
+      <footer className="p-8 text-center border-t border-zinc-900 relative z-10 bg-black/80 backdrop-blur-sm mt-20">
         <p className="text-zinc-500 text-xs font-mono mb-4">
           &copy; {new Date().getFullYear()} Heavy Duty Di Iorio. 
         </p>
@@ -116,7 +128,6 @@ const Index = () => {
             <span>Soporte</span>
         </div>
         
-        {/* Admin Link - IMPROVED VISIBILITY */}
         <div className="mt-8 border-t border-zinc-900 pt-4">
             <button 
                 onClick={() => navigate('/admin/login')}
@@ -130,19 +141,14 @@ const Index = () => {
   );
 };
 
-const FeatureCard = ({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) => (
-  <div className="bg-zinc-900/40 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800/50 hover:border-zinc-700/80 hover:bg-zinc-900/60 transition-all group h-full">
-    <div className="mb-4 bg-zinc-950 w-fit p-3 rounded-xl border border-zinc-800 group-hover:border-zinc-700 transition-colors">{icon}</div>
-    <h3 className="text-lg font-black mb-3 text-zinc-100 uppercase tracking-wide">{title}</h3>
-    <p className="text-zinc-400 text-sm leading-relaxed font-medium">{desc}</p>
-  </div>
-);
-
-const Stat = ({ number, label }: { number: string, label: string }) => (
-    <div className="flex flex-col items-center">
-        <span className="text-2xl md:text-3xl font-black text-white italic">{number}</span>
-        <span className="text-xs text-zinc-500 uppercase tracking-widest font-bold">{label}</span>
-    </div>
+const BenefitItem = ({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) => (
+    <li className="flex gap-4">
+        <div className="mt-1">{icon}</div>
+        <div>
+            <h4 className="font-bold text-zinc-100 text-sm uppercase tracking-wide">{title}</h4>
+            <p className="text-zinc-500 text-xs leading-relaxed">{desc}</p>
+        </div>
+    </li>
 );
 
 export default Index;
