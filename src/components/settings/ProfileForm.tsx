@@ -6,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save, Target, BookOpen, Brain, Ticket, Briefcase, Instagram, MessageCircle, Calendar } from "lucide-react";
+import { User, Camera, Loader2, Save, Target, BookOpen, Brain, Ticket, Briefcase, Instagram, MessageCircle, Calendar, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LoggingPreference, CoachTone } from "@/types";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export function ProfileForm() {
   const { profile, loading: profileLoading } = useProfile();
@@ -206,6 +207,21 @@ export function ProfileForm() {
             </div>
           </div>
 
+          {!profile?.is_coach && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 text-red-500">
+                  <Brain className="h-5 w-5" />
+                  <h3 className="font-black uppercase italic text-sm">Personalidad de tu IA</h3>
+              </div>
+              <RadioGroup value={coachTone} onValueChange={(v) => setCoachTone(v as CoachTone)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <PersonalityCard id="strict" label="Strict" desc="Mike Mentzer Style. Sin excusas." current={coachTone} />
+                  <PersonalityCard id="analytical" label="Analytical" desc="Basado en datos y métricas frías." current={coachTone} />
+                  <PersonalityCard id="motivational" label="Motivational" desc="Energía positiva y empuje constante." current={coachTone} />
+                  <PersonalityCard id="friendly" label="Friendly" desc="Cercano, profesional y comprensivo." current={coachTone} />
+              </RadioGroup>
+            </div>
+          )}
+
           <div className="pt-10">
             <Button className="w-full h-16 bg-white text-black hover:bg-zinc-200 font-black italic uppercase tracking-wider text-lg" onClick={handleSave} disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-6 w-6 animate-spin"/> : <Save className="mr-2 h-6 w-6"/>}
@@ -216,4 +232,20 @@ export function ProfileForm() {
       </div>
     </div>
   );
+}
+
+function PersonalityCard({ id, label, desc, current }: { id: string, label: string, desc: string, current: string }) {
+    const isSelected = id === current;
+    return (
+        <Label htmlFor={id} className={cn(
+            "flex items-start space-x-3 border-2 rounded-xl p-4 cursor-pointer transition-all hover:bg-zinc-900/50",
+            isSelected ? 'border-red-600 bg-red-950/10' : 'border-zinc-800 bg-black/40'
+        )}>
+            <RadioGroupItem value={id} id={id} className="mt-1 border-zinc-700" />
+            <div className="grid gap-1 leading-none">
+                <span className="font-black uppercase italic text-white text-sm">{label}</span>
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter leading-tight">{desc}</p>
+            </div>
+        </Label>
+    );
 }
