@@ -9,7 +9,8 @@ export function RestTimer() {
   const [isActive, setIsActive] = useState(false);
   const [initialTime, setInitialTime] = useState(90); // Default 90s
   
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Use ReturnType<typeof setInterval> for cross-platform compatibility (Node/Browser)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (isActive && timeLeft > 0) {
