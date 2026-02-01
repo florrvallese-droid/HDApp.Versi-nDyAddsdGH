@@ -115,8 +115,9 @@ Deno.serve(async (req) => {
       ${JSON.stringify(data)}
     `;
 
-    const callGemini = async (model: string) => {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
+    // Función interna para llamar a la API
+    const callGemini = async (modelName: string) => {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -130,18 +131,37 @@ Deno.serve(async (req) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Model ${model} failed (${response.status}): ${errorText}`);
+        throw new Error(`Model ${modelName} failed (${response.status}): ${errorText}`);
       }
       return response.json();
     };
 
-    // USAR MODELOS ESTABLES
-    let usedModel = 'gemini-2.0-flash';
-    if (action === 'globalanalysis') {
-      usedModel = 'gemini-1.5-pro'; // Modelo estable de alta capacidad
+    // --- LÓGICA DE RESILIENCIA (FALLBACK) ---
+    const modelsToTry = action === 'globalanalysis' 
+        ? ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-2.0-flash'] 
+        : ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+
+    let aiResult = null;
+    let usedModel = "";
+    let lastError = null;
+
+    for (const model of modelsToTry) {
+        try {
+            console.log(`[ai-coach] Trying model: ${model}`);
+            aiResult = await callGemini(model);
+            usedModel = model;
+            console.log(`[ai-coach] Success with: ${model}`);
+            break; // Salir del bucle si tiene éxito
+        } catch (err) {
+            console.warn(`[ai-coach] Model ${model} failed, trying next... Error: ${err.message}`);
+            lastError = err;
+        }
     }
 
-    const aiResult = await callGemini(usedModel);
+    if (!aiResult) {
+        throw new Error(`All AI models failed. Last error: ${lastError?.message}`);
+    }
+    
     const generatedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!generatedText) throw new Error("AI returned no content.");
