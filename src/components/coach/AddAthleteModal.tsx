@@ -18,28 +18,36 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
   const [loading, setLoading] = useState(false);
 
   const handleInvite = async () => {
-    if (!email) return;
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) return;
+    
     setLoading(true);
 
     try {
       const { data: { user: coach } } = await supabase.auth.getUser();
       if (!coach) throw new Error("No autenticado");
 
+      // Buscamos el perfil del atleta por email
       const { data: athleteProfile, error: searchError } = await supabase
         .from('profiles')
         .select('user_id, display_name')
-        .eq('email', email.trim().toLowerCase())
+        .eq('email', cleanEmail)
         .maybeSingle();
 
-      if (searchError) throw searchError;
+      if (searchError) {
+        console.error("Search error:", searchError);
+        throw new Error("Error técnico al buscar el perfil. Por favor, reintenta.");
+      }
+
       if (!athleteProfile) {
-        throw new Error("No se encontró ningún atleta con ese correo electrónico.");
+        throw new Error("No se encontró ningún usuario con ese correo electrónico. Asegúrate de que el atleta ya se haya registrado en la app.");
       }
 
       if (athleteProfile.user_id === coach.id) {
-        throw new Error("No puedes invitarte a ti mismo.");
+        throw new Error("No puedes vincularte a ti mismo como alumno.");
       }
 
+      // Verificar si ya existe un vínculo
       const { data: existing } = await supabase
         .from('coach_assignments')
         .select('status')
@@ -48,9 +56,10 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
         .maybeSingle();
 
       if (existing) {
-        throw new Error(`Ya tienes una solicitud ${existing.status} con este atleta.`);
+        throw new Error(`Este atleta ya tiene una solicitud ${existing.status === 'active' ? 'activa' : 'pendiente'} contigo.`);
       }
 
+      // Crear la invitación
       const { error: inviteError } = await supabase
         .from('coach_assignments')
         .insert({
@@ -61,7 +70,7 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
 
       if (inviteError) throw inviteError;
 
-      toast.success(`Invitación enviada a ${athleteProfile.display_name || email}`);
+      toast.success(`Invitación enviada a ${athleteProfile.display_name || cleanEmail}`);
       setEmail("");
       onSuccess();
       onOpenChange(false);
@@ -81,7 +90,7 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
             <UserPlus className="h-5 w-5 text-red-600" /> Vincular Nuevo Atleta
           </DialogTitle>
           <DialogDescription className="text-zinc-500">
-            Ingresa el correo con el que tu alumno se registró en Heavy Duty.
+            Ingresa el correo exacto con el que tu alumno se registró en Heavy Duty.
           </DialogDescription>
         </DialogHeader>
 
@@ -97,6 +106,7 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
                 className="bg-zinc-900 border-zinc-800 pl-10 h-11"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
               />
             </div>
           </div>
@@ -109,7 +119,7 @@ export function AddAthleteModal({ open, onOpenChange, onSuccess }: AddAthleteMod
             disabled={loading || !email}
           >
             {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
-            Enviar Invitación
+            Buscar y Vincular
           </Button>
         </DialogFooter>
       </DialogContent>
