@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Link2, Trash2, Trophy, TrendingUp, Pencil, ArrowUp, ArrowDown } from "lucide-react";
+import { Link2, Trash2, Trophy, TrendingUp, Pencil, ArrowUp, ArrowDown, ChevronRight, CornerDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WorkoutExercise, WorkoutSet, UnitSystem } from "@/types";
@@ -43,17 +43,19 @@ export function ExerciseCard({
     tempo: "3-0-1"
   };
 
-  // Helper to format techniques display
   const renderTechniques = (set: WorkoutSet) => {
-    if (!set.techniques || set.techniques.length === 0) return null;
+    // Filter out extension techniques (they are rendered separately)
+    const EXTENSION_KEYS = ['rest_pause', 'drop_set'];
+    const displayTechs = set.techniques?.filter(t => !EXTENSION_KEYS.includes(t)) || [];
+
+    if (displayTechs.length === 0) return null;
 
     return (
       <div className="flex flex-wrap gap-1 max-w-[120px] mt-1">
-        {set.techniques.map(tech => {
+        {displayTechs.map(tech => {
           const count = set.technique_counts?.[tech];
           const label = getTechLabel(tech);
           
-          // If it has a count, show "+2 FORZ"
           if (count) {
             return (
               <Badge key={tech} variant="outline" className={cn("text-[9px] px-1 py-0 h-4 border font-bold", getTechColor(tech))}>
@@ -62,13 +64,42 @@ export function ExerciseCard({
             );
           }
           
-          // Otherwise just the tag
           return (
             <Badge key={tech} variant="outline" className={cn("text-[9px] px-1 py-0 h-4 border", getTechColor(tech))}>
               {label}
             </Badge>
           );
         })}
+      </div>
+    );
+  };
+
+  const renderExtensions = (set: WorkoutSet) => {
+    if (!set.extensions || set.extensions.length === 0) return null;
+
+    return (
+      <div className="mt-2 space-y-1">
+        {set.extensions.map((ext, i) => (
+          <div key={i} className="flex items-center gap-2 text-[10px]">
+            <CornerDownRight className="h-3 w-3 text-zinc-500" />
+            
+            {ext.type === 'rest_pause' && (
+              <span className="flex items-center gap-1.5 bg-blue-950/30 text-blue-400 px-2 py-0.5 rounded border border-blue-900/30">
+                <span className="font-bold">RP {ext.rest_time}s</span> 
+                <ChevronRight className="h-3 w-3 opacity-50"/> 
+                <span className="text-white font-bold">+{ext.reps} reps</span>
+              </span>
+            )}
+
+            {ext.type === 'drop_set' && (
+              <span className="flex items-center gap-1.5 bg-red-950/30 text-red-400 px-2 py-0.5 rounded border border-red-900/30">
+                <span className="font-bold">DROP {ext.weight}{units}</span> 
+                <ChevronRight className="h-3 w-3 opacity-50"/> 
+                <span className="text-white font-bold">+{ext.reps} reps</span>
+              </span>
+            )}
+          </div>
+        ))}
       </div>
     );
   };
@@ -90,7 +121,6 @@ export function ExerciseCard({
         <h3 className="text-red-500 font-black uppercase text-lg leading-tight flex-1">{exercise.name}</h3>
         
         <div className="flex gap-1 shrink-0">
-          {/* Reordering Controls */}
           <div className="flex bg-zinc-900 rounded-md border border-zinc-800 mr-2">
              <Button 
                variant="ghost" 
@@ -112,7 +142,6 @@ export function ExerciseCard({
              </Button>
           </div>
 
-          {/* SUPER SET TOGGLE - Only for index > 0 */}
           {index > 0 && (
             <Button 
               variant="ghost" 
@@ -141,41 +170,45 @@ export function ExerciseCard({
       )}
 
       {exercise.sets.map((set, si) => (
-        <div key={si} className="flex items-center justify-between bg-zinc-900/50 border border-zinc-800 p-3 rounded relative overflow-hidden group hover:border-zinc-700 transition-colors">
-          <div className="flex gap-4 items-center flex-1">
-            <div className="flex flex-col">
-              <span className="text-[10px] text-zinc-500 uppercase font-bold">Peso</span>
-              <span className="text-xl font-bold text-white">{set.weight}<span className="text-xs text-zinc-500 ml-1">{units}</span></span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] text-zinc-500 uppercase font-bold">Reps</span>
-              <span className="text-xl font-bold text-white">{set.reps}</span>
+        <div key={si} className="bg-zinc-900/50 border border-zinc-800 p-3 rounded relative overflow-hidden group hover:border-zinc-700 transition-colors">
+          <div className="flex items-start justify-between">
+            <div className="flex gap-4 items-center flex-1">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-zinc-500 uppercase font-bold">Peso</span>
+                <span className="text-xl font-bold text-white">{set.weight}<span className="text-xs text-zinc-500 ml-1">{units}</span></span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-zinc-500 uppercase font-bold">Reps</span>
+                <span className="text-xl font-bold text-white">{set.reps}</span>
+              </div>
+              
+              <div className="ml-2">
+                 {renderTechniques(set)}
+              </div>
+
+              {exercise.previous && (
+                <div className="flex flex-col justify-center ml-auto mr-4">
+                  {set.weight > exercise.previous.weight || (set.weight === exercise.previous.weight && set.reps > exercise.previous.reps) ? (
+                    <TrendingUp className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-1 w-4 bg-zinc-700 rounded"/>
+                  )}
+                </div>
+              )}
             </div>
             
-            {/* TAGS DISPLAY */}
-            <div className="ml-2">
-               {renderTechniques(set)}
+            <div className="flex gap-1">
+               <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-600 hover:text-white" onClick={() => setEditingSetIndex(si)}>
+                  <Pencil className="h-3.5 w-3.5" />
+               </Button>
+               <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-600 hover:text-red-500" onClick={() => onRemoveSet(si)}>
+                  <Trash2 className="h-3.5 w-3.5" />
+               </Button>
             </div>
+          </div>
 
-            {exercise.previous && (
-              <div className="flex flex-col justify-center ml-auto mr-4">
-                {set.weight > exercise.previous.weight || (set.weight === exercise.previous.weight && set.reps > exercise.previous.reps) ? (
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                ) : (
-                  <div className="h-1 w-4 bg-zinc-700 rounded"/>
-                )}
-              </div>
-            )}
-          </div>
-          
-          <div className="flex gap-1">
-             <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-600 hover:text-white" onClick={() => setEditingSetIndex(si)}>
-                <Pencil className="h-3.5 w-3.5" />
-             </Button>
-             <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-600 hover:text-red-500" onClick={() => onRemoveSet(si)}>
-                <Trash2 className="h-3.5 w-3.5" />
-             </Button>
-          </div>
+          {/* RENDER EXTENSIONS (RP / DROP) */}
+          {renderExtensions(set)}
         </div>
       ))}
 
@@ -186,7 +219,6 @@ export function ExerciseCard({
         onAddSet={onAddSet}
       />
 
-      {/* Edit Dialog */}
       {editingSetIndex !== null && exercise.sets[editingSetIndex] && (
         <EditSetDialog 
           open={true}

@@ -114,14 +114,23 @@ export interface PreWorkoutData {
   recommendations: string[];
 }
 
+// --- NEW EXTENSION TYPES ---
+export interface SetExtension {
+  type: 'rest_pause' | 'drop_set';
+  reps: number;
+  weight?: number; // Para Drop Set
+  rest_time?: number; // Para Rest Pause (segundos)
+}
+
 export interface WorkoutSet {
   weight: number;
   reps: number;
   tempo?: string;
   rest_seconds?: number;
   rpe?: number;
-  techniques?: string[]; // Array of strings like "Drop Set", "Rest Pause"
-  technique_counts?: Record<string, number>; // Nuevo: { "forced_reps": 2, "negatives": 1 }
+  techniques?: string[]; // Array of strings like "Forced Reps"
+  technique_counts?: Record<string, number>; // { "forced_reps": 2 }
+  extensions?: SetExtension[]; // Array para Rest Pause y Drop Sets
 }
 
 export interface WorkoutExercise {

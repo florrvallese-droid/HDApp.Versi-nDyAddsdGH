@@ -3,9 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { WorkoutSet } from "@/types";
+import { WorkoutSet, SetExtension } from "@/types";
 import { IntensitySelector, getTechColor, getTechLabel } from "./IntensitySelector";
-import { X } from "lucide-react";
+import { X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface EditSetDialogProps {
@@ -15,7 +15,8 @@ interface EditSetDialogProps {
   onSave: (updatedSet: WorkoutSet) => void;
 }
 
-const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial', 'negatives', 'rest_pause'];
+const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial', 'negatives'];
+const EXTENSION_TECHNIQUES = ['rest_pause', 'drop_set'];
 
 export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialogProps) {
   const [weight, setWeight] = useState(set.weight.toString());
@@ -23,7 +24,6 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
   const [tempo, setTempo] = useState(set.tempo || "3-0-1");
   const [techniques, setTechniques] = useState<string[]>(set.techniques || []);
   
-  // Initialize technique counts with defaults from set or empty string
   const [techniqueCounts, setTechniqueCounts] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     if (set.technique_counts) {
@@ -34,15 +34,42 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
     return initial;
   });
 
+  // Extensions State Initialization
+  const [extensions, setExtensions] = useState<SetExtension[]>(set.extensions || []);
+  
+  // Helpers to get current ext values for inputs
+  const rpExt = extensions.find(e => e.type === 'rest_pause');
+  const dropExt = extensions.find(e => e.type === 'drop_set');
+
+  const [rpRest, setRpRest] = useState(rpExt?.rest_time?.toString() || "15");
+  const [rpReps, setRpReps] = useState(rpExt?.reps.toString() || "");
+  const [dropWeight, setDropWeight] = useState(dropExt?.weight?.toString() || "");
+  const [dropReps, setDropReps] = useState(dropExt?.reps.toString() || "");
+
   const handleSave = () => {
     const finalCounts: Record<string, number> = {};
-    
-    // Only save counts for currently selected techniques
     Object.keys(techniqueCounts).forEach(key => {
       if (techniques.includes(key) && techniqueCounts[key]) {
         finalCounts[key] = parseFloat(techniqueCounts[key]);
       }
     });
+
+    // Rebuild extensions array based on active techniques and current inputs
+    const finalExtensions: SetExtension[] = [];
+    if (techniques.includes('rest_pause') && rpReps) {
+      finalExtensions.push({
+        type: 'rest_pause',
+        rest_time: parseFloat(rpRest) || 15,
+        reps: parseFloat(rpReps)
+      });
+    }
+    if (techniques.includes('drop_set') && dropReps && dropWeight) {
+      finalExtensions.push({
+        type: 'drop_set',
+        weight: parseFloat(dropWeight),
+        reps: parseFloat(dropReps)
+      });
+    }
 
     onSave({
       ...set,
@@ -50,7 +77,8 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
       reps: parseFloat(reps) || 0,
       tempo,
       techniques,
-      technique_counts: finalCounts
+      technique_counts: finalCounts,
+      extensions: finalExtensions
     });
     onOpenChange(false);
   };
@@ -61,7 +89,7 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-xs">
+      <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-xs max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-center font-bold uppercase">Editar Serie</DialogTitle>
         </DialogHeader>
@@ -126,8 +154,60 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
               </div>
             )}
 
-            {/* Tags Display (for non-countable) */}
-            {techniques.length > 0 && !techniques.some(t => COUNTABLE_TECHNIQUES.includes(t)) && (
+            {/* Rest Pause Input */}
+            {techniques.includes('rest_pause') && (
+              <div className="bg-blue-950/20 border border-blue-900/30 p-2 rounded space-y-2 mt-2">
+                <div className="flex items-center gap-2 text-blue-400 text-[10px] font-bold uppercase">
+                  Rest Pause
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input 
+                    type="number"
+                    className="h-8 bg-black/50 border-blue-900/30 text-xs text-center text-white"
+                    placeholder="Pausa (s)"
+                    value={rpRest}
+                    onChange={(e) => setRpRest(e.target.value)}
+                  />
+                  <ArrowRight className="h-4 w-4 text-blue-500/50" />
+                  <Input 
+                    type="number"
+                    className="h-8 bg-black/50 border-blue-900/30 text-xs text-center text-white font-bold"
+                    placeholder="+ Reps"
+                    value={rpReps}
+                    onChange={(e) => setRpReps(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Drop Set Input */}
+            {techniques.includes('drop_set') && (
+              <div className="bg-red-950/20 border border-red-900/30 p-2 rounded space-y-2 mt-2">
+                <div className="flex items-center gap-2 text-red-400 text-[10px] font-bold uppercase">
+                  Drop Set
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input 
+                    type="number"
+                    className="h-8 bg-black/50 border-red-900/30 text-xs text-center text-white"
+                    placeholder="Nuevo Peso"
+                    value={dropWeight}
+                    onChange={(e) => setDropWeight(e.target.value)}
+                  />
+                  <ArrowRight className="h-4 w-4 text-red-500/50" />
+                  <Input 
+                    type="number"
+                    className="h-8 bg-black/50 border-red-900/30 text-xs text-center text-white font-bold"
+                    placeholder="+ Reps"
+                    value={dropReps}
+                    onChange={(e) => setDropReps(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Tags Display (Simple) */}
+            {techniques.length > 0 && !techniques.some(t => [...COUNTABLE_TECHNIQUES, ...EXTENSION_TECHNIQUES].includes(t)) && (
               <div className="flex flex-wrap gap-1">
                 {techniques.map(tech => (
                   <span key={tech} className={cn("text-[9px] px-1.5 py-0.5 rounded border flex items-center gap-1", getTechColor(tech))}>
