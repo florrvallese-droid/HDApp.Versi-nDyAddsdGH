@@ -7,14 +7,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { aiService } from "@/services/ai";
-import { GlobalAnalysisResponse } from "@/types";
+import { GlobalAnalysisResponse, NutritionConfig } from "@/types";
 import { ChevronLeft, Brain, TrendingUp, Calendar, Lock, BarChart3, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { MarkdownRenderer } from "@/components/shared/MarkdownRenderer";
-import { ProgressCharts } from "../../components/analysis/ProgressCharts";
+import { ProgressCharts } from "@/components/analysis/ProgressCharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function GlobalAnalysis() {
@@ -26,6 +26,8 @@ export default function GlobalAnalysis() {
   const [lastRunDate, setLastRunDate] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [activeTab, setActiveTab] = useState("visual");
+
+  const dietVariants = (profile?.settings?.nutrition as NutritionConfig)?.diet_variants || [];
 
   useEffect(() => {
     if (!profileLoading && profile) {
@@ -65,7 +67,12 @@ export default function GlobalAnalysis() {
         .order('created_at', { ascending: true });
 
       const summary = {
-        userProfile: { discipline: profile!.discipline, tone: profile!.coach_tone, units: profile!.units },
+        userProfile: { 
+          discipline: profile!.discipline, 
+          tone: profile!.coach_tone, 
+          units: profile!.units,
+          dietStrategy: profile!.settings?.nutrition // Incluimos la estrategia completa
+        },
         logsCount: logs?.length,
         logs: logs?.map(l => ({ type: l.type, date: l.created_at, muscle: l.muscle_group, data: l.data }))
       };
@@ -104,7 +111,7 @@ export default function GlobalAnalysis() {
         </TabsList>
 
         <TabsContent value="visual" className="space-y-6">
-           {profile && <ProgressCharts userId={profile.user_id} />}
+           {profile && <ProgressCharts userId={profile.user_id} dietVariants={dietVariants} />}
            <div className="pt-4">
               <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-widest" onClick={runAudit} disabled={loading}>
                 {loading ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> Procesando...</> : <>EJECUTAR AUDITORÍA IA</>}
@@ -117,7 +124,7 @@ export default function GlobalAnalysis() {
           {!analysis && !loading && (
             <div className="text-center py-20 bg-zinc-950 border border-dashed border-zinc-800 rounded-2xl space-y-4">
                <Brain className="h-10 w-10 text-zinc-800 mx-auto" />
-               <p className="text-sm text-zinc-500 font-medium">Ejecuta la auditoría para ver el análisis.</p>
+               <p className="text-sm text-zinc-500 font-medium">Ejecuta la auditoría para ver el análisis del Coach.</p>
             </div>
           )}
 
@@ -127,12 +134,12 @@ export default function GlobalAnalysis() {
                    <div className="absolute inset-0 bg-red-600 blur-2xl opacity-20 animate-pulse rounded-full" />
                    <Loader2 className="h-12 w-12 animate-spin text-red-600 relative z-10" />
                 </div>
-                <p className="text-zinc-500 text-sm font-black uppercase tracking-widest animate-pulse">Cruzando Variables...</p>
+                <p className="text-zinc-500 text-sm font-black uppercase tracking-widest animate-pulse">Cruzando Variables Sistémicas...</p>
             </div>
           )}
 
           {analysis && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
               <Card className="border-l-4 border-l-red-600 bg-zinc-950/50">
                 <CardHeader className="pb-2"><CardTitle className="text-sm uppercase font-black text-zinc-500">Evaluación General</CardTitle></CardHeader>
                 <CardContent><MarkdownRenderer content={analysis.overall_assessment} /></CardContent>
