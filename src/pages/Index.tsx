@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/services/supabase";
-import { Brain, TrendingUp, ShieldCheck, ChevronRight, Star, Lock, Users, Activity, Gavel, NotebookPen } from "lucide-react";
+import { Brain, TrendingUp, ShieldCheck, Star, Lock, Users, Activity, NotebookPen } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -57,9 +57,9 @@ const Index = () => {
             </h2>
           </div>
           
-          <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed pt-4 font-medium">
-            Registra cada serie, peso y repetición en tu bitácora digital. 
-            Nuestra IA analiza tus datos de SNC y carga para eliminar las suposiciones de tu progreso.
+          <p className="text-lg md:text-xl text-zinc-400 max-w-3xl mx-auto leading-relaxed pt-4 font-medium">
+            Registrá tus entrenamientos, tu nutrición, tu cardio, tus descansos y todo tu progreso en tu bitácora digital. 
+            Analizá tu progreso, medí tus sensaciones y llevá tu entrenamiento al siguiente nivel.
           </p>
         </div>
 
@@ -95,9 +95,21 @@ const Index = () => {
                     <h3 className="text-2xl font-black uppercase italic tracking-tighter">PARA EL ATLETA</h3>
                 </div>
                 <ul className="space-y-4">
-                    <BenefitItem icon={<NotebookPen className="w-4 h-4 text-red-500"/>} title="Bitácora de Alta Intensidad" desc="El cuaderno definitivo para registrar pesos, reps y técnicas de intensidad (Drop sets, Rest-pause) sin distracciones." />
-                    <BenefitItem icon={<TrendingUp className="w-4 h-4 text-red-500"/>} title="Sobrecarga Forzada" desc="Visualización directa de tu objetivo a batir en cada serie, basada en tu historial de entrenamiento." />
-                    <BenefitItem icon={<Brain className="w-4 h-4 text-red-500"/>} title="Análisis de IA Integrado" desc="Evaluación de SNC pre-entreno y juicio crítico post-sesión para validar tu progreso real." />
+                    <BenefitItem 
+                      icon={<NotebookPen className="w-4 h-4 text-red-500"/>} 
+                      title="Bitácora de Alta Intensidad" 
+                      desc="El cuaderno definitivo para registrar tu rutina, tus técnicas de intensidad, nutrición, descanso y todo tu progreso sin distracciones." 
+                    />
+                    <BenefitItem 
+                      icon={<TrendingUp className="w-4 h-4 text-red-500"/>} 
+                      title="Sobrecarga Progresiva" 
+                      desc="Visualización directa de tu objetivo a batir en cada serie, basada en tu historial de entrenamiento." 
+                    />
+                    <BenefitItem 
+                      icon={<Brain className="w-4 h-4 text-red-500"/>} 
+                      title="Análisis Integrado" 
+                      desc="Evaluación de SNC pre-entreno, juicio crítico post-sesión y auditoría general para validar tu progreso real y evitar estancamientos." 
+                    />
                 </ul>
             </div>
 
@@ -108,9 +120,21 @@ const Index = () => {
                     <h3 className="text-2xl font-black uppercase italic tracking-tighter">PARA EL COACH</h3>
                 </div>
                 <ul className="space-y-4">
-                    <BenefitItem icon={<Users className="w-4 h-4 text-blue-500"/>} title="Panel de Alumnos" desc="Supervisa los cuadernos de múltiples atletas desde una sola interfaz centralizada." />
-                    <BenefitItem icon={<Activity className="w-4 h-4 text-blue-500"/>} title="Auditoría de Carga" desc="Mira exactamente qué pesos y reps hizo cada alumno en tiempo real, sin pedir capturas de pantalla." />
-                    <BenefitItem icon={<ShieldCheck className="w-4 h-4 text-blue-500"/>} title="Validación de Adherencia" desc="Monitorea el cumplimiento de dieta, suplementación y check-ins físicos de todo tu equipo." />
+                    <BenefitItem 
+                      icon={<Users className="w-4 h-4 text-blue-500"/>} 
+                      title="Panel de Alumnos" 
+                      desc="Supervisa los cuadernos de tus atletas desde una sola interfaz centralizada. Cambiá las rutinas y los macros de su dieta." 
+                    />
+                    <BenefitItem 
+                      icon={<Activity className="w-4 h-4 text-blue-500"/>} 
+                      title="Auditoría de Carga" 
+                      desc="Mira exactamente el progreso de cada alumno en tiempo real, sin pedir capturas de pantalla." 
+                    />
+                    <BenefitItem 
+                      icon={<ShieldCheck className="w-4 h-4 text-blue-500"/>} 
+                      title="Validación de Adherencia" 
+                      desc="Monitoreá el cumplimiento de dieta, suplementación y check-ins físicos de todo tu equipo." 
+                    />
                 </ul>
             </div>
 
