@@ -33,6 +33,12 @@ export interface UserProfile {
       price: string;
       features: string;
     }>;
+    collaborations?: Array<{
+      brand: string;
+      code: string;
+      description: string;
+      link?: string;
+    }>;
   };
   
   // Premium

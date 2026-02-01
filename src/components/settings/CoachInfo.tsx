@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
     Users, MessageCircle, Instagram, Calendar, DollarSign, 
-    ShieldCheck, Loader2, Cake, ExternalLink, AlertCircle, UserMinus, Trash2, Award, Check
+    ShieldCheck, Loader2, Cake, ExternalLink, AlertCircle, UserMinus, Trash2, Award, Check, Tag, Star, Copy
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -82,6 +82,11 @@ export function CoachInfo({ userId }: { userId: string }) {
     }
   };
 
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast.success("Código copiado: " + code);
+  };
+
   if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin text-red-600" /></div>;
 
   if (!assignment) {
@@ -96,7 +101,7 @@ export function CoachInfo({ userId }: { userId: string }) {
 
   const coach = assignment.coach;
   const business = coach?.business_info || {};
-  const plans = business.plans || [];
+  const collabs = business.collaborations || [];
   
   const whatsappUrl = business.whatsapp 
     ? `https://wa.me/${business.whatsapp.replace(/\D/g, '')}` 
@@ -174,25 +179,40 @@ export function CoachInfo({ userId }: { userId: string }) {
         </CardContent>
       </Card>
 
-      {/* PLANES DEL COACH */}
-      {plans.length > 0 && (
+      {/* COLABORACIONES Y DESCUENTOS */}
+      {collabs.length > 0 && (
           <div className="space-y-4">
              <div className="flex items-center gap-2 px-1">
-                <Award className="h-4 w-4 text-yellow-500" />
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Servicios Disponibles</h4>
+                <Star className="h-4 w-4 text-yellow-500" />
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Beneficios de mi Coach</h4>
              </div>
              <div className="grid gap-3">
-                {plans.map((plan: any, i: number) => (
-                   <Card key={i} className="bg-zinc-900/50 border-zinc-800">
-                      <CardContent className="p-4 flex justify-between items-center">
-                         <div className="space-y-1">
-                            <h5 className="font-black uppercase italic text-sm text-white">{plan.name}</h5>
-                            <p className="text-[10px] text-zinc-500 leading-tight max-w-[200px]">{plan.features}</p>
+                {collabs.map((col: any, i: number) => (
+                   <Card key={i} className="bg-zinc-900/50 border-zinc-800 overflow-hidden border-l-2 border-l-red-600">
+                      <CardContent className="p-4">
+                         <div className="flex justify-between items-start">
+                            <div>
+                               <h5 className="font-black uppercase italic text-sm text-white">{col.brand}</h5>
+                               <p className="text-[10px] text-zinc-400 mt-1">{col.description}</p>
+                            </div>
+                            {col.link && (
+                                <button onClick={() => window.open(col.link, '_blank')} className="text-zinc-500 hover:text-white transition-colors">
+                                    <ExternalLink className="h-4 w-4" />
+                                </button>
+                            )}
                          </div>
-                         <div className="text-right">
-                            <p className="text-lg font-black text-green-500">${plan.price}</p>
-                            <p className="text-[8px] text-zinc-600 uppercase font-bold">por mes</p>
-                         </div>
+                         
+                         {col.code && (
+                             <div className="mt-4 flex items-center justify-between bg-black p-2 rounded border border-dashed border-red-900/30">
+                                <div className="flex items-center gap-2">
+                                    <Tag className="h-3 w-3 text-red-500" />
+                                    <span className="text-xs font-mono font-bold text-white tracking-widest">{col.code}</span>
+                                </div>
+                                <Button variant="ghost" size="sm" onClick={() => copyCode(col.code)} className="h-7 text-[8px] uppercase font-black text-zinc-500 hover:text-white">
+                                    <Copy className="h-3 w-3 mr-1" /> Copiar
+                                </Button>
+                             </div>
+                         )}
                       </CardContent>
                    </Card>
                 ))}
