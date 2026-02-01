@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
     // 1. Fetch Prompt (Personality)
     let systemInstruction = `Sos un analista experto en Heavy Duty.`;
-    let promptVersion = "v2.0-analysis-only";
+    let promptVersion = "v2.1-spanish-fixed";
 
     try {
       const { data: promptData } = await supabase
@@ -71,32 +71,32 @@ Deno.serve(async (req) => {
     // REGLAS GLOBALES DE COMPORTAMIENTO (Fase 3: El Juicio)
     const globalConstrains = `
       ### REGLAS DE ORO DEL SISTEMA (ESTRICTAS) ###
-      1. ROL: Sos un ANALISTA DE DATOS, no un planificador. Tu trabajo es EVALUAR lo que ya pasó o el estado actual.
-      2. PROHIBICIÓN: No des pasos a seguir, no sugieras ejercicios nuevos, no des planes de entrenamiento ni sugerencias de qué hacer mañana. No reemplaces al coach humano.
-      3. OBJETIVO: Da un análisis crítico basado en la evidencia de los logs. 
-      4. PERSONALIDAD: Debes mantener el tono "${tone}" en cada palabra. Si sos "strict", sé crudo y directo. Si sos "analytical", hablá de tendencias y métricas.
-      5. NO RECOMENDACIONES: El campo "recommendations" en el JSON debe limitarse a observaciones de cuidado o avisos, no a "hacé X serie mañana".
+      1. IDIOMA: Responde EXCLUSIVAMENTE en ESPAÑOL. No uses términos técnicos en inglés si existe una traducción clara en el culturismo (ej: usa 'fallo' en vez de 'failure').
+      2. ROL: Sos un ANALISTA DE DATOS, no un planificador. Tu trabajo es EVALUAR lo que ya pasó o el estado actual.
+      3. PROHIBICIÓN: No des pasos a seguir, no sugieras ejercicios nuevos, no des planes de entrenamiento ni sugerencias de qué hacer mañana. No reemplaces al coach humano.
+      4. OBJETIVO: Da un análisis crítico basado en la evidencia de los logs. 
+      5. PERSONALIDAD: Debes mantener el tono "${tone}" en cada palabra. Si sos "strict", sé crudo y directo. Si sos "analytical", hablá de tendencias y métricas.
     `;
 
     const schemas = {
       preworkout: `{
         "decision": "TRAIN_HEAVY" | "TRAIN_LIGHT" | "REST",
-        "rationale": "Análisis del estado sistémico del atleta...",
-        "recommendations": ["Observación 1", "Observación 2"]
+        "rationale": "Análisis en ESPAÑOL del estado sistémico del atleta...",
+        "recommendations": ["Observación 1 en español", "Observación 2 en español"]
       }`,
       postworkout: `{
         "verdict": "PROGRESS" | "PLATEAU" | "REGRESSION",
-        "highlights": ["Hito detectado"],
-        "corrections": ["Falla técnica/numérica detectada"],
-        "coach_quote": "Frase de cierre según tu personalidad",
-        "judgment": "Análisis profundo en Markdown sobre el rendimiento de hoy vs el pasado."
+        "highlights": ["Hito detectado en español"],
+        "corrections": ["Falla técnica detectada en español"],
+        "coach_quote": "Frase de cierre en español según tu personalidad",
+        "judgment": "Análisis profundo en Markdown y en ESPAÑOL sobre el rendimiento de hoy vs el pasado."
       }`,
       globalanalysis: `{
-        "top_patterns": [{"pattern": "...", "evidence": "...", "action": "Observación para el coach humano"}],
-        "performance_insights": {"best_performing_conditions": "...", "worst_performing_conditions": "...", "optimal_frequency": "..."},
-        "red_flags": ["Alertas de salud/estancamiento"],
-        "next_14_days_plan": ["Tendencias a observar"],
-        "overall_assessment": "Análisis macroscópico del progreso mensual."
+        "top_patterns": [{"pattern": "Descripción en español", "evidence": "Dato en español", "action": "Observación en español"}],
+        "performance_insights": {"best_performing_conditions": "en español", "worst_performing_conditions": "en español", "optimal_frequency": "en español"},
+        "red_flags": ["Alertas en español"],
+        "next_14_days_plan": ["Tendencias en español"],
+        "overall_assessment": "Análisis macroscópico en ESPAÑOL del progreso mensual."
       }`
     };
 
@@ -110,8 +110,7 @@ Deno.serve(async (req) => {
       ${knowledgeContext}
 
       ### INSTRUCCIONES DE SALIDA ###
-      Analiza los datos del usuario y genera un informe puramente descriptivo y analítico.
-      No des órdenes. No des planes.
+      Analiza los datos del usuario y genera un informe puramente descriptivo y analítico en ESPAÑOL.
       Responde SOLO en formato JSON:
       ${schemas[action] || "{}"}
 
@@ -127,7 +126,7 @@ Deno.serve(async (req) => {
           contents: [{ parts: [{ text: finalPrompt }] }],
           generationConfig: { 
             response_mime_type: "application/json",
-            temperature: 0.5 // Un poco más de temperatura para que la personalidad brille
+            temperature: 0.4
           }
         })
       });
