@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/services/supabase";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ChevronLeft } from "lucide-react";
@@ -17,7 +17,11 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  
+  const isCoachIntent = searchParams.get("role") === "coach";
 
   // Check if user is already logged in
   useEffect(() => {
@@ -31,7 +35,7 @@ const Auth = () => {
   const checkProfileAndRedirect = async (userId: string) => {
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('sex, display_name')
+      .select('sex, display_name, is_coach')
       .eq('user_id', userId)
       .single();
 
@@ -41,7 +45,10 @@ const Auth = () => {
       return;
     }
 
-    if (profile?.sex === 'other' && !profile?.display_name) {
+    // Redirección basada en el rol real del perfil
+    if (profile?.is_coach) {
+      navigate('/coach');
+    } else if (profile?.sex === 'other' && !profile?.display_name) {
       navigate('/onboarding');
     } else {
       navigate('/dashboard');
@@ -114,7 +121,11 @@ const Auth = () => {
       <Card className="w-full max-w-md mt-8">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Heavy Duty Di Iorio</CardTitle>
-          <CardDescription>Entrena inteligente, no solo duro.</CardDescription>
+          <CardDescription className={isCoachIntent ? "text-red-500 font-bold" : ""}>
+            {isCoachIntent 
+              ? "Ser coach es mucho más que pasar una rutina." 
+              : "Entrena inteligente, no solo duro."}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {error && (

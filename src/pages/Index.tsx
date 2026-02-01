@@ -78,7 +78,7 @@ const Index = () => {
             size="lg" 
             variant="outline"
             className="flex-1 h-20 text-lg font-black italic uppercase bg-zinc-950/50 hover:bg-zinc-900 border-zinc-800 text-zinc-100 rounded-xl flex flex-col items-center justify-center gap-0"
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/auth?role=coach")}
           >
             <span className="text-2xl">SOY COACH</span>
             <span className="text-[10px] font-bold tracking-widest text-red-500">GESTIÓN MULTI-ATLETA</span>
