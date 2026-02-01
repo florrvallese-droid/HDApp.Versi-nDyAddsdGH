@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
     Users, MessageCircle, Instagram, Calendar, DollarSign, 
-    ShieldCheck, Loader2, Cake, ExternalLink, AlertCircle, UserMinus, Trash2
+    ShieldCheck, Loader2, Cake, ExternalLink, AlertCircle, UserMinus, Trash2, Award, Check
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -96,6 +96,7 @@ export function CoachInfo({ userId }: { userId: string }) {
 
   const coach = assignment.coach;
   const business = coach?.business_info || {};
+  const plans = business.plans || [];
   
   const whatsappUrl = business.whatsapp 
     ? `https://wa.me/${business.whatsapp.replace(/\D/g, '')}` 
@@ -128,7 +129,6 @@ export function CoachInfo({ userId }: { userId: string }) {
         </CardHeader>
         <CardContent className="p-6 space-y-6">
            
-           {/* REDES Y CONTACTO */}
            <div className="grid grid-cols-2 gap-3">
               <Button 
                 className="bg-green-600 hover:bg-green-700 text-white font-black uppercase text-[10px] tracking-widest h-12"
@@ -147,7 +147,6 @@ export function CoachInfo({ userId }: { userId: string }) {
               </Button>
            </div>
 
-           {/* BIO / INFO */}
            {business.bio && (
               <p className="text-zinc-400 text-xs italic leading-relaxed border-l-2 border-red-600 pl-4">
                  "{business.bio}"
@@ -175,11 +174,37 @@ export function CoachInfo({ userId }: { userId: string }) {
         </CardContent>
       </Card>
 
+      {/* PLANES DEL COACH */}
+      {plans.length > 0 && (
+          <div className="space-y-4">
+             <div className="flex items-center gap-2 px-1">
+                <Award className="h-4 w-4 text-yellow-500" />
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Servicios Disponibles</h4>
+             </div>
+             <div className="grid gap-3">
+                {plans.map((plan: any, i: number) => (
+                   <Card key={i} className="bg-zinc-900/50 border-zinc-800">
+                      <CardContent className="p-4 flex justify-between items-center">
+                         <div className="space-y-1">
+                            <h5 className="font-black uppercase italic text-sm text-white">{plan.name}</h5>
+                            <p className="text-[10px] text-zinc-500 leading-tight max-w-[200px]">{plan.features}</p>
+                         </div>
+                         <div className="text-right">
+                            <p className="text-lg font-black text-green-500">${plan.price}</p>
+                            <p className="text-[8px] text-zinc-600 uppercase font-bold">por mes</p>
+                         </div>
+                      </CardContent>
+                   </Card>
+                ))}
+             </div>
+          </div>
+      )}
+
       {/* ESTADO ADMINISTRATIVO */}
       <Card className="bg-zinc-950 border-zinc-900">
         <CardHeader>
            <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-green-500" /> Control Administrativo
+              <DollarSign className="h-4 w-4 text-green-500" /> Mi Suscripción
            </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -196,20 +221,12 @@ export function CoachInfo({ userId }: { userId: string }) {
                  "text-[10px] font-black uppercase px-3 py-1",
                  assignment.payment_status === 'up_to_date' ? "bg-green-600" : "bg-red-600"
               )}>
-                 {assignment.payment_status === 'up_to_date' ? "AL DÍA" : "PENDIENTE"}
+                 {assignment.payment_status === 'up_to_date' ? "AL DÍA" : "CON DEUDA"}
               </Badge>
-           </div>
-
-           <div className="flex items-start gap-3 p-3 bg-blue-900/10 rounded-lg border border-blue-900/30">
-              <AlertCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-              <p className="text-[10px] text-blue-400 leading-tight">
-                 Los pagos se gestionan externamente con tu coach. Esta sección es solo informativa para que lleves el control de tu suscripción con él.
-              </p>
            </div>
         </CardContent>
       </Card>
 
-      {/* ZONA DE PELIGRO */}
       <div className="pt-4">
         <AlertDialog>
           <AlertDialogTrigger asChild>

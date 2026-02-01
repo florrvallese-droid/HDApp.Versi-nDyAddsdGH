@@ -7,7 +7,7 @@ import { supabase } from "@/services/supabase";
 import { 
   Users, Activity, ChevronRight, Search, UserCheck, Loader2, UserPlus, 
   Settings, LogOut, DollarSign, AlertCircle, Cake, ClipboardCheck, TrendingUp,
-  UserMinus, Briefcase
+  UserMinus, Briefcase, BarChart3
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -111,17 +111,25 @@ export default function CoachDashboard() {
       
       <AddAthleteModal open={showAddModal} onOpenChange={setShowAddModal} onSuccess={fetchCoachData} />
 
-      <div className="flex justify-between items-start">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">Business Unit</h1>
             <p className="text-red-500 text-xs font-bold uppercase tracking-widest">Gestión de Equipo Di Iorio</p>
         </div>
-        <div className="flex gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/coach/business')} className="text-yellow-500 hover:bg-yellow-950/20 border border-yellow-900/30"><Briefcase className="w-5 h-5" /></Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-zinc-500"><Settings className="w-5 h-5" /></Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+            <Button 
+                variant="outline" 
+                className="flex-1 sm:flex-none bg-zinc-900 border-zinc-800 text-zinc-300 font-bold uppercase text-[10px] tracking-widest h-10 hover:text-white"
+                onClick={() => navigate('/coach/business')}
+            >
+                <Briefcase className="w-3.5 h-3.5 mr-2 text-yellow-500" /> Mi Negocio
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-zinc-500 border border-zinc-900 h-10 w-10"><Settings className="w-5 h-5" /></Button>
         </div>
       </div>
 
+      {/* METRICS GRID */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard label="Activos" value={data.stats.active} icon={<Users className="w-4 h-4 text-blue-500" />} />
         <MetricCard label="Deuda" value={data.stats.late} icon={<AlertCircle className="w-4 h-4 text-red-500" />} color="text-red-500" />
@@ -129,6 +137,7 @@ export default function CoachDashboard() {
         <MetricCard label="Cumpleaños" value={data.stats.birthdays} icon={<Cake className="w-4 h-4 text-pink-500" />} color="text-pink-500" />
       </div>
 
+      {/* QUICK ACTIONS & SEARCH */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-600" />
@@ -144,6 +153,7 @@ export default function CoachDashboard() {
         </Button>
       </div>
 
+      {/* CLIENTS LIST */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-zinc-500 text-[10px] font-black uppercase tracking-widest px-1">
            <TrendingUp className="h-3 w-3" /> Estado de Alumnos
