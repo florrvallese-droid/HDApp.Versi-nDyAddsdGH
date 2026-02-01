@@ -10,11 +10,13 @@ export default function AppLayout() {
 
   const navItems = [
     { label: "Home", icon: Home, path: "/dashboard" },
-    { label: "Train", icon: Dumbbell, path: "/workout" },
-    { label: "Nutri", icon: Utensils, path: "/nutrition" },
     profile?.is_coach 
       ? { label: "Equipo", icon: Users, path: "/coach" }
-      : { label: "Audit", icon: TrendingUp, path: "/analysis" },
+      : { label: "Train", icon: Dumbbell, path: "/workout" },
+    ...(!profile?.is_coach ? [
+      { label: "Nutri", icon: Utensils, path: "/nutrition" },
+      { label: "Audit", icon: TrendingUp, path: "/analysis" }
+    ] : []),
     { label: "Perfil", icon: User, path: "/settings" },
   ];
 
