@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Share2, Home, Dumbbell, Trophy, Loader2, Download, Lock, Flag } from "lucide-react";
+import { Share2, Home, Dumbbell, Trophy, Loader2, Download, Lock, Flag, Zap } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { aiService, PostWorkoutAIResponse } from "@/services/ai";
@@ -45,7 +45,6 @@ export default function PostWorkout() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Buscar sesión previa de este músculo
       const { data: logs } = await supabase
         .from('logs')
         .select('data, created_at')
@@ -54,11 +53,10 @@ export default function PostWorkout() {
         .eq('muscle_group', currentWorkout.muscleGroup)
         .order('created_at', { ascending: false });
 
-      // Filtrar la sesión actual (por si el fetch la trae)
       const previousLogs = logs?.filter(l => {
           const logDate = new Date(l.created_at).getTime();
           const now = new Date().getTime();
-          return (now - logDate) > 60000; // Al menos 1 minuto de antigüedad
+          return (now - logDate) > 60000;
       }) || [];
 
       let previousWorkout = null;
@@ -146,7 +144,8 @@ export default function PostWorkout() {
   if ((!workoutData && loading) || profileLoading) return <div className="min-h-screen flex items-center justify-center bg-black text-white">Cargando análisis...</div>;
   if (!workoutData) return <div className="min-h-screen flex items-center justify-center bg-black text-white">No hay datos de sesión</div>;
 
-  const { muscleGroup, duration, volume, exercises } = workoutData;
+  const { muscleGroup, duration, exercises } = workoutData;
+  const totalSets = exercises?.reduce((acc: number, ex: any) => acc + (ex.sets?.length || 0), 0) || 0;
 
   return (
     <div className="min-h-screen bg-zinc-950 p-4 flex flex-col items-center justify-center gap-6 overflow-y-auto">
@@ -206,8 +205,8 @@ export default function PostWorkout() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-zinc-800/40 backdrop-blur-sm p-4 rounded-2xl border border-white/5">
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1">Volumen Total</p>
-              <p className="text-xl font-bold font-mono">{volume.toLocaleString()} <span className="text-xs text-zinc-500">{profile?.units || 'kg'}</span></p>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1 flex items-center gap-1"><Zap className="w-2 h-2 text-red-500" /> Fallo Total</p>
+              <p className="text-xl font-bold font-mono">{totalSets} <span className="text-xs text-zinc-500">Series</span></p>
             </div>
             <div className="bg-zinc-800/40 backdrop-blur-sm p-4 rounded-2xl border border-white/5">
               <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1">Duración</p>

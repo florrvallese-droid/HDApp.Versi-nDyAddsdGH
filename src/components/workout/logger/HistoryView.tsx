@@ -95,8 +95,10 @@ export function HistoryView({ onStartNew }: HistoryViewProps) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-black text-zinc-800">{log.data.total_volume ? (log.data.total_volume / 1000).toFixed(1) : '0'}</div>
-                    <div className="text-[10px] text-zinc-600 uppercase font-bold">Ton</div>
+                    <div className="text-2xl font-black text-red-600">
+                      {log.data.exercises?.reduce((acc: number, ex: any) => acc + (ex.sets?.length || 0), 0)}
+                    </div>
+                    <div className="text-[10px] text-zinc-600 uppercase font-bold">Series</div>
                   </div>
                 </CardContent>
               </Card>

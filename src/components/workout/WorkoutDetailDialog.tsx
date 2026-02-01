@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Dumbbell, Clock, TrendingUp, ChevronRight, CornerDownRight } from "lucide-react";
+import { Dumbbell, Clock, TrendingUp, ChevronRight, CornerDownRight, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface WorkoutDetailDialogProps {
@@ -16,7 +16,7 @@ export function WorkoutDetailDialog({ open, onOpenChange, workout }: WorkoutDeta
   const { data, created_at, muscle_group } = workout;
   const exercises = data.exercises || [];
   const duration = data.duration_minutes || 0;
-  const volume = data.total_volume || 0;
+  const totalSets = exercises.reduce((acc: number, ex: any) => acc + (ex.sets?.length || 0), 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -26,7 +26,7 @@ export function WorkoutDetailDialog({ open, onOpenChange, workout }: WorkoutDeta
           <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-white">{muscle_group || "Entrenamiento"}</DialogTitle>
           <DialogDescription className="text-zinc-500 flex gap-4 text-xs font-bold uppercase tracking-wider pt-1">
             <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {duration} min</span>
-            <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" /> {volume.toLocaleString()} kg vol</span>
+            <span className="flex items-center gap-1 text-red-500"><Zap className="w-3 h-3" /> {totalSets} Series Efectivas</span>
           </DialogDescription>
         </DialogHeader>
 
