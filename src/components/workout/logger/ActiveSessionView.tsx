@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Plus, ChevronLeft, Loader2, CheckCircle2, Target, BookOpen } from "lucide-react";
@@ -17,17 +17,36 @@ interface ActiveSessionViewProps {
   muscleGroup: string;
   profile: UserProfile | null;
   loggingMode: LoggingPreference;
+  preloadedExercises?: WorkoutExercise[];
   onCancel: () => void;
 }
 
-export function ActiveSessionView({ muscleGroup, profile, loggingMode, onCancel }: ActiveSessionViewProps) {
+export function ActiveSessionView({ muscleGroup, profile, loggingMode, preloadedExercises = [], onCancel }: ActiveSessionViewProps) {
   const navigate = useNavigate();
-  const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
+  const [exercises, setExercises] = useState<WorkoutExercise[]>(preloadedExercises);
   const [newExerciseName, setNewExerciseName] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingPrevious, setLoadingPrevious] = useState(false);
   
   const [showFinishModal, setShowFinishModal] = useState(false);
+
+  // Fetch previous stats for preloaded exercises on mount
+  useEffect(() => {
+    if (preloadedExercises.length > 0) {
+        loadPreviousDataForPreloaded();
+    }
+  }, []);
+
+  const loadPreviousDataForPreloaded = async () => {
+    const updated = [...exercises];
+    for (let i = 0; i < updated.length; i++) {
+        const prev = await findPreviousExerciseStats(updated[i].name);
+        if (prev) {
+            updated[i].previous = { weight: prev.sets[0]?.weight || 0, reps: prev.sets[0]?.reps || 0 };
+        }
+    }
+    setExercises(updated);
+  };
 
   const findPreviousExerciseStats = async (exerciseName: string) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -140,15 +159,6 @@ export function ActiveSessionView({ muscleGroup, profile, loggingMode, onCancel 
           </div>
         </div>
       </div>
-
-      {isEffectiveOnly && (
-        <div className="bg-red-950/20 border border-red-900/30 p-3 rounded-lg flex items-start gap-3">
-           <Target className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
-           <p className="text-[10px] text-red-200 font-medium leading-relaxed">
-             <span className="font-black">RECUERDA:</span> En este modo solo registramos las series llevadas al fallo muscular absoluto. No cargues calentamiento.
-           </p>
-        </div>
-      )}
 
       <div className="space-y-10">
         {exercises.map((ex, i) => (

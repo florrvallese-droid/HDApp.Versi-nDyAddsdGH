@@ -45,6 +45,15 @@ export interface UserProfile {
   };
 }
 
+export interface Routine {
+  id: string;
+  user_id: string;
+  name: string;
+  description?: string;
+  exercises: { name: string; sets_goal: number }[];
+  created_at: string;
+}
+
 // Nutrition Specifics
 export type PhaseGoal = 'volume' | 'definition' | 'maintenance';
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Dumbbell, Plus, History, ChevronLeft, Zap } from "lucide-react";
+import { Calendar, Dumbbell, Plus, History, ChevronLeft, Zap, ListPlus } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -11,9 +11,10 @@ import { WorkoutDetailDialog } from "@/components/workout/WorkoutDetailDialog";
 
 interface HistoryViewProps {
   onStartNew: () => void;
+  onManageRoutines: () => void;
 }
 
-export function HistoryView({ onStartNew }: HistoryViewProps) {
+export function HistoryView({ onStartNew, onManageRoutines }: HistoryViewProps) {
   const navigate = useNavigate();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,9 +61,14 @@ export function HistoryView({ onStartNew }: HistoryViewProps) {
             <History className="h-5 w-5 text-red-600" /> Bitácora
           </h1>
         </div>
-        <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold" onClick={onStartNew}>
-          <Plus className="h-4 w-4 mr-1" /> Nuevo
-        </Button>
+        <div className="flex gap-2">
+            <Button variant="ghost" size="icon" className="text-zinc-500" onClick={onManageRoutines}>
+                <ListPlus className="h-5 w-5" />
+            </Button>
+            <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold" onClick={onStartNew}>
+            <Plus className="h-4 w-4 mr-1" /> Nuevo
+            </Button>
+        </div>
       </div>
 
       <div className="p-4 space-y-4">
@@ -100,7 +106,7 @@ export function HistoryView({ onStartNew }: HistoryViewProps) {
                       <h3 className="text-lg font-black italic text-white uppercase">{log.muscle_group || "Entrenamiento"}</h3>
                       <div className="flex gap-3 mt-2 text-xs text-zinc-400">
                         <span className="flex items-center gap-1"><Dumbbell className="h-3 w-3" /> {log.data.exercises?.length || 0} Ejercicios</span>
-                        <span className="flex items-center gap-1 text-red-500"><Zap className="h-3 w-3" /> {setsCount} Series Efectivas</span>
+                        <span className="flex items-center gap-1 text-red-500"><Zap className="h-3 w-3" /> {setsCount} Series Totales</span>
                       </div>
                     </div>
                     <div className="text-right">
