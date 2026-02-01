@@ -54,6 +54,7 @@ export default function PostWorkout() {
         .eq('muscle_group', currentWorkout.muscleGroup)
         .order('created_at', { ascending: false });
 
+      // Filtrar el log actual de la comparación
       const previousLogs = logs?.filter(l => {
           const logDate = new Date(l.created_at).getTime();
           const now = new Date().getTime();
@@ -70,6 +71,10 @@ export default function PostWorkout() {
         setIsFirstSession(true);
       }
 
+      // Calculamos densidad para la IA: sets / min
+      const totalSets = currentWorkout.exercises?.reduce((acc: number, ex: any) => acc + (ex.sets?.length || 0), 0) || 0;
+      const density = currentWorkout.duration > 0 ? (totalSets / currentWorkout.duration).toFixed(2) : 0;
+
       const result = await aiService.getPostWorkoutAnalysis(
         profile?.coach_tone || 'strict',
         {
@@ -77,7 +82,11 @@ export default function PostWorkout() {
           previous: previousWorkout,
           isFirstSession: firstTime,
           discipline: profile?.discipline || 'general',
-          muscleGroup: currentWorkout.muscleGroup
+          muscleGroup: currentWorkout.muscleGroup,
+          metrics: {
+            totalEffectiveSets: totalSets,
+            densitySetsPerMin: density
+          }
         }
       );
 
@@ -311,7 +320,7 @@ export default function PostWorkout() {
             <div className="grid grid-cols-2 gap-3">
                 <div className="bg-zinc-800/40 backdrop-blur-sm p-4 rounded-2xl border border-white/5">
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1 flex items-center gap-1"><Zap className="w-2 h-2 text-red-500" /> Fallo Total</p>
-                <p className="text-xl font-bold font-mono">{totalSets} <span className="text-xs text-zinc-500">Series</span></p>
+                <p className="text-xl font-bold font-mono">{totalSets} <span className="text-xs text-zinc-500">Series Efect.</span></p>
                 </div>
                 <div className="bg-zinc-800/40 backdrop-blur-sm p-4 rounded-2xl border border-white/5">
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1">Duración</p>
@@ -353,14 +362,23 @@ export default function PostWorkout() {
             </div>
         </div>
 
-        <Button 
-          className="w-full max-w-[320px] bg-zinc-900 hover:bg-zinc-800 text-white h-12 font-bold uppercase tracking-wider text-xs border border-zinc-800" 
-          onClick={handleShare}
-          disabled={sharing || loading}
-        >
-          {sharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
-          Compartir en Instagram / WhatsApp
-        </Button>
+        <div className="flex flex-col gap-4 w-full max-w-[320px]">
+            <Button 
+                className="w-full bg-zinc-900 hover:bg-zinc-800 text-white h-12 font-bold uppercase tracking-wider text-xs border border-zinc-800" 
+                onClick={handleShare}
+                disabled={sharing || loading}
+            >
+                {sharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
+                Compartir Story
+            </Button>
+            <Button 
+                variant="ghost" 
+                className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest"
+                onClick={() => navigate('/dashboard')}
+            >
+                Volver al Inicio
+            </Button>
+        </div>
       </div>
 
     </div>
