@@ -21,6 +21,7 @@ export interface UserProfile {
   // Premium
   is_premium: boolean;
   is_admin: boolean;
+  is_coach: boolean; // Campo nuevo
   premium_expires_at?: string;
   trial_started_at?: string;
   

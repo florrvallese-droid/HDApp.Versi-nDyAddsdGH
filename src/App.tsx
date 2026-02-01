@@ -30,6 +30,9 @@ import AILogs from "./pages/admin/AILogs";
 import UserManagement from "./pages/admin/UserManagement";
 import FeatureFlags from "./pages/admin/FeatureFlags";
 
+// Coach Pages
+import CoachDashboard from "./pages/coach/CoachDashboard";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -54,9 +57,12 @@ const App = () => {
               <Route path="/analysis" element={<GlobalAnalysis />} />
               <Route path="/pharmacology" element={<Pharmacology />} />
               <Route path="/settings" element={<Settings />} />
+              
+              {/* Coach Dashboard inside AppLayout if preferred, or separate */}
+              <Route path="/coach" element={<CoachDashboard />} />
             </Route>
             
-            {/* Standalone User Pages (No Bottom Nav to focus) */}
+            {/* Standalone User Pages */}
             <Route path="/workout/analysis" element={<PostWorkout />} />
 
             {/* Admin Routes */}
