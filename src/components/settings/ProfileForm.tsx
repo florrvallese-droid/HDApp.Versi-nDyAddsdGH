@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save } from "lucide-react";
+import { User, Camera, Loader2, Save, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ProfileForm() {
@@ -26,10 +26,12 @@ export function ProfileForm() {
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || "");
-      // Safe cast if possible, fallback to male if not set
+      
+      // Safe cast if possible, fallback to male if not set or 'other'
       if (profile.sex === 'male' || profile.sex === 'female') {
           setSex(profile.sex);
       }
+      
       setAvatarUrl(profile.avatar_url || null);
       
       // Load extra fields from settings jsonb
@@ -47,28 +49,31 @@ export function ProfileForm() {
     setLoading(true);
 
     const updatedSettings = {
-      ...profile.settings,
+      ...(profile.settings || {}),
       age,
       height,
       current_weight: weight,
       objectives
     };
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        display_name: displayName,
-        sex: sex,
-        settings: updatedSettings,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', profile.user_id);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          display_name: displayName,
+          sex: sex,
+          settings: updatedSettings,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', profile.user_id);
 
-    setLoading(false);
-    if (error) {
-      toast.error("Error al guardar ficha técnica");
-    } else {
+      if (error) throw error;
       toast.success("Ficha técnica actualizada");
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Error al guardar: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,12 +81,14 @@ export function ProfileForm() {
     try {
       setUploadingAvatar(true);
       if (!event.target.files || event.target.files.length === 0) {
-        throw new Error("Selecciona una imagen");
+        return; // User cancelled
       }
+
+      if (!profile) throw new Error("Perfil no cargado");
 
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const fileName = `${profile?.user_id}/avatar.${fileExt}`;
+      const fileName = `${profile.user_id}/avatar_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -95,7 +102,7 @@ export function ProfileForm() {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
-        .eq('user_id', profile?.user_id);
+        .eq('user_id', profile.user_id);
 
       if (updateError) throw updateError;
 
@@ -103,20 +110,40 @@ export function ProfileForm() {
       toast.success("Foto actualizada");
 
     } catch (error: any) {
-      toast.error(error.message);
+      console.error(error);
+      toast.error(error.message || "Error al subir imagen");
     } finally {
       setUploadingAvatar(false);
     }
   };
 
-  if (profileLoading) return <div className="flex items-center justify-center p-8"><Loader2 className="animate-spin h-8 w-8 text-zinc-500" /></div>;
+  if (profileLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-zinc-500 gap-4">
+        <Loader2 className="animate-spin h-8 w-8" />
+        <p className="text-sm">Cargando ficha técnica...</p>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-red-500 gap-4 bg-red-950/10 rounded-lg border border-red-900/50">
+        <AlertCircle className="h-10 w-10" />
+        <p className="font-bold">No se pudo cargar el perfil.</p>
+        <Button onClick={() => window.location.reload()} variant="outline" className="border-red-900 text-red-500 hover:bg-red-950">
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* Header Ficha Técnica */}
       <div className="text-center mb-10">
-        <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">FICHA TÉCNICA</h2>
+        <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter text-white">FICHA TÉCNICA</h2>
         <p className="text-red-600 font-bold tracking-[0.2em] text-xs uppercase mt-2">IDENTIFICACIÓN DEL ATLETA</p>
         <div className="w-full h-px bg-zinc-800 mt-6" />
       </div>
@@ -137,8 +164,9 @@ export function ProfileForm() {
                 <User className="h-20 w-20 text-zinc-700 stroke-1" />
               )}
               
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                 <Camera className="text-white h-8 w-8" />
+                <span className="text-xs text-white font-bold absolute bottom-12">CAMBIAR</span>
               </div>
             </div>
             <input 
@@ -148,9 +176,14 @@ export function ProfileForm() {
               onChange={handleAvatarUpload}
               disabled={uploadingAvatar}
             />
+            {uploadingAvatar && (
+              <div className="absolute inset-0 flex items-center justify-center z-30 bg-black/50 rounded-full">
+                <Loader2 className="h-8 w-8 text-white animate-spin" />
+              </div>
+            )}
           </div>
           
-          {profile?.is_premium ? (
+          {profile.is_premium ? (
              <div className="bg-gradient-to-r from-red-600 to-red-700 text-white text-xs font-black uppercase py-2 px-6 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)] tracking-widest border border-red-500/50">
                MIEMBRO PRO
              </div>
@@ -175,7 +208,7 @@ export function ProfileForm() {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Sexo</Label>
+            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Sexo Biológico</Label>
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setSex('male')}
@@ -252,7 +285,7 @@ export function ProfileForm() {
                 disabled={loading}
             >
                 {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Save className="mr-2 h-5 w-5"/>}
-                Guardar Cambios
+                {loading ? "Guardando..." : "GUARDAR CAMBIOS"}
             </Button>
           </div>
 
