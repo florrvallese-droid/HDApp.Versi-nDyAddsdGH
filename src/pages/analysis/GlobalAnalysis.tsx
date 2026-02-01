@@ -15,6 +15,7 @@ import { es } from "date-fns/locale";
 import { UpgradeModal } from "@/components/shared/UpgradeModal";
 import { MarkdownRenderer } from "@/components/shared/MarkdownRenderer";
 import { ProgressCharts } from "@/components/analysis/ProgressCharts";
+import { ExerciseProgressChart } from "@/components/analysis/ExerciseProgressChart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function GlobalAnalysis() {
@@ -71,7 +72,7 @@ export default function GlobalAnalysis() {
           discipline: profile!.discipline, 
           tone: profile!.coach_tone, 
           units: profile!.units,
-          dietStrategy: profile!.settings?.nutrition // Incluimos la estrategia completa
+          dietStrategy: profile!.settings?.nutrition 
         },
         logsCount: logs?.length,
         logs: logs?.map(l => ({ type: l.type, date: l.created_at, muscle: l.muscle_group, data: l.data }))
@@ -110,13 +111,16 @@ export default function GlobalAnalysis() {
           <TabsTrigger value="ai" className="flex-1 font-bold uppercase text-[10px] tracking-widest"><Brain className="w-3 h-3 mr-2" /> Juicio IA</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="visual" className="space-y-6">
-           {profile && <ProgressCharts userId={profile.user_id} dietVariants={dietVariants} />}
+        <TabsContent value="visual" className="space-y-8 animate-in fade-in slide-in-from-left-2">
+           <ProgressCharts userId={profile!.user_id} dietVariants={dietVariants} />
+           
+           <ExerciseProgressChart userId={profile!.user_id} />
+
            <div className="pt-4">
-              <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-widest" onClick={runAudit} disabled={loading}>
+              <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-widest border border-red-500/20 shadow-lg shadow-red-900/20" onClick={runAudit} disabled={loading}>
                 {loading ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> Procesando...</> : <>EJECUTAR AUDITORÍA IA</>}
               </Button>
-              {lastRunDate && <p className="text-[10px] text-zinc-600 text-center mt-3 uppercase font-bold">Última: {format(new Date(lastRunDate), "d 'de' MMMM", { locale: es })}</p>}
+              {lastRunDate && <p className="text-[10px] text-zinc-600 text-center mt-3 uppercase font-bold tracking-tighter">Última Auditoría: {format(new Date(lastRunDate), "d 'de' MMMM", { locale: es })}</p>}
            </div>
         </TabsContent>
 
@@ -146,7 +150,7 @@ export default function GlobalAnalysis() {
               </Card>
 
               <div className="space-y-3">
-                <h3 className="font-black flex items-center gap-2 text-xs uppercase tracking-widest"><TrendingUp className="h-4 w-4 text-green-500" /> Patrones Detectados</h3>
+                <h3 className="font-black flex items-center gap-2 text-xs uppercase tracking-widest text-white"><TrendingUp className="h-4 w-4 text-green-500" /> Patrones Detectados</h3>
                 {analysis.top_patterns.map((item, i) => (
                   <Card key={i} className="bg-zinc-900/40 border-zinc-800">
                     <CardContent className="p-4 space-y-2">
