@@ -7,7 +7,7 @@ import {
   Zap,
   Moon,
   Camera,
-  FlaskConical, // Para Nutrición & Química
+  FlaskConical,
   Settings,
   LogOut,
   User
@@ -99,17 +99,27 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-black text-white p-4 flex flex-col items-center justify-center relative overflow-hidden">
       
-      {/* Top Bar for Settings/Profile (Minimal) */}
-      <div className="absolute top-4 right-4 z-20 flex gap-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-zinc-500 hover:text-white">
-          <Settings className="w-5 h-5" />
+      {/* Top Bar for Settings/Profile (Fixed Z-Index) */}
+      <div className="absolute top-4 right-4 z-50 flex gap-2">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => navigate('/settings')} 
+          className="text-zinc-500 hover:text-white bg-black/20 backdrop-blur-sm rounded-full"
+        >
+          <Settings className="w-6 h-6" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={handleLogout} className="text-zinc-500 hover:text-red-500">
-          <LogOut className="w-5 h-5" />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={handleLogout} 
+          className="text-zinc-500 hover:text-red-500 bg-black/20 backdrop-blur-sm rounded-full"
+        >
+          <LogOut className="w-6 h-6" />
         </Button>
       </div>
 
-      <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+      <div className="absolute top-4 left-4 z-50 flex items-center gap-2 pointer-events-none">
          {profile?.avatar_url && (
             <img src={profile.avatar_url} className="w-8 h-8 rounded-full border border-zinc-800" alt="Avatar" />
          )}
@@ -118,7 +128,7 @@ export default function Dashboard() {
          </span>
       </div>
 
-      {/* MAIN CONTAINER FRAME - Matches Screenshot */}
+      {/* MAIN CONTAINER FRAME */}
       <div className="w-full max-w-md bg-black border border-zinc-900 rounded-2xl p-6 md:p-8 shadow-2xl relative z-10 flex flex-col gap-8">
         
         {/* HEADER: TU CUADERNO... */}
