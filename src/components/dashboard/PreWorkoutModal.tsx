@@ -253,12 +253,21 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess = 
             )}
           </div>
 
-          <div className="p-4 bg-zinc-950 border-t border-zinc-900 mt-auto">
+          <div className="p-4 bg-zinc-950 border-t border-zinc-900 mt-auto flex flex-col gap-2">
             {step === 'input' && (
-                <Button onClick={analyzeData} className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase text-lg relative overflow-hidden">
-                   {!hasProAccess && <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center z-10 text-sm"><Lock className="w-4 h-4 mr-2"/> REQUIERE PRO</div>}
-                  EVALUAR (IA)
-                </Button>
+                <>
+                  <Button onClick={analyzeData} className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase text-lg relative overflow-hidden">
+                    {!hasProAccess && <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center z-10 text-sm"><Lock className="w-4 h-4 mr-2"/> REQUIERE PRO</div>}
+                    EVALUAR (IA)
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full text-zinc-500 hover:text-zinc-300 font-bold uppercase text-[10px] tracking-widest h-8"
+                    onClick={skipToWorkout}
+                  >
+                    Omitir Evaluación e Ir a Entrenar
+                  </Button>
+                </>
             )}
             {step === 'result' && (
               <div className="flex gap-3">
