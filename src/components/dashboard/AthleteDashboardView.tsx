@@ -50,16 +50,17 @@ export default function AthleteDashboardView() {
   };
 
   const checkCheckin = async () => {
-    // Verificamos primero si el usuario pospuso el recordatorio recientemente
+    // 1. Verificamos primero si el usuario pospuso el recordatorio recientemente
     const snoozeUntil = localStorage.getItem('next_checkin_reminder');
     if (snoozeUntil) {
         const snoozeDate = new Date(snoozeUntil);
         if (isAfter(snoozeDate, new Date())) {
-            // Aún estamos en el periodo de gracia de 7 días, no mostramos nada.
+            // Aún estamos en el periodo de gracia de 7 días, salimos de la función.
             return;
         }
     }
 
+    // 2. Si no hay snooze activo, verificamos la base de datos
     const { data } = await supabase
       .from('logs')
       .select('created_at')
@@ -77,8 +78,9 @@ export default function AthleteDashboardView() {
         setShowCheckinReminder(true);
       }
     } else {
-      // Si nunca hizo checkin, le recordamos después de los primeros 7 días de uso
-      setDaysSinceCheckin(7);
+      // Si nunca hizo checkin, le recordamos después de los primeros días, 
+      // pero solo si no hay un snooze manual guardado arriba.
+      setDaysSinceCheckin(7); 
       setShowCheckinReminder(true);
     }
   };
