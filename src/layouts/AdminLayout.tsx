@@ -6,7 +6,44 @@ import { LayoutDashboard, MessageSquare, Activity, Users, LogOut, ShieldAlert, F
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 
-export default function AdminLayout() {
+const navItems = [
+  { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
+  { label: "Prompts IA", icon: MessageSquare, path: "/admin/prompts" },
+  { label: "Logs IA", icon: Activity, path: "/admin/logs" },
+  { label: "Usuarios", icon: Users, path: "/admin/users" },
+  { label: "Feature Flags", icon: Flag, path: "/admin/flags" },
+];
+
+const NavContent = ({ currentPath, onNavigate, onLogout }: { currentPath: string, onNavigate: (path: string) => void, onLogout: () => void }) => (
+  <div className="flex flex-col h-full">
+    <div className="p-6 border-b md:border-none">
+      <h1 className="font-black text-xl flex items-center gap-2">
+        <ShieldAlert className="text-primary" />
+        HD ADMIN
+      </h1>
+    </div>
+    <nav className="flex-1 p-4 space-y-2">
+      {navItems.map((item) => (
+        <Button
+          key={item.path}
+          variant={currentPath === item.path ? "secondary" : "ghost"}
+          className="w-full justify-start gap-2"
+          onClick={() => onNavigate(item.path)}
+        >
+          <item.icon className="h-4 w-4" />
+          {item.label}
+        </Button>
+      ))}
+    </nav>
+    <div className="p-4 border-t mt-auto">
+      <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50" onClick={onLogout}>
+        <LogOut className="h-4 w-4 mr-2" /> Cerrar Sesión
+      </Button>
+    </div>
+  </div>
+);
+
+const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -15,85 +52,56 @@ export default function AdminLayout() {
 
   useEffect(() => {
     const checkAdmin = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate('/admin/login'); 
-        return;
-      }
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          navigate('/admin/login'); 
+          return;
+        }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('user_id', user.id)
-        .single();
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('user_id', user.id)
+          .single();
 
-      if (profile?.is_admin) {
-        setIsAdmin(true);
-      } else {
-        toast.error("Acceso no autorizado. Área restringida.");
+        if (profile?.is_admin) {
+          setIsAdmin(true);
+        } else {
+          toast.error("Acceso no autorizado. Área restringida.");
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        console.error("Admin check failed", error);
         navigate('/dashboard');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     checkAdmin();
   }, [navigate]);
-
-  if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-400">Verificando credenciales...</div>;
-  if (!isAdmin) return null;
-
-  const navItems = [
-    { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
-    { label: "Prompts IA", icon: MessageSquare, path: "/admin/prompts" },
-    { label: "Logs IA", icon: Activity, path: "/admin/logs" },
-    { label: "Usuarios", icon: Users, path: "/admin/users" },
-    { label: "Feature Flags", icon: Flag, path: "/admin/flags" },
-  ];
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/admin/login');
   };
 
-  const NavContent = () => (
-    <div className="flex flex-col h-full">
-      <div className="p-6 border-b md:border-none">
-        <h1 className="font-black text-xl flex items-center gap-2">
-          <ShieldAlert className="text-primary" />
-          HD ADMIN
-        </h1>
-      </div>
-      <nav className="flex-1 p-4 space-y-2">
-        {navItems.map((item) => (
-          <Button
-            key={item.path}
-            variant={location.pathname === item.path ? "secondary" : "ghost"}
-            className="w-full justify-start gap-2"
-            onClick={() => {
-              navigate(item.path);
-              setMobileOpen(false);
-            }}
-          >
-            <item.icon className="h-4 w-4" />
-            {item.label}
-          </Button>
-        ))}
-      </nav>
-      <div className="p-4 border-t mt-auto">
-        <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50" onClick={handleLogout}>
-          <LogOut className="h-4 w-4 mr-2" /> Cerrar Sesión
-        </Button>
-      </div>
-    </div>
-  );
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    setMobileOpen(false);
+  };
+
+  if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-400">Verificando credenciales...</div>;
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen bg-muted/20 flex flex-col md:flex-row">
       
       {/* Desktop Sidebar */}
       <aside className="w-64 bg-background border-r hidden md:flex flex-col h-screen sticky top-0">
-        <NavContent />
+        <NavContent currentPath={location.pathname} onNavigate={handleNavigate} onLogout={handleLogout} />
       </aside>
 
       {/* Mobile Header */}
@@ -106,7 +114,7 @@ export default function AdminLayout() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-64">
-              <NavContent />
+              <NavContent currentPath={location.pathname} onNavigate={handleNavigate} onLogout={handleLogout} />
             </SheetContent>
           </Sheet>
           <span className="font-bold">Admin Panel</span>
@@ -119,4 +127,6 @@ export default function AdminLayout() {
       </main>
     </div>
   );
-}
+};
+
+export default AdminLayout;

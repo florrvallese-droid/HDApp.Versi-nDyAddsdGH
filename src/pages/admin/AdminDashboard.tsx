@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format, subDays } from "date-fns";
 import { toast } from "sonner";
 
-export default function AdminDashboard() {
+const AdminDashboard = () => {
   const [stats, setStats] = useState({
     users: 0,
     premiumUsers: 0,
@@ -29,60 +29,65 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       setLoading(true);
       
-      // 1. Fetch Counts
-      const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-      const { count: premiumCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_premium', true);
-      const { count: aiCount } = await supabase.from('ai_logs').select('*', { count: 'exact', head: true });
-      const { count: logsCount } = await supabase.from('logs').select('*', { count: 'exact', head: true });
-      
-      // 2. Fetch Token Usage
-      const { data: tokenData } = await supabase.from('ai_logs').select('tokens_used');
-      const totalTokens = tokenData?.reduce((sum, row) => sum + (row.tokens_used || 0), 0) || 0;
+      try {
+        // 1. Fetch Counts
+        const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+        const { count: premiumCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_premium', true);
+        const { count: aiCount } = await supabase.from('ai_logs').select('*', { count: 'exact', head: true });
+        const { count: logsCount } = await supabase.from('logs').select('*', { count: 'exact', head: true });
+        
+        // 2. Fetch Token Usage
+        const { data: tokenData } = await supabase.from('ai_logs').select('tokens_used');
+        const totalTokens = tokenData?.reduce((sum, row) => sum + (row.tokens_used || 0), 0) || 0;
 
-      // 3. Fetch Users for Mailing List
-      const { data: users } = await supabase
-          .from('profiles')
-          .select('user_id, display_name, created_at, is_premium, coach_tone, discipline')
-          .order('created_at', { ascending: false });
+        // 3. Fetch Users for Mailing List
+        const { data: users } = await supabase
+            .from('profiles')
+            .select('user_id, display_name, created_at, is_premium, coach_tone, discipline')
+            .order('created_at', { ascending: false });
 
-      // 4. Activity Chart Data
-      const startDate = subDays(new Date(), 14).toISOString();
-      const { data: logsData } = await supabase
-        .from('logs')
-        .select('created_at')
-        .gte('created_at', startDate)
-        .order('created_at', { ascending: true });
+        // 4. Activity Chart Data
+        const startDate = subDays(new Date(), 14).toISOString();
+        const { data: logsData } = await supabase
+          .from('logs')
+          .select('created_at')
+          .gte('created_at', startDate)
+          .order('created_at', { ascending: true });
 
-      // Process Chart
-      const dailyCounts: Record<string, number> = {};
-      for (let i = 13; i >= 0; i--) {
-          const d = subDays(new Date(), i);
-          const key = format(d, 'dd/MM');
-          dailyCounts[key] = 0;
+        // Process Chart
+        const dailyCounts: Record<string, number> = {};
+        for (let i = 13; i >= 0; i--) {
+            const d = subDays(new Date(), i);
+            const key = format(d, 'dd/MM');
+            dailyCounts[key] = 0;
+        }
+        logsData?.forEach(log => {
+            const key = format(new Date(log.created_at), 'dd/MM');
+            if (dailyCounts[key] !== undefined) dailyCounts[key]++;
+        });
+        const formattedChartData = Object.keys(dailyCounts).map(date => ({ name: date, logs: dailyCounts[date] }));
+
+        // Calculations
+        const calculatedRevenue = (premiumCount || 0) * PRICE_MONTHLY;
+        const conversion = userCount ? ((premiumCount || 0) / userCount) * 100 : 0;
+
+        setStats({
+          users: userCount || 0,
+          premiumUsers: premiumCount || 0,
+          aiRequests: aiCount || 0,
+          totalLogs: logsCount || 0,
+          totalTokens: totalTokens,
+          revenue: calculatedRevenue,
+          conversionRate: conversion
+        });
+
+        setChartData(formattedChartData);
+        setUserList(users || []);
+      } catch (error) {
+        console.error("Error fetching admin stats:", error);
+      } finally {
+        setLoading(false);
       }
-      logsData?.forEach(log => {
-          const key = format(new Date(log.created_at), 'dd/MM');
-          if (dailyCounts[key] !== undefined) dailyCounts[key]++;
-      });
-      const formattedChartData = Object.keys(dailyCounts).map(date => ({ name: date, logs: dailyCounts[date] }));
-
-      // Calculations
-      const calculatedRevenue = (premiumCount || 0) * PRICE_MONTHLY;
-      const conversion = userCount ? ((premiumCount || 0) / userCount) * 100 : 0;
-
-      setStats({
-        users: userCount || 0,
-        premiumUsers: premiumCount || 0,
-        aiRequests: aiCount || 0,
-        totalLogs: logsCount || 0,
-        totalTokens: totalTokens,
-        revenue: calculatedRevenue,
-        conversionRate: conversion
-      });
-
-      setChartData(formattedChartData);
-      setUserList(users || []);
-      setLoading(false);
     };
 
     fetchData();
@@ -122,6 +127,10 @@ export default function AdminDashboard() {
     navigator.clipboard.writeText(dataString);
     toast.success("Lista copiada al portapapeles (Nombres + IDs)");
   };
+
+  if (loading) {
+    return <div className="p-8 text-center text-zinc-500">Cargando métricas...</div>;
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -337,4 +346,6 @@ export default function AdminDashboard() {
       </Card>
     </div>
   );
-}
+};
+
+export default AdminDashboard;
