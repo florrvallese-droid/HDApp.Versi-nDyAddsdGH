@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Camera, AlertCircle } from "lucide-react";
+import { Camera, AlertCircle, Clock } from "lucide-react";
 
 interface CheckinReminderDialogProps {
   open: boolean;
@@ -11,6 +11,15 @@ interface CheckinReminderDialogProps {
 
 export function CheckinReminderDialog({ open, onOpenChange, daysSince }: CheckinReminderDialogProps) {
   const navigate = useNavigate();
+
+  const handleSnooze = () => {
+    // Guardamos la fecha actual + 7 días como la próxima fecha permitida para el recordatorio
+    const nextReminderDate = new Date();
+    nextReminderDate.setDate(nextReminderDate.getDate() + 7);
+    
+    localStorage.setItem('next_checkin_reminder', nextReminderDate.toISOString());
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -26,12 +35,12 @@ export function CheckinReminderDialog({ open, onOpenChange, daysSince }: Checkin
         </DialogHeader>
         
         <div className="text-center text-sm text-zinc-300 py-2 space-y-2">
-          <p>Para que el Coach IA pueda ajustar tu plan con precisión, necesitamos datos actualizados de tu peso y condición.</p>
+          <p>Para que el Coach IA pueda ajustar tu plan con precisión, necesitamos datos actualizados de tu condición.</p>
         </div>
 
         <DialogFooter className="flex-col gap-2 sm:gap-0 mt-2">
           <Button 
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold"
+            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold h-12"
             onClick={() => {
               onOpenChange(false);
               navigate('/checkin');
@@ -42,10 +51,10 @@ export function CheckinReminderDialog({ open, onOpenChange, daysSince }: Checkin
           </Button>
           <Button 
             variant="ghost" 
-            className="w-full text-zinc-500 hover:text-white" 
-            onClick={() => onOpenChange(false)}
+            className="w-full text-zinc-500 hover:text-white h-10 gap-2" 
+            onClick={handleSnooze}
           >
-            Lo haré más tarde
+            <Clock className="w-3 h-3" /> Posponer por 1 semana
           </Button>
         </DialogFooter>
       </DialogContent>

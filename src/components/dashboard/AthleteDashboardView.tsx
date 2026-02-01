@@ -12,8 +12,7 @@ import { RestDayModal } from "@/components/dashboard/RestDayModal";
 import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
 import { CoachInvitationAlert } from "@/components/dashboard/CoachInvitationAlert";
 import { WeeklyCheckinModal } from "@/components/dashboard/WeeklyCheckinModal";
-import { toast } from "sonner";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInDays, isAfter } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function AthleteDashboardView() {
@@ -51,6 +50,16 @@ export default function AthleteDashboardView() {
   };
 
   const checkCheckin = async () => {
+    // Verificamos primero si el usuario pospuso el recordatorio recientemente
+    const snoozeUntil = localStorage.getItem('next_checkin_reminder');
+    if (snoozeUntil) {
+        const snoozeDate = new Date(snoozeUntil);
+        if (isAfter(snoozeDate, new Date())) {
+            // Aún estamos en el periodo de gracia de 7 días, no mostramos nada.
+            return;
+        }
+    }
+
     const { data } = await supabase
       .from('logs')
       .select('created_at')
@@ -68,6 +77,7 @@ export default function AthleteDashboardView() {
         setShowCheckinReminder(true);
       }
     } else {
+      // Si nunca hizo checkin, le recordamos después de los primeros 7 días de uso
       setDaysSinceCheckin(7);
       setShowCheckinReminder(true);
     }
