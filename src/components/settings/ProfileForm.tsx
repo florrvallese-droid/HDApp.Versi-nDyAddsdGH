@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save, Target, BookOpen, Brain, Ticket, Briefcase, Instagram, MessageCircle } from "lucide-react";
+import { User, Camera, Loader2, Save, Target, BookOpen, Brain, Ticket, Briefcase, Instagram, MessageCircle, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LoggingPreference, CoachTone } from "@/types";
 
@@ -17,6 +17,7 @@ export function ProfileForm() {
   // Form State
   const [displayName, setDisplayName] = useState("");
   const [sex, setSex] = useState<'male'|'female'>("male");
+  const [birthDate, setBirthDate] = useState("");
   const [loggingPreference, setLoggingPreference] = useState<LoggingPreference>("effective_only");
   const [coachTone, setCoachTone] = useState<CoachTone>("strict");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -39,11 +40,11 @@ export function ProfileForm() {
     if (profile) {
       setDisplayName(profile.display_name || "");
       if (profile.sex === 'male' || profile.sex === 'female') setSex(profile.sex);
+      setBirthDate(profile.birth_date || "");
       setLoggingPreference(profile.logging_preference || "effective_only");
       setCoachTone(profile.coach_tone || "strict");
       setAvatarUrl(profile.avatar_url || null);
       
-      // Coach Data
       setReferralCode(profile.referral_code || "");
       if (profile.business_info) {
         setBrandName(profile.business_info.brand_name || "");
@@ -86,6 +87,7 @@ export function ProfileForm() {
         .update({
           display_name: displayName,
           sex: sex,
+          birth_date: birthDate || null,
           logging_preference: loggingPreference,
           coach_tone: coachTone,
           referral_code: referralCode.toUpperCase().trim(),
@@ -151,18 +153,13 @@ export function ProfileForm() {
             </div>
             <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-20" accept="image/*" onChange={handleAvatarUpload} disabled={uploadingAvatar}/>
           </div>
-          
-          <div className={cn(
-            "text-white text-[10px] font-black uppercase py-2 px-6 rounded-full tracking-[0.2em] border shadow-lg",
-            profile?.is_coach ? "bg-blue-600 border-blue-400" : "bg-red-600 border-red-400 shadow-red-900/20"
-          )}>
+          <div className={cn("text-white text-[10px] font-black uppercase py-2 px-6 rounded-full tracking-[0.2em] border shadow-lg", profile?.is_coach ? "bg-blue-600 border-blue-400" : "bg-red-600 border-red-400")}>
             {profile?.is_coach ? "PREPARADOR OFICIAL" : "MIEMBRO HEAVY DUTY"}
           </div>
         </div>
 
         <div className="space-y-10 w-full">
           
-          {/* SECCIÓN REFERIDOS (COACH ONLY) */}
           {profile?.is_coach && (
             <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800 space-y-4">
                <div className="flex items-center gap-2 text-red-500 mb-2">
@@ -171,79 +168,37 @@ export function ProfileForm() {
                </div>
                <div className="space-y-2">
                   <Label className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Tu Código de Descuento</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      value={referralCode} 
-                      onChange={(e) => setReferralCode(e.target.value.toUpperCase().replace(/\s/g, ''))}
-                      placeholder="EJ: COACHDIORIO10"
-                      className="bg-black border-zinc-700 h-12 text-lg font-black uppercase tracking-widest text-center"
-                    />
-                  </div>
-                  <p className="text-[10px] text-zinc-500">
-                    Tus alumnos obtendrán un descuento al suscribirse usando este código.
-                  </p>
+                  <Input value={referralCode} onChange={(e) => setReferralCode(e.target.value.toUpperCase().replace(/\s/g, ''))} placeholder="EJ: COACHDIORIO10" className="bg-black border-zinc-700 h-12 text-lg font-black uppercase tracking-widest text-center" />
                </div>
             </div>
           )}
 
-          {/* DATOS DE NEGOCIO (COACH ONLY) */}
-          {profile?.is_coach && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 text-zinc-400">
-                  <Briefcase className="h-5 w-5" />
-                  <h3 className="font-black uppercase italic text-sm">Información de Marca</h3>
-              </div>
-              <div className="grid gap-6">
-                <div className="space-y-2">
-                  <Label className="text-zinc-500 text-[10px] uppercase font-bold">Nombre Comercial / Equipo</Label>
-                  <Input value={brandName} onChange={e => setBrandName(e.target.value)} className="bg-black/50 border-zinc-800 h-12" placeholder="Ej: Di Iorio Performance" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-zinc-500 text-[10px] uppercase font-bold">Biografía / Presentación</Label>
-                  <Textarea value={bio} onChange={e => setBio(e.target.value)} className="bg-black/50 border-zinc-800 min-h-[100px]" placeholder="Breve descripción de tu metodología..." />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-zinc-500 text-[10px] uppercase font-bold flex items-center gap-2">
-                        <Instagram className="h-3 w-3" /> Instagram
-                    </Label>
-                    <Input value={instagram} onChange={e => setInstagram(e.target.value)} className="bg-black/50 border-zinc-800 h-11" placeholder="@usuario" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-zinc-500 text-[10px] uppercase font-bold flex items-center gap-2">
-                        <MessageCircle className="h-3 w-3" /> WhatsApp
-                    </Label>
-                    <Input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} className="bg-black/50 border-zinc-800 h-11" placeholder="+54..." />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* DATOS COMUNES */}
           <div className="space-y-6">
             <div className="flex items-center gap-2 text-zinc-400">
                   <User className="h-5 w-5" />
                   <h3 className="font-black uppercase italic text-sm">Identidad</h3>
             </div>
-            <div className="space-y-4">
+            <div className="grid gap-6">
                 <div className="space-y-2">
                     <Label className="text-zinc-500 text-[10px] uppercase font-bold">Nombre para Mostrar</Label>
                     <Input value={displayName} onChange={e => setDisplayName(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold text-lg" />
                 </div>
+                <div className="space-y-2">
+                    <Label className="text-zinc-500 text-[10px] uppercase font-bold">Fecha de Nacimiento</Label>
+                    <div className="relative">
+                        <Input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
+                        <Calendar className="absolute right-3 top-4 h-4 w-4 text-zinc-600" />
+                    </div>
+                </div>
 
                 {!profile?.is_coach && (
-                   <div className="grid grid-cols-3 gap-4">
+                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-zinc-500 text-[10px] uppercase font-bold">Edad</Label>
-                      <Input type="number" value={age} onChange={e => setAge(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-zinc-500 text-[10px] uppercase font-bold">Altura</Label>
+                      <Label className="text-zinc-500 text-[10px] uppercase font-bold">Altura (cm)</Label>
                       <Input type="number" value={height} onChange={e => setHeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-zinc-500 text-[10px] uppercase font-bold">Peso</Label>
+                      <Label className="text-zinc-500 text-[10px] uppercase font-bold">Peso Actual</Label>
                       <Input type="number" value={weight} onChange={e => setWeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
                     </div>
                   </div>
@@ -252,11 +207,7 @@ export function ProfileForm() {
           </div>
 
           <div className="pt-10">
-            <Button 
-                className="w-full h-16 bg-white text-black hover:bg-zinc-200 font-black italic uppercase tracking-wider text-lg shadow-[0_10px_30px_rgba(255,255,255,0.1)]" 
-                onClick={handleSave} 
-                disabled={loading}
-            >
+            <Button className="w-full h-16 bg-white text-black hover:bg-zinc-200 font-black italic uppercase tracking-wider text-lg" onClick={handleSave} disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-6 w-6 animate-spin"/> : <Save className="mr-2 h-6 w-6"/>}
                 GUARDAR CONFIGURACIÓN
             </Button>
