@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { X, ArrowRight, UserCheck } from "lucide-react";
+import { X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IntensitySelector, getTechColor, getTechLabel } from "./IntensitySelector";
 import { WorkoutSet, UnitSystem, SetExtension } from "@/types";
@@ -104,11 +104,16 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
           </div>
           
           <Button 
-            variant="outline" size="icon" 
-            className={cn("h-9 w-9 border-zinc-800 bg-zinc-900 hover:bg-zinc-800", isUnilateral ? "border-blue-500/50 text-blue-400" : "text-zinc-600")}
+            variant="outline" 
+            className={cn(
+              "h-9 px-2 border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-[10px] font-black uppercase tracking-tighter transition-all",
+              isUnilateral 
+                ? "border-blue-600 bg-blue-600/10 text-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.1)]" 
+                : "text-zinc-600"
+            )}
             onClick={() => setIsUnilateral(!isUnilateral)}
           >
-            <UserCheck className="h-4 w-4" />
+            Unilat
           </Button>
 
           <IntensitySelector selectedTechniques={techniques} onChange={setTechniques} />

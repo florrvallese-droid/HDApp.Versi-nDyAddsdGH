@@ -22,6 +22,7 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
   const [weight, setWeight] = useState(set.weight.toString());
   const [reps, setReps] = useState(set.reps.toString());
   const [tempo, setTempo] = useState(set.tempo || "3-0-1");
+  const [isUnilateral, setIsUnilateral] = useState(set.is_unilateral || false);
   const [techniques, setTechniques] = useState<string[]>(set.techniques || []);
   
   const [techniqueCounts, setTechniqueCounts] = useState<Record<string, string>>(() => {
@@ -34,10 +35,8 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
     return initial;
   });
 
-  // Extensions State Initialization
   const [extensions, setExtensions] = useState<SetExtension[]>(set.extensions || []);
   
-  // Helpers to get current ext values for inputs
   const rpExt = extensions.find(e => e.type === 'rest_pause');
   const dropExt = extensions.find(e => e.type === 'drop_set');
 
@@ -54,7 +53,6 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
       }
     });
 
-    // Rebuild extensions array based on active techniques and current inputs
     const finalExtensions: SetExtension[] = [];
     if (techniques.includes('rest_pause') && rpReps) {
       finalExtensions.push({
@@ -76,6 +74,7 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
       weight: parseFloat(weight) || 0,
       reps: parseFloat(reps) || 0,
       tempo,
+      is_unilateral: isUnilateral,
       techniques,
       technique_counts: finalCounts,
       extensions: finalExtensions
@@ -116,13 +115,25 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
             </div>
           </div>
 
-          <div className="space-y-1">
-            <Label className="text-[10px] text-zinc-500 uppercase font-bold">Cadencia</Label>
-            <Input 
-              className="bg-zinc-900 border-zinc-800 text-zinc-300"
-              value={tempo}
-              onChange={(e) => setTempo(e.target.value)}
-            />
+          <div className="grid grid-cols-[1fr_auto] gap-2 items-end">
+            <div className="space-y-1">
+              <Label className="text-[10px] text-zinc-500 uppercase font-bold">Cadencia</Label>
+              <Input 
+                className="bg-zinc-900 border-zinc-800 text-zinc-300"
+                value={tempo}
+                onChange={(e) => setTempo(e.target.value)}
+              />
+            </div>
+            <Button 
+                variant="outline" 
+                className={cn(
+                  "h-10 px-3 border-zinc-800 bg-zinc-900 text-[10px] font-black uppercase tracking-tighter",
+                  isUnilateral ? "border-blue-600 bg-blue-600/10 text-blue-400" : "text-zinc-600"
+                )}
+                onClick={() => setIsUnilateral(!isUnilateral)}
+            >
+                Unilat
+            </Button>
           </div>
 
           <div className="space-y-2">
@@ -134,7 +145,6 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
                />
             </div>
             
-            {/* Dynamic Inputs for Countable Techniques */}
             {techniques.some(t => COUNTABLE_TECHNIQUES.includes(t)) && (
               <div className="bg-zinc-900/50 p-2 rounded border border-zinc-800/50 grid grid-cols-2 gap-2 mt-2">
                 {techniques.filter(t => COUNTABLE_TECHNIQUES.includes(t)).map(tech => (
@@ -154,12 +164,9 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
               </div>
             )}
 
-            {/* Rest Pause Input */}
             {techniques.includes('rest_pause') && (
               <div className="bg-blue-950/20 border border-blue-900/30 p-2 rounded space-y-2 mt-2">
-                <div className="flex items-center gap-2 text-blue-400 text-[10px] font-bold uppercase">
-                  Rest Pause
-                </div>
+                <div className="flex items-center gap-2 text-blue-400 text-[10px] font-bold uppercase">Rest Pause</div>
                 <div className="flex items-center gap-2">
                   <Input 
                     type="number"
@@ -180,12 +187,9 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
               </div>
             )}
 
-            {/* Drop Set Input */}
             {techniques.includes('drop_set') && (
               <div className="bg-red-950/20 border border-red-900/30 p-2 rounded space-y-2 mt-2">
-                <div className="flex items-center gap-2 text-red-400 text-[10px] font-bold uppercase">
-                  Drop Set
-                </div>
+                <div className="flex items-center gap-2 text-red-400 text-[10px] font-bold uppercase">Drop Set</div>
                 <div className="flex items-center gap-2">
                   <Input 
                     type="number"
@@ -206,7 +210,6 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
               </div>
             )}
 
-            {/* Tags Display (Simple) */}
             {techniques.length > 0 && !techniques.some(t => [...COUNTABLE_TECHNIQUES, ...EXTENSION_TECHNIQUES].includes(t)) && (
               <div className="flex flex-wrap gap-1">
                 {techniques.map(tech => (

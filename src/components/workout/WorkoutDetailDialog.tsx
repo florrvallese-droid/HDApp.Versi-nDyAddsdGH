@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Dumbbell, Clock, TrendingUp, UserCheck, ChevronRight, CornerDownRight } from "lucide-react";
+import { Dumbbell, Clock, TrendingUp, ChevronRight, CornerDownRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface WorkoutDetailDialogProps {
@@ -45,7 +45,10 @@ export function WorkoutDetailDialog({ open, onOpenChange, workout }: WorkoutDeta
                             <div className="flex flex-col">
                                 <span className="text-[9px] uppercase font-bold text-zinc-600">Set {j+1}</span>
                                 <span className="text-sm font-black text-white flex items-center gap-1">
-                                    {set.weight}kg {set.is_unilateral && <UserCheck className="h-3 w-3 text-blue-500" />}
+                                    {set.weight}kg 
+                                    {set.is_unilateral && (
+                                        <span className="text-[8px] bg-blue-600/20 text-blue-400 px-1 rounded font-black uppercase tracking-tighter">Unilat</span>
+                                    )}
                                 </span>
                             </div>
                             <div className="flex flex-col">

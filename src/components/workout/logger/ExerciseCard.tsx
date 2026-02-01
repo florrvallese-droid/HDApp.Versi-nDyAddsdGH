@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Link2, Trash2, Trophy, Pencil, ArrowUp, ArrowDown, ChevronRight, CornerDownRight, UserCheck } from "lucide-react";
+import { Link2, Trash2, Trophy, Pencil, ArrowUp, ArrowDown, ChevronRight, CornerDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WorkoutExercise, WorkoutSet, UnitSystem } from "@/types";
@@ -58,7 +58,9 @@ export function ExerciseCard({
                 <span className="text-[10px] text-zinc-500 uppercase font-bold">Peso</span>
                 <span className="text-xl font-bold text-white flex items-center gap-1">
                     {set.weight}<span className="text-xs text-zinc-500">{units}</span>
-                    {set.is_unilateral && <UserCheck className="h-3 w-3 text-blue-400" />}
+                    {set.is_unilateral && (
+                        <span className="text-[9px] bg-blue-600/20 text-blue-400 px-1 rounded font-black uppercase tracking-tighter">Unilat</span>
+                    )}
                 </span>
               </div>
               <div className="flex flex-col">
