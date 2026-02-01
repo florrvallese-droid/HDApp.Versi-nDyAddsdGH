@@ -2,21 +2,24 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, UserCircle, CreditCard, LogOut, Database } from "lucide-react";
+import { ChevronLeft, UserCircle, CreditCard, LogOut, Database, Users } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { ProfileForm } from "@/components/settings/ProfileForm";
 import { BillingSettings } from "@/components/settings/BillingSettings";
 import { DataManagement } from "@/components/settings/DataManagement";
+import { CoachInfo } from "@/components/settings/CoachInfo";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function Settings() {
   const navigate = useNavigate();
+  const { profile } = useProfile();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("profile");
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab && ['profile', 'billing', 'data'].includes(tab)) {
+    if (tab && ['profile', 'billing', 'data', 'coach'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -47,20 +50,32 @@ export default function Settings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-8">
-        <TabsList className="w-full grid grid-cols-3 bg-zinc-900/50 border border-zinc-800 p-1 h-14 rounded-lg">
-          <TabsTrigger value="profile" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-xs tracking-wider h-full rounded-md transition-all">
-            <UserCircle className="mr-2 h-4 w-4" /> Perfil
+        <TabsList className={cn(
+            "w-full grid bg-zinc-900/50 border border-zinc-800 p-1 h-14 rounded-lg",
+            profile?.is_coach ? "grid-cols-3" : "grid-cols-4"
+        )}>
+          <TabsTrigger value="profile" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-[9px] tracking-widest h-full rounded-md transition-all">
+            <UserCircle className="mr-1.5 h-3.5 w-3.5" /> Perfil
           </TabsTrigger>
-          <TabsTrigger value="billing" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-xs tracking-wider h-full rounded-md transition-all">
-            <CreditCard className="mr-2 h-4 w-4" /> Suscripción
+          {!profile?.is_coach && (
+            <TabsTrigger value="coach" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-[9px] tracking-widest h-full rounded-md transition-all">
+              <Users className="mr-1.5 h-3.5 w-3.5" /> Mi Coach
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="billing" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-[9px] tracking-widest h-full rounded-md transition-all">
+            <CreditCard className="mr-1.5 h-3.5 w-3.5" /> Plan
           </TabsTrigger>
-          <TabsTrigger value="data" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-xs tracking-wider h-full rounded-md transition-all">
-            <Database className="mr-2 h-4 w-4" /> Datos
+          <TabsTrigger value="data" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-[9px] tracking-widest h-full rounded-md transition-all">
+            <Database className="mr-1.5 h-3.5 w-3.5" /> Datos
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="focus-visible:outline-none">
           <ProfileForm />
+        </TabsContent>
+
+        <TabsContent value="coach" className="focus-visible:outline-none max-w-2xl mx-auto">
+          {profile?.user_id && <CoachInfo userId={profile.user_id} />}
         </TabsContent>
 
         <TabsContent value="billing" className="focus-visible:outline-none max-w-2xl mx-auto">
@@ -74,10 +89,14 @@ export default function Settings() {
       
       <div className="text-center pt-10 pb-4 border-t border-zinc-900 mt-10">
         <p className="text-[10px] text-zinc-700 font-mono">
-           HEAVY DUTY SYSTEM v1.0
+           HEAVY DUTY SYSTEM v1.1
         </p>
       </div>
 
     </div>
   );
+}
+
+function cn(...inputs: any[]) {
+    return inputs.filter(Boolean).join(' ');
 }
