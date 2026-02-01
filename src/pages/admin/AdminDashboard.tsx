@@ -143,7 +143,7 @@ const AdminDashboard = () => {
         </div>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {/* Revenue Card */}
         <Card className="bg-green-950/20 border-green-900/50 relative overflow-hidden">
           <div className="absolute -right-4 -top-4 bg-green-500/10 w-24 h-24 rounded-full blur-xl" />
@@ -205,8 +205,8 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-7">
-        <Card className="col-span-4 bg-zinc-950 border-zinc-800">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-7">
+        <Card className="col-span-1 md:col-span-4 bg-zinc-950 border-zinc-800">
           <CardHeader>
             <CardTitle className="text-base font-bold flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-primary" /> Tendencia de Uso (14 días)
@@ -236,7 +236,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="col-span-3 bg-zinc-900 border-zinc-800 flex flex-col">
+        <Card className="col-span-1 md:col-span-3 bg-zinc-900 border-zinc-800 flex flex-col">
           <CardHeader>
             <CardTitle className="text-base font-bold flex items-center gap-2 text-white">
                 <CreditCard className="h-4 w-4 text-green-500" /> Esquema de Negocio
@@ -278,7 +278,7 @@ const AdminDashboard = () => {
       </div>
 
       <Card className="bg-zinc-950 border-zinc-800">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
                 <CardTitle className="flex items-center gap-2">
                     <Mail className="h-5 w-5 text-blue-500" /> Recolección de Datos (Mailing)
@@ -287,51 +287,51 @@ const AdminDashboard = () => {
                     Gestiona tu audiencia para campañas de Email Marketing.
                 </CardDescription>
             </div>
-            <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleCopyMailing} className="border-zinc-700 text-zinc-300 hover:text-white">
+            <div className="flex gap-2 w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={handleCopyMailing} className="flex-1 sm:flex-none border-zinc-700 text-zinc-300 hover:text-white">
                     <Copy className="h-4 w-4 mr-2" /> Copiar Lista
                 </Button>
-                <Button size="sm" onClick={handleExportCSV} className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button size="sm" onClick={handleExportCSV} className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white">
                     <Download className="h-4 w-4 mr-2" /> Exportar CSV
                 </Button>
             </div>
         </CardHeader>
         <CardContent>
             <div className="rounded-md border border-zinc-800 overflow-hidden">
-                <div className="bg-zinc-900/50 p-3 grid grid-cols-12 text-xs font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800">
-                    <div className="col-span-4">Usuario</div>
-                    <div className="col-span-2">Estado</div>
-                    <div className="col-span-2">Disciplina</div>
-                    <div className="col-span-2">Coach</div>
-                    <div className="col-span-2 text-right">Registro</div>
+                <div className="bg-zinc-900/50 p-3 grid grid-cols-12 text-[10px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800">
+                    <div className="col-span-6 sm:col-span-4">Usuario</div>
+                    <div className="hidden sm:block col-span-2">Estado</div>
+                    <div className="hidden sm:block col-span-2">Disciplina</div>
+                    <div className="col-span-4 sm:col-span-2">Coach</div>
+                    <div className="col-span-2 sm:col-span-2 text-right">Registro</div>
                 </div>
                 <div className="max-h-[300px] overflow-y-auto">
                     {userList.length === 0 ? (
                         <div className="p-8 text-center text-zinc-500 text-sm">Cargando usuarios...</div>
                     ) : (
                         userList.map((user) => (
-                            <div key={user.user_id} className="p-3 grid grid-cols-12 items-center text-sm border-b border-zinc-900 hover:bg-zinc-900/30 transition-colors">
-                                <div className="col-span-4 flex items-center gap-3">
-                                    <Avatar className="h-8 w-8 border border-zinc-800">
-                                        <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xs">
+                            <div key={user.user_id} className="p-3 grid grid-cols-12 items-center text-xs border-b border-zinc-900 hover:bg-zinc-900/30 transition-colors">
+                                <div className="col-span-6 sm:col-span-4 flex items-center gap-2">
+                                    <Avatar className="h-6 w-6 border border-zinc-800">
+                                        <AvatarFallback className="bg-zinc-800 text-zinc-400 text-[8px]">
                                             {user.display_name?.substring(0, 2).toUpperCase() || "U"}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex flex-col overflow-hidden">
                                         <span className="font-medium text-white truncate">{user.display_name || "Sin Nombre"}</span>
-                                        <span className="text-[10px] text-zinc-500 font-mono truncate">{user.user_id}</span>
+                                        <span className="hidden sm:block text-[8px] text-zinc-500 font-mono truncate">{user.user_id}</span>
                                     </div>
                                 </div>
-                                <div className="col-span-2">
+                                <div className="hidden sm:block col-span-2">
                                     {user.is_premium ? (
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">PRO</span>
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">PRO</span>
                                     ) : (
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-800 text-zinc-400">FREE</span>
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold bg-zinc-800 text-zinc-400">FREE</span>
                                     )}
                                 </div>
-                                <div className="col-span-2 text-xs capitalize text-zinc-400">{user.discipline}</div>
-                                <div className="col-span-2 text-xs capitalize text-zinc-400">{user.coach_tone}</div>
-                                <div className="col-span-2 text-right text-xs text-zinc-500 font-mono">
+                                <div className="hidden sm:block col-span-2 text-zinc-400 truncate">{user.discipline}</div>
+                                <div className="col-span-4 sm:col-span-2 truncate text-zinc-400">{user.coach_tone}</div>
+                                <div className="col-span-2 text-right text-zinc-500 font-mono text-[8px]">
                                     {format(new Date(user.created_at), 'dd/MM/yy')}
                                 </div>
                             </div>
@@ -339,8 +339,8 @@ const AdminDashboard = () => {
                     )}
                 </div>
             </div>
-            <p className="text-[10px] text-zinc-600 mt-2 text-center">
-                *Nota: Para ver correos electrónicos reales, utiliza la función de exportación CSV que incluye identificadores únicos para cruzar con la base de datos de Auth.
+            <p className="text-[9px] text-zinc-600 mt-2 text-center">
+                *Nota: La visualización completa de datos se habilita en dispositivos de mayor resolución.
             </p>
         </CardContent>
       </Card>
