@@ -136,10 +136,13 @@ Deno.serve(async (req) => {
       return response.json();
     };
 
-    // --- LÓGICA DE RESILIENCIA (FALLBACK) ---
-    const modelsToTry = action === 'globalanalysis' 
-        ? ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-2.0-flash'] 
-        : ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+    // --- ESTRATEGIA DE MODELOS (DE MÁS AVANZADO A RESPALDO) ---
+    // gemini-2.0-flash es el modelo más reciente y rápido disponible para v1beta.
+    const modelsToTry = [
+      'gemini-2.0-flash', 
+      'gemini-1.5-pro', 
+      'gemini-1.5-flash'
+    ];
 
     let aiResult = null;
     let usedModel = "";
@@ -147,32 +150,32 @@ Deno.serve(async (req) => {
 
     for (const model of modelsToTry) {
         try {
-            console.log(`[ai-coach] Trying model: ${model}`);
+            console.log(`[ai-coach] Intentando con: ${model}`);
             aiResult = await callGemini(model);
             usedModel = model;
-            console.log(`[ai-coach] Success with: ${model}`);
-            break; // Salir del bucle si tiene éxito
+            console.log(`[ai-coach] Éxito con: ${model}`);
+            break; 
         } catch (err) {
-            console.warn(`[ai-coach] Model ${model} failed, trying next... Error: ${err.message}`);
+            console.warn(`[ai-coach] Error en ${model}, saltando al siguiente...`);
             lastError = err;
         }
     }
 
     if (!aiResult) {
-        throw new Error(`All AI models failed. Last error: ${lastError?.message}`);
+        throw new Error(`Todos los modelos fallaron. Último error: ${lastError?.message}`);
     }
     
     const generatedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
     
-    if (!generatedText) throw new Error("AI returned no content.");
+    if (!generatedText) throw new Error("La IA no devolvió contenido.");
 
     let parsedOutput;
     try {
       const cleanedText = generatedText.replace(/```json\n?|\n?```/g, "").trim();
       parsedOutput = JSON.parse(cleanedText);
     } catch (e) {
-      console.error("[ai-coach] JSON Parse Error. Raw:", generatedText);
-      throw new Error("AI response was not valid JSON.");
+      console.error("[ai-coach] Error de parseo JSON:", generatedText);
+      throw new Error("La respuesta de la IA no es un JSON válido.");
     }
 
     supabase.from('ai_logs').insert({
@@ -184,14 +187,14 @@ Deno.serve(async (req) => {
       output_data: parsedOutput,
       tokens_used: aiResult.usageMetadata?.totalTokenCount || 0,
       prompt_version: promptVersion
-    }).then(({ error }) => { if(error) console.error("Log error:", error) });
+    }).then(({ error }) => { if(error) console.error("Error guardando log:", error) });
 
     return new Response(JSON.stringify(parsedOutput), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
-    console.error(`[ai-coach] CRITICAL FAILURE: ${error.message}`);
+    console.error(`[ai-coach] FALLO CRÍTICO: ${error.message}`);
     return new Response(
       JSON.stringify({ 
         error: true,
