@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/services/supabase";
-import { Users, Activity, ChevronRight, Search, UserCheck, Loader2, UserPlus, Lock } from "lucide-react";
+import { Users, Activity, ChevronRight, Search, UserCheck, Loader2, UserPlus, Lock, Settings, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
@@ -57,6 +57,12 @@ const CoachDashboard = () => {
     }
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Sesión cerrada");
+    navigate('/');
+  };
+
   const handleNavigateToAthlete = (client: any) => {
     if (!client.is_premium) {
         toast.error("Este alumno debe ser PRO para que puedas gestionarlo.");
@@ -84,6 +90,31 @@ const CoachDashboard = () => {
             <UserCheck className="text-red-600 h-8 w-8" /> Panel de Coach
             </h1>
             <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Gestión de Atletas</p>
+        </div>
+        <div className="flex gap-2">
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate('/settings')} 
+                className="text-zinc-500 hover:text-white"
+            >
+                <Settings className="w-5 h-5" />
+            </Button>
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleLogout} 
+                className="text-red-500 hover:text-red-400 hover:bg-red-950/20"
+            >
+                <LogOut className="w-5 h-5" />
+            </Button>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+        <div className="space-y-1">
+            <p className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.2em]">Equipo</p>
+            <p className="text-xl font-black italic uppercase">Mi Comunidad</p>
         </div>
         <Button 
             className="bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-[10px] h-10 px-4"
