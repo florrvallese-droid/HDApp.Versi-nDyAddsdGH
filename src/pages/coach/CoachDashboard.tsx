@@ -4,11 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/services/supabase";
-import { Users, Activity, ChevronRight, Search, UserCheck, Loader2, UserPlus } from "lucide-react";
+import { Users, Activity, ChevronRight, Search, UserCheck, Loader2, UserPlus, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { AddAthleteModal } from "../../components/coach/AddAthleteModal";
+import { AddAthleteModal } from "@/components/coach/AddAthleteModal";
+import { cn } from "@/lib/utils";
 
 const CoachDashboard = () => {
   const navigate = useNavigate();
@@ -54,6 +55,14 @@ const CoachDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleNavigateToAthlete = (client: any) => {
+    if (!client.is_premium) {
+        toast.error("Este alumno debe ser PRO para que puedas gestionarlo.");
+        return;
+    }
+    navigate(`/coach/athlete/${client.user_id}`);
   };
 
   const filteredClients = clients.filter(c => 
@@ -114,9 +123,9 @@ const CoachDashboard = () => {
                 key={client.user_id} 
                 className={cn(
                     "bg-zinc-900 border-zinc-800 transition-all active:scale-[0.99]",
-                    client.status === 'active' ? "hover:border-zinc-700 cursor-pointer" : "opacity-60 grayscale border-dashed"
+                    client.status === 'active' && client.is_premium ? "hover:border-zinc-700 cursor-pointer" : "opacity-60 grayscale border-dashed"
                 )}
-                onClick={() => client.status === 'active' && navigate(`/coach/athlete/${client.user_id}`)}
+                onClick={() => handleNavigateToAthlete(client)}
               >
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -129,13 +138,19 @@ const CoachDashboard = () => {
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
                         <span className="font-black uppercase text-sm text-white">{client.display_name || "Atleta Pendiente"}</span>
-                        {client.is_premium && <Badge className="bg-yellow-600 text-[8px] h-4">PRO</Badge>}
-                        {client.status === 'pending' && <Badge variant="outline" className="text-[8px] h-4 border-yellow-600/50 text-yellow-600">ESPERANDO ACEPTACIÓN</Badge>}
+                        {client.is_premium ? (
+                             <Badge className="bg-yellow-600 text-[8px] h-4">PRO</Badge>
+                        ) : (
+                             <Badge variant="outline" className="bg-zinc-950 text-[8px] h-4 flex gap-1 items-center">
+                                <Lock className="w-2 h-2" /> FREE
+                             </Badge>
+                        )}
+                        {client.status === 'pending' && <Badge variant="outline" className="text-[8px] h-4 border-yellow-600/50 text-yellow-600 uppercase">Esperando Aceptación</Badge>}
                       </div>
                       <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{client.discipline || "General"}</span>
                     </div>
                   </div>
-                  {client.status === 'active' && <ChevronRight className="h-5 w-5 text-zinc-700" />}
+                  {client.status === 'active' && client.is_premium && <ChevronRight className="h-5 w-5 text-zinc-700" />}
                 </CardContent>
               </Card>
             ))}
@@ -158,7 +173,5 @@ const StatCard = ({ label, value, icon }: { label: string, value: string, icon: 
     </CardContent>
   </Card>
 );
-
-const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');
 
 export default CoachDashboard;
