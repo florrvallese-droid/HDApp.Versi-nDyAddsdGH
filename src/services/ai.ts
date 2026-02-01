@@ -12,6 +12,7 @@ export interface PostWorkoutAIResponse {
   highlights: string[];
   corrections: string[];
   coach_quote: string;
+  judgment: string; // Informe detallado de la fase 3
 }
 
 export const aiService = {
@@ -37,21 +38,14 @@ export const aiService = {
         throw new Error(error.message || "Error de red al conectar con IA");
       }
 
-      // Handle soft error from Edge Function (Status 200 but error body)
       if (response && response.error) {
-        console.error("AI Service Logical Error:", response.message);
         throw new Error(response.message || "Error interno del servidor IA");
-      }
-
-      if (!response) {
-        throw new Error("Respuesta vacía del servidor");
       }
 
       return response as AIResponse;
       
     } catch (err: any) {
       console.error("Failed to call AI Coach:", err);
-      // Fallback seguro
       return {
         decision: 'TRAIN_LIGHT',
         rationale: `⚠️ Error: ${err.message}. Por seguridad, entrena ligero o descansa.`,
@@ -86,7 +80,8 @@ export const aiService = {
         verdict: 'PLATEAU',
         highlights: ["Sesión completada"],
         corrections: ["Intenta aumentar peso la próxima"],
-        coach_quote: "La consistencia es clave. Sigue así."
+        coach_quote: "La consistencia es clave. Sigue así.",
+        judgment: "No pudimos generar un juicio detallado debido a un error de conexión, pero tu esfuerzo ha sido registrado."
       };
     }
   },
@@ -113,7 +108,6 @@ export const aiService = {
       return response as GlobalAnalysisResponse;
     } catch (err: any) {
       console.error("Failed to call AI Coach (Global):", err);
-      // Fallback
       return {
         top_patterns: [
           { pattern: "Error de análisis", evidence: "N/A", action: "Intenta más tarde" }
