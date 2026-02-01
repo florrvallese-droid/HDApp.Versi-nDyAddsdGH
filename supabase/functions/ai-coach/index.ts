@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       console.error("[ai-coach] DB Prompt Error:", dbErr);
     }
 
-    // 2. Fetch Shared Knowledge Base (The Book/Principles)
+    // 2. Fetch Shared Knowledge Base
     let knowledgeContext = "";
     try {
       const { data: kbData } = await supabase
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
         .select('content')
         .eq('is_active', true)
         .limit(1)
-        .maybeSingle(); // Get the first active knowledge base
+        .maybeSingle();
 
       if (kbData && kbData.content) {
         knowledgeContext = kbData.content;
@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       console.error("[ai-coach] DB Knowledge Error:", kbErr);
     }
 
-    // Define strict schemas
+    // ACTUALIZACIÓN DE ESQUEMA: Se agrega 'judgment'
     const schemas = {
       preworkout: `
       {
@@ -83,7 +83,8 @@ Deno.serve(async (req) => {
         "verdict": "PROGRESS" | "PLATEAU" | "REGRESSION",
         "highlights": ["Achievement 1"],
         "corrections": ["Correction 1"],
-        "coach_quote": "Motivational quote"
+        "coach_quote": "Motivational quote",
+        "judgment": "Detailed Markdown report for Phase 3"
       }`,
       globalanalysis: `
       {
@@ -115,7 +116,6 @@ Deno.serve(async (req) => {
       ${JSON.stringify(data)}
     `;
 
-    // 3. Call Gemini
     const callGemini = async (model: string) => {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
@@ -136,17 +136,14 @@ Deno.serve(async (req) => {
       return response.json();
     };
 
-    // Model selection
-    let usedModel = 'gemini-2.0-flash'; // Fast & good context
-    if (action === 'globalanalysis') usedModel = 'gemini-2.0-pro-exp-02-05'; // Smarter for deep analysis
+    let usedModel = 'gemini-2.0-flash';
+    if (action === 'globalanalysis') usedModel = 'gemini-2.0-pro-exp-02-05';
 
-    // Execute
     const aiResult = await callGemini(usedModel);
     const generatedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!generatedText) throw new Error("AI returned no content.");
 
-    // Parse
     let parsedOutput;
     try {
       const cleanedText = generatedText.replace(/```json\n?|\n?```/g, "").trim();
@@ -156,7 +153,6 @@ Deno.serve(async (req) => {
       throw new Error("AI response was not valid JSON.");
     }
 
-    // Log
     supabase.from('ai_logs').insert({
       user_id: userId || null, 
       action,
