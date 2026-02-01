@@ -71,7 +71,6 @@ export default function PostWorkout() {
       }
 
       const totalSets = currentWorkout.exercises?.reduce((acc: number, ex: any) => acc + (ex.sets?.length || 0), 0) || 0;
-      const density = currentWorkout.duration > 0 ? (totalSets / currentWorkout.duration).toFixed(2) : 0;
 
       const result = await aiService.getPostWorkoutAnalysis(
         profile?.coach_tone || 'strict',
@@ -82,8 +81,7 @@ export default function PostWorkout() {
           discipline: profile?.discipline || 'general',
           muscleGroup: currentWorkout.muscleGroup,
           metrics: {
-            totalEffectiveSets: totalSets,
-            densitySetsPerMin: density
+            totalEffectiveSets: totalSets
           }
         }
       );
@@ -152,7 +150,7 @@ export default function PostWorkout() {
   if ((!workoutData && loading) || profileLoading) return <div className="min-h-screen flex items-center justify-center bg-black text-white">Cargando análisis...</div>;
   if (!workoutData) return <div className="min-h-screen flex items-center justify-center bg-black text-white">No hay datos de sesión</div>;
 
-  const { muscleGroup, duration, exercises } = workoutData;
+  const { muscleGroup, exercises } = workoutData;
   const totalSets = exercises?.reduce((acc: number, ex: any) => acc + (ex.sets?.length || 0), 0) || 0;
 
   return (
@@ -318,15 +316,13 @@ export default function PostWorkout() {
                 </h1>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-                <div className="bg-zinc-800/40 backdrop-blur-sm p-4 rounded-2xl border border-white/5">
-                <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1 flex items-center gap-1"><Zap className="w-2 h-2 text-red-500" /> Fallo Total</p>
-                <p className="text-xl font-bold font-mono">{totalSets} <span className="text-xs text-zinc-500">Series Efect.</span></p>
-                </div>
-                <div className="bg-zinc-800/40 backdrop-blur-sm p-4 rounded-2xl border border-white/5">
-                <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1">Duración</p>
-                <p className="text-xl font-bold font-mono">{duration} <span className="text-xs text-zinc-500">min</span></p>
-                </div>
+            {/* Metric Card - Simplified to show only Sets */}
+            <div className="bg-zinc-800/40 backdrop-blur-sm p-6 rounded-2xl border border-white/5 text-center">
+                <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1 flex items-center justify-center gap-1">
+                    <Zap className="w-2 h-2 text-red-500" /> Series de Intensidad Máxima
+                </p>
+                <p className="text-5xl font-black font-mono text-white">{totalSets}</p>
+                <p className="text-[10px] text-red-500 font-bold uppercase mt-1">Al Fallo Muscular</p>
             </div>
 
             <div className="space-y-3">

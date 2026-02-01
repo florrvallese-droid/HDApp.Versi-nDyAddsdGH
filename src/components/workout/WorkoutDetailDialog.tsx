@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Dumbbell, Clock, TrendingUp, ChevronRight, CornerDownRight, Zap } from "lucide-react";
+import { Dumbbell, ChevronRight, CornerDownRight, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface WorkoutDetailDialogProps {
@@ -15,7 +15,6 @@ export function WorkoutDetailDialog({ open, onOpenChange, workout }: WorkoutDeta
 
   const { data, created_at, muscle_group } = workout;
   const exercises = data.exercises || [];
-  const duration = data.duration_minutes || 0;
   const totalSets = exercises.reduce((acc: number, ex: any) => acc + (ex.sets?.length || 0), 0);
 
   return (
@@ -24,9 +23,8 @@ export function WorkoutDetailDialog({ open, onOpenChange, workout }: WorkoutDeta
         <DialogHeader>
           <Badge variant="outline" className="text-zinc-400 border-zinc-700 font-mono text-xs w-fit">{format(new Date(created_at), "dd MMM yyyy", { locale: es }).toUpperCase()}</Badge>
           <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-white">{muscle_group || "Entrenamiento"}</DialogTitle>
-          <DialogDescription className="text-zinc-500 flex gap-4 text-xs font-bold uppercase tracking-wider pt-1">
-            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {duration} min</span>
-            <span className="flex items-center gap-1 text-red-500"><Zap className="w-3 h-3" /> {totalSets} Series Efectivas</span>
+          <DialogDescription className="text-red-500 flex gap-4 text-xs font-bold uppercase tracking-wider pt-1">
+            <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {totalSets} Series Efectivas al Fallo</span>
           </DialogDescription>
         </DialogHeader>
 
