@@ -52,11 +52,25 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
 
     if (error) {
       console.error("Error fetching exercises:", error);
-      toast.error("Error cargando ejercicios");
     } else {
-      // Normalización para evitar duplicados visuales
-      const uniqueExercises = data ? Array.from(new Map(data.map(item => [item.name.toLowerCase().trim(), item])).values()) : [];
-      setExercises(uniqueExercises);
+      // DEDUPLICACIÓN AGRESIVA: 
+      // 1. Normalizamos nombres (quitamos símbolos de grado, extra espacios, minúsculas)
+      // 2. Si hay duplicados, preferimos el que tenga user_id (creado por el usuario)
+      const map = new Map<string, Exercise>();
+      
+      data?.forEach(ex => {
+        const normalized = ex.name.toLowerCase()
+          .replace(/[°º]/g, '') // Quita símbolos de grado
+          .replace(/\s+/g, ' ') // Colapsa espacios
+          .trim();
+          
+        const existing = map.get(normalized);
+        if (!existing || (ex.user_id && !existing.user_id)) {
+          map.set(normalized, ex);
+        }
+      });
+
+      setExercises(Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name)));
     }
     setLoading(false);
   };
@@ -69,10 +83,9 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Debes iniciar sesión");
 
-      const normalizedSearch = searchTerm.trim().toLowerCase();
+      const normalizedSearch = searchTerm.trim().toLowerCase().replace(/[°º]/g, '');
       
-      // Chequeo estricto de duplicados antes de enviar a DB
-      if (exercises.some(e => e.name.toLowerCase().trim() === normalizedSearch)) {
+      if (exercises.some(e => e.name.toLowerCase().replace(/[°º]/g, '').trim() === normalizedSearch)) {
         toast.error("Este ejercicio ya existe en la lista.");
         setCreating(false);
         return;
