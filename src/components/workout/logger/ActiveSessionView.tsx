@@ -76,7 +76,25 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
     setExercises(updated);
   };
 
-  // NEW: Move Exercise Up/Down
+  // NUEVO: Actualizar nombre de ejercicio existente
+  const updateExerciseName = async (index: number, newName: string) => {
+    const updated = [...exercises];
+    updated[index].name = newName;
+    
+    // Opcional: Intentar buscar stats previos para el nuevo nombre si el ejercicio no tiene sets aún
+    if (updated[index].sets.length === 0) {
+        const prevStats = await findPreviousExerciseStats(newName);
+        if (prevStats) {
+            updated[index].previous = {
+                weight: prevStats.sets[0]?.weight || 0,
+                reps: prevStats.sets[0]?.reps || 0
+            };
+        }
+    }
+    
+    setExercises(updated);
+  };
+
   const moveExercise = (index: number, direction: 'up' | 'down') => {
     if (direction === 'up' && index === 0) return;
     if (direction === 'down' && index === exercises.length - 1) return;
@@ -84,10 +102,8 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
     const updated = [...exercises];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     
-    // Swap
     [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
     
-    // Fix superset logic logic if moving (if it was superset attached to prev, and moves to 0, it shouldn't be superset)
     if (updated[0].is_superset) {
         updated[0].is_superset = false;
     }
@@ -114,7 +130,6 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
     setExercises(updated);
   };
 
-  // NEW: Update Set
   const handleUpdateSet = (exerciseIndex: number, setIndex: number, updatedSet: WorkoutSet) => {
     const updated = [...exercises];
     updated[exerciseIndex].sets[setIndex] = updatedSet;
@@ -155,7 +170,6 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
     <div className="p-4 pb-28 max-w-md mx-auto min-h-screen bg-black text-white space-y-6 relative">
       <RestTimer />
 
-      {/* HEADER */}
       <div className="flex justify-between items-end border-b border-zinc-900 pb-4">
         <div>
           <div className="bg-zinc-900 text-white px-3 py-1 rounded text-sm font-bold inline-block mb-1">
@@ -167,7 +181,6 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
         </div>
       </div>
 
-      {/* EXERCISES LIST */}
       <div className="space-y-6">
         {exercises.map((ex, i) => (
           <ExerciseCard
@@ -180,13 +193,13 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
             onMoveUp={() => moveExercise(i, 'up')}
             onMoveDown={() => moveExercise(i, 'down')}
             onToggleSuperset={() => toggleSuperset(i)}
+            onUpdateName={(name) => updateExerciseName(i, name)}
             onAddSet={(set) => handleAddSet(i, set)}
             onRemoveSet={(setIndex) => handleRemoveSet(i, setIndex)}
             onUpdateSet={(setIndex, set) => handleUpdateSet(i, setIndex, set)}
           />
         ))}
 
-        {/* ADD EXERCISE */}
         <div className="pt-4 border-t border-zinc-900">
           <Label className="text-zinc-500 font-bold uppercase text-xs mb-2 block">Agregar Ejercicio</Label>
           <div className="flex gap-2 w-full">
@@ -204,7 +217,6 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
         </div>
       </div>
 
-      {/* FOOTER ACTIONS */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-black border-t border-zinc-900 grid grid-cols-2 gap-3 z-50 safe-area-bottom">
         <Button 
           variant="outline" 
