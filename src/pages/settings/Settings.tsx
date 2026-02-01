@@ -33,29 +33,29 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 pb-24 max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-black text-white p-4 pb-24 max-w-4xl mx-auto space-y-8">
       
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-zinc-400 hover:text-white">
           <ChevronLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-xl font-bold uppercase tracking-wider">Ajustes</h1>
+        <h1 className="text-xl font-bold uppercase tracking-wider text-zinc-500">Ajustes de Cuenta</h1>
         <Button variant="ghost" size="icon" onClick={handleLogout} className="text-red-500 hover:text-red-400 hover:bg-red-950/30">
           <LogOut className="h-5 w-5" />
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="w-full grid grid-cols-3 bg-zinc-900 border border-zinc-800 p-1 h-12">
-          <TabsTrigger value="profile" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-[10px] sm:text-xs tracking-wider h-full">
-            <UserCircle className="mr-1 sm:mr-2 h-4 w-4" /> Perfil
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-8">
+        <TabsList className="w-full grid grid-cols-3 bg-zinc-900/50 border border-zinc-800 p-1 h-14 rounded-lg">
+          <TabsTrigger value="profile" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-xs tracking-wider h-full rounded-md transition-all">
+            <UserCircle className="mr-2 h-4 w-4" /> Perfil
           </TabsTrigger>
-          <TabsTrigger value="billing" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-[10px] sm:text-xs tracking-wider h-full">
-            <CreditCard className="mr-1 sm:mr-2 h-4 w-4" /> Plan
+          <TabsTrigger value="billing" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-xs tracking-wider h-full rounded-md transition-all">
+            <CreditCard className="mr-2 h-4 w-4" /> Suscripción
           </TabsTrigger>
-          <TabsTrigger value="data" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-[10px] sm:text-xs tracking-wider h-full">
-            <Database className="mr-1 sm:mr-2 h-4 w-4" /> Datos
+          <TabsTrigger value="data" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-bold uppercase text-xs tracking-wider h-full rounded-md transition-all">
+            <Database className="mr-2 h-4 w-4" /> Datos
           </TabsTrigger>
         </TabsList>
 
@@ -63,18 +63,18 @@ export default function Settings() {
           <ProfileForm />
         </TabsContent>
 
-        <TabsContent value="billing" className="focus-visible:outline-none">
+        <TabsContent value="billing" className="focus-visible:outline-none max-w-2xl mx-auto">
           <BillingSettings />
         </TabsContent>
 
-        <TabsContent value="data" className="focus-visible:outline-none">
+        <TabsContent value="data" className="focus-visible:outline-none max-w-2xl mx-auto">
           <DataManagement />
         </TabsContent>
       </Tabs>
       
-      <div className="text-center pt-8 pb-4">
+      <div className="text-center pt-10 pb-4 border-t border-zinc-900 mt-10">
         <p className="text-[10px] text-zinc-700 font-mono">
-           Heavy Duty Di Iorio v1.0.0
+           Heavy Duty Di Iorio System
            <br/>
            UID: {supabase.auth.getUser().then(u => u.data.user?.id.substring(0,8))}
         </p>

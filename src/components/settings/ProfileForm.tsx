@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2 } from "lucide-react";
+import { User, Camera, Loader2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ProfileForm() {
@@ -109,60 +109,78 @@ export function ProfileForm() {
   if (profileLoading) return <div className="flex items-center justify-center p-8"><Loader2 className="animate-spin h-8 w-8 text-zinc-500" /></div>;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       
-      <div className="grid md:grid-cols-[160px_1fr] gap-8">
+      {/* Header Ficha Técnica */}
+      <div className="text-center mb-10">
+        <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">FICHA TÉCNICA</h2>
+        <p className="text-red-600 font-bold tracking-[0.2em] text-xs uppercase mt-2">IDENTIFICACIÓN DEL ATLETA</p>
+        <div className="w-full h-px bg-zinc-800 mt-6" />
+      </div>
+
+      <div className="grid md:grid-cols-[240px_1fr] gap-10 items-start">
         
         {/* LEFT COLUMN: AVATAR & BADGE */}
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center gap-6">
           <div className="relative group cursor-pointer">
-            <div className="h-32 w-32 rounded-full border-2 border-zinc-800 shadow-xl overflow-hidden bg-zinc-900 flex items-center justify-center relative">
+            {/* Red Glow Ring */}
+            <div className="absolute inset-0 rounded-full border-2 border-red-600 blur-[2px]" />
+            <div className="absolute inset-0 rounded-full border border-red-600/50" />
+            
+            <div className="h-48 w-48 rounded-full border-4 border-zinc-950 overflow-hidden bg-zinc-900 flex items-center justify-center relative z-10 shadow-2xl">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <User className="h-12 w-12 text-zinc-700" />
+                <User className="h-20 w-20 text-zinc-700 stroke-1" />
               )}
               
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Camera className="text-white h-6 w-6" />
+                <Camera className="text-white h-8 w-8" />
               </div>
             </div>
             <input 
               type="file" 
-              className="absolute inset-0 opacity-0 cursor-pointer" 
+              className="absolute inset-0 opacity-0 cursor-pointer z-20" 
               accept="image/*"
               onChange={handleAvatarUpload}
               disabled={uploadingAvatar}
             />
           </div>
           
-          <div className="text-center">
-             <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Foto de Perfil</p>
-          </div>
+          {profile?.is_premium ? (
+             <div className="bg-gradient-to-r from-red-600 to-red-700 text-white text-xs font-black uppercase py-2 px-6 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)] tracking-widest">
+               MIEMBRO PRO
+             </div>
+          ) : (
+             <div className="bg-zinc-800 text-zinc-400 text-xs font-bold uppercase py-2 px-6 rounded-full tracking-widest border border-zinc-700">
+               MIEMBRO FREE
+             </div>
+          )}
         </div>
 
         {/* RIGHT COLUMN: FORM */}
-        <div className="space-y-5 w-full">
+        <div className="space-y-6 w-full">
           
-          <div className="space-y-1">
-            <Label className="text-red-500 font-bold text-[10px] uppercase tracking-wider">Nombre Completo</Label>
+          <div className="space-y-2">
+            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Nombre Completo</Label>
             <Input 
               value={displayName} 
               onChange={(e) => setDisplayName(e.target.value)} 
-              className="bg-zinc-950 border-zinc-800 h-10 text-white font-bold"
+              className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0"
+              placeholder="Tu nombre..."
             />
           </div>
 
-          <div className="space-y-1">
-            <Label className="text-red-500 font-bold text-[10px] uppercase tracking-wider">Sexo</Label>
-            <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Sexo</Label>
+            <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setSex('male')}
                 className={cn(
-                  "h-10 rounded border text-sm font-bold uppercase transition-all",
+                  "h-12 rounded-md border text-sm font-bold uppercase transition-all tracking-wider",
                   sex === 'male' 
-                    ? "bg-[#1a1a2e] border-[#2a2a4e] text-blue-400" 
-                    : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300"
+                    ? "bg-[#1a2332] border-blue-900/50 text-white shadow-[0_0_10px_rgba(30,58,138,0.2)]" 
+                    : "bg-black/50 border-zinc-800 text-zinc-500 hover:text-zinc-300"
                 )}
               >
                 Masculino
@@ -170,10 +188,10 @@ export function ProfileForm() {
               <button
                 onClick={() => setSex('female')}
                 className={cn(
-                  "h-10 rounded border text-sm font-bold uppercase transition-all",
+                  "h-12 rounded-md border text-sm font-bold uppercase transition-all tracking-wider",
                   sex === 'female' 
-                    ? "bg-[#2e1a25] border-[#4e2a3a] text-pink-400" 
-                    : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300"
+                    ? "bg-[#321a25] border-pink-900/50 text-white shadow-[0_0_10px_rgba(131,24,67,0.2)]" 
+                    : "bg-black/50 border-zinc-800 text-zinc-500 hover:text-zinc-300"
                 )}
               >
                 Femenino
@@ -181,56 +199,62 @@ export function ProfileForm() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1">
-              <Label className="text-red-500 font-bold text-[10px] uppercase tracking-wider">Edad</Label>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Edad</Label>
               <Input 
                 type="number"
                 value={age} 
                 onChange={(e) => setAge(e.target.value)}
-                className="bg-zinc-950 border-zinc-800 text-white font-bold"
+                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0"
+                placeholder="--"
               />
             </div>
-            <div className="space-y-1">
-              <Label className="text-red-500 font-bold text-[10px] uppercase tracking-wider">Altura (cm)</Label>
+            <div className="space-y-2">
+              <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Altura (cm)</Label>
               <Input 
                 type="number"
                 value={height} 
                 onChange={(e) => setHeight(e.target.value)}
-                className="bg-zinc-950 border-zinc-800 text-white font-bold"
+                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0"
+                placeholder="--"
               />
             </div>
-            <div className="space-y-1">
-              <Label className="text-red-500 font-bold text-[10px] uppercase tracking-wider">Peso ({profile?.units})</Label>
+            <div className="space-y-2">
+              <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Peso (kg)</Label>
               <Input 
                 type="number"
                 value={weight} 
                 onChange={(e) => setWeight(e.target.value)}
-                className="bg-zinc-950 border-zinc-800 text-white font-bold"
+                className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0"
+                placeholder="--"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <Label className="text-red-500 font-bold text-[10px] uppercase tracking-wider">Objetivos</Label>
+          <div className="space-y-2">
+            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Objetivos Trimestrales</Label>
             <Textarea 
               value={objectives}
               onChange={(e) => setObjectives(e.target.value)}
-              className="bg-zinc-950 border-zinc-800 text-white min-h-[80px] resize-none"
-              placeholder="Ej: Hipertrofia sarco..."
+              className="bg-black/50 border-zinc-800 text-zinc-300 min-h-[120px] resize-none focus:border-red-600/50 focus:ring-0 text-base"
+              placeholder="Describí tus metas: Subir 5kg limpios, mejorar banca plana, bajar % graso..."
             />
+          </div>
+
+          <div className="pt-4">
+            <Button 
+                className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-black italic uppercase tracking-wider text-lg shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                onClick={handleSave}
+                disabled={loading}
+            >
+                {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Save className="mr-2 h-5 w-5"/>}
+                Guardar Cambios
+            </Button>
           </div>
 
         </div>
       </div>
-
-      <Button 
-        className="w-full h-12 bg-zinc-100 text-black hover:bg-white font-black italic uppercase tracking-wider"
-        onClick={handleSave}
-        disabled={loading}
-      >
-        {loading ? "Guardando..." : "Actualizar Ficha Técnica"}
-      </Button>
     </div>
   );
 }
