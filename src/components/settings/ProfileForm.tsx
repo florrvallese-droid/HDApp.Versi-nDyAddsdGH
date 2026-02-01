@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save, Target, BookOpen, Brain } from "lucide-react";
+import { User, Camera, Loader2, Save, Target, BookOpen, Brain, Ticket, Briefcase, Instagram, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LoggingPreference, CoachTone } from "@/types";
 
@@ -19,22 +19,39 @@ export function ProfileForm() {
   const [sex, setSex] = useState<'male'|'female'>("male");
   const [loggingPreference, setLoggingPreference] = useState<LoggingPreference>("effective_only");
   const [coachTone, setCoachTone] = useState<CoachTone>("strict");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  
+  // Coach Specific State
+  const [referralCode, setReferralCode] = useState("");
+  const [brandName, setBrandName] = useState("");
+  const [bio, setBio] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+
+  // Athlete Specific
   const [age, setAge] = useState("");
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const [objectives, setObjectives] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || "");
-      if (profile.sex === 'male' || profile.sex === 'female') {
-          setSex(profile.sex);
-      }
+      if (profile.sex === 'male' || profile.sex === 'female') setSex(profile.sex);
       setLoggingPreference(profile.logging_preference || "effective_only");
       setCoachTone(profile.coach_tone || "strict");
       setAvatarUrl(profile.avatar_url || null);
+      
+      // Coach Data
+      setReferralCode(profile.referral_code || "");
+      if (profile.business_info) {
+        setBrandName(profile.business_info.brand_name || "");
+        setBio(profile.business_info.bio || "");
+        setInstagram(profile.business_info.instagram || "");
+        setWhatsapp(profile.business_info.whatsapp || "");
+      }
+
       if (profile.settings) {
         setAge(profile.settings.age || "");
         setHeight(profile.settings.height || "");
@@ -47,6 +64,13 @@ export function ProfileForm() {
   const handleSave = async () => {
     if (!profile) return;
     setLoading(true);
+
+    const businessData = {
+      brand_name: brandName,
+      bio: bio,
+      instagram: instagram,
+      whatsapp: whatsapp
+    };
 
     const updatedSettings = {
       ...(profile.settings || {}),
@@ -64,16 +88,17 @@ export function ProfileForm() {
           sex: sex,
           logging_preference: loggingPreference,
           coach_tone: coachTone,
+          referral_code: referralCode.toUpperCase().trim(),
+          business_info: businessData,
           settings: updatedSettings,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', profile.user_id);
 
       if (error) throw error;
-      toast.success("Ficha técnica actualizada");
+      toast.success("Perfil actualizado correctamente");
     } catch (error: any) {
-      console.error(error);
-      toast.error("Error al guardar: " + error.message);
+      toast.error("Error: " + (error.message.includes('unique') ? "El código ya existe" : error.message));
     } finally {
       setLoading(false);
     }
@@ -82,181 +107,158 @@ export function ProfileForm() {
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setUploadingAvatar(true);
-      if (!event.target.files || event.target.files.length === 0) return;
-      if (!profile) return;
-
+      if (!event.target.files?.[0] || !profile) return;
       const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${profile.user_id}/avatar_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, { upsert: true });
-
+      const fileName = `${profile.user_id}/avatar_${Date.now()}.${file.name.split('.').pop()}`;
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
       if (uploadError) throw uploadError;
-
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('user_id', profile.user_id);
-
-      if (updateError) throw updateError;
-
+      await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('user_id', profile.user_id);
       setAvatarUrl(publicUrl);
       toast.success("Foto actualizada");
-
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Error al subir imagen");
     } finally {
       setUploadingAvatar(false);
     }
   };
 
-  if (profileLoading) {
-    return <div className="p-12 text-center text-zinc-500 flex flex-col items-center gap-2"><Loader2 className="animate-spin h-6 w-6"/> Cargando perfil...</div>;
-  }
+  if (profileLoading) return <div className="p-12 text-center text-zinc-500 flex flex-col items-center gap-2"><Loader2 className="animate-spin h-6 w-6"/> Cargando...</div>;
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
       
-      {/* Header Ficha Técnica */}
       <div className="text-center mb-10">
-        <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter text-white">FICHA TÉCNICA</h2>
-        <p className="text-red-600 font-bold tracking-[0.2em] text-xs uppercase mt-2">IDENTIFICACIÓN DEL ATLETA</p>
+        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">
+          {profile?.is_coach ? "CENTRO DE COMANDO" : "FICHA TÉCNICA"}
+        </h2>
+        <p className="text-red-600 font-bold tracking-[0.2em] text-xs uppercase mt-2">
+          {profile?.is_coach ? "GESTIÓN COMERCIAL Y MARCA" : "IDENTIFICACIÓN DEL ATLETA"}
+        </p>
         <div className="w-full h-px bg-zinc-800 mt-6" />
       </div>
 
-      <div className="grid md:grid-cols-[240px_1fr] gap-10 items-start">
+      <div className="grid md:grid-cols-[260px_1fr] gap-10 items-start">
         
-        {/* LEFT COLUMN: AVATAR & BADGE */}
         <div className="flex flex-col items-center gap-6">
           <div className="relative group cursor-pointer">
             <div className="absolute inset-0 rounded-full border-2 border-red-600 blur-[4px] opacity-70" />
-            <div className="h-48 w-48 rounded-full border-4 border-zinc-950 overflow-hidden bg-zinc-900 flex items-center justify-center relative z-10">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <User className="h-20 w-20 text-zinc-700" />
-              )}
-              
+            <div className="h-52 w-52 rounded-full border-4 border-zinc-950 overflow-hidden bg-zinc-900 flex items-center justify-center relative z-10">
+              {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" /> : <User className="h-24 w-24 text-zinc-700" />}
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                 <Camera className="text-white h-8 w-8" />
               </div>
             </div>
-            <input 
-              type="file" 
-              className="absolute inset-0 opacity-0 cursor-pointer z-20" 
-              accept="image/*"
-              onChange={handleAvatarUpload}
-              disabled={uploadingAvatar}
-            />
+            <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-20" accept="image/*" onChange={handleAvatarUpload} disabled={uploadingAvatar}/>
           </div>
           
-          {profile?.is_premium ? (
-             <div className="bg-gradient-to-r from-red-600 to-red-700 text-white text-xs font-black uppercase py-2 px-6 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)] tracking-widest border border-red-500/50">
-               MIEMBRO PRO
-             </div>
-          ) : (
-             <div className="bg-zinc-800 text-zinc-400 text-xs font-bold uppercase py-2 px-6 rounded-full tracking-widest border border-zinc-700">
-               MIEMBRO FREE
-             </div>
-          )}
+          <div className={cn(
+            "text-white text-[10px] font-black uppercase py-2 px-6 rounded-full tracking-[0.2em] border shadow-lg",
+            profile?.is_coach ? "bg-blue-600 border-blue-400" : "bg-red-600 border-red-400 shadow-red-900/20"
+          )}>
+            {profile?.is_coach ? "PREPARADOR OFICIAL" : "MIEMBRO HEAVY DUTY"}
+          </div>
         </div>
 
-        {/* RIGHT COLUMN: FORM */}
-        <div className="space-y-8 w-full">
-          <div className="space-y-2">
-            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Nombre Completo</Label>
-            <Input 
-              value={displayName} 
-              onChange={(e) => setDisplayName(e.target.value)} 
-              className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg focus:border-red-600/50 focus:ring-0 placeholder:text-zinc-700"
-            />
-          </div>
-
-          <div className="space-y-4">
-            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider flex items-center gap-2">
-              <Brain className="h-3 w-3" /> Personalidad del Coach IA
-            </Label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {(['strict', 'motivational', 'analytical', 'friendly'] as CoachTone[]).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setCoachTone(t)}
-                  className={cn(
-                    "flex flex-col items-center justify-center p-3 rounded-md border transition-all text-[10px] font-black uppercase tracking-tighter",
-                    coachTone === t 
-                      ? "bg-red-600 border-red-500 text-white" 
-                      : "bg-black/50 border-zinc-800 text-zinc-500 hover:border-zinc-700"
-                  )}
-                >
-                  {t}
-                </button>
-              ))}
+        <div className="space-y-10 w-full">
+          
+          {/* SECCIÓN REFERIDOS (COACH ONLY) */}
+          {profile?.is_coach && (
+            <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800 space-y-4">
+               <div className="flex items-center gap-2 text-red-500 mb-2">
+                  <Ticket className="h-5 w-5" />
+                  <h3 className="font-black uppercase italic text-sm">Programa de Referidos</h3>
+               </div>
+               <div className="space-y-2">
+                  <Label className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Tu Código de Descuento</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      value={referralCode} 
+                      onChange={(e) => setReferralCode(e.target.value.toUpperCase().replace(/\s/g, ''))}
+                      placeholder="EJ: COACHDIORIO10"
+                      className="bg-black border-zinc-700 h-12 text-lg font-black uppercase tracking-widest text-center"
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-500">
+                    Tus alumnos obtendrán un descuento al suscribirse usando este código.
+                  </p>
+               </div>
             </div>
-            <p className="text-[10px] text-zinc-600 italic">Define cómo te hablará la IA durante la evaluación y el análisis post-entreno.</p>
-          </div>
+          )}
 
-          <div className="space-y-2">
-            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Filosofía de Registro</Label>
-            <div className="grid grid-cols-1 gap-2">
-              <button 
-                onClick={() => setLoggingPreference('effective_only')} 
-                className={cn("p-4 rounded-md border text-left transition-all", loggingPreference === 'effective_only' ? "bg-red-950/20 border-red-900/50" : "bg-black/50 border-zinc-800")}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <Target className={cn("h-4 w-4", loggingPreference === 'effective_only' ? "text-red-500" : "text-zinc-600")} />
-                  <span className={cn("font-bold text-sm uppercase tracking-tight", loggingPreference === 'effective_only' ? "text-white" : "text-zinc-500")}>Sólo Series Efectivas (Pure HIT)</span>
+          {/* DATOS DE NEGOCIO (COACH ONLY) */}
+          {profile?.is_coach && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 text-zinc-400">
+                  <Briefcase className="h-5 w-5" />
+                  <h3 className="font-black uppercase italic text-sm">Información de Marca</h3>
+              </div>
+              <div className="grid gap-6">
+                <div className="space-y-2">
+                  <Label className="text-zinc-500 text-[10px] uppercase font-bold">Nombre Comercial / Equipo</Label>
+                  <Input value={brandName} onChange={e => setBrandName(e.target.value)} className="bg-black/50 border-zinc-800 h-12" placeholder="Ej: Di Iorio Performance" />
                 </div>
-                <p className="text-[10px] text-zinc-500 leading-tight">Registra solo las series llevadas al fallo muscular absoluto. Ideal para Heavy Duty.</p>
-              </button>
-              <button 
-                onClick={() => setLoggingPreference('full_routine')} 
-                className={cn("p-4 rounded-md border text-left transition-all", loggingPreference === 'full_routine' ? "bg-zinc-800 border-zinc-700" : "bg-black/50 border-zinc-800")}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <BookOpen className={cn("h-4 w-4", loggingPreference === 'full_routine' ? "text-white" : "text-zinc-600")} />
-                  <span className={cn("font-bold text-sm uppercase tracking-tight", loggingPreference === 'full_routine' ? "text-white" : "text-zinc-500")}>Rutina Completa (Volumen Total)</span>
+                <div className="space-y-2">
+                  <Label className="text-zinc-500 text-[10px] uppercase font-bold">Biografía / Presentación</Label>
+                  <Textarea value={bio} onChange={e => setBio(e.target.value)} className="bg-black/50 border-zinc-800 min-h-[100px]" placeholder="Breve descripción de tu metodología..." />
                 </div>
-                <p className="text-[10px] text-zinc-500 leading-tight">Registra calentamiento, aproximación y series efectivas. Ideal para trackear volumen total.</p>
-              </button>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-zinc-500 text-[10px] uppercase font-bold flex items-center gap-2">
+                        <Instagram className="h-3 w-3" /> Instagram
+                    </Label>
+                    <Input value={instagram} onChange={e => setInstagram(e.target.value)} className="bg-black/50 border-zinc-800 h-11" placeholder="@usuario" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-zinc-500 text-[10px] uppercase font-bold flex items-center gap-2">
+                        <MessageCircle className="h-3 w-3" /> WhatsApp
+                    </Label>
+                    <Input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} className="bg-black/50 border-zinc-800 h-11" placeholder="+54..." />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* DATOS COMUNES */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 text-zinc-400">
+                  <User className="h-5 w-5" />
+                  <h3 className="font-black uppercase italic text-sm">Identidad</h3>
+            </div>
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <Label className="text-zinc-500 text-[10px] uppercase font-bold">Nombre para Mostrar</Label>
+                    <Input value={displayName} onChange={e => setDisplayName(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold text-lg" />
+                </div>
+
+                {!profile?.is_coach && (
+                   <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-zinc-500 text-[10px] uppercase font-bold">Edad</Label>
+                      <Input type="number" value={age} onChange={e => setAge(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-zinc-500 text-[10px] uppercase font-bold">Altura</Label>
+                      <Input type="number" value={height} onChange={e => setHeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-zinc-500 text-[10px] uppercase font-bold">Peso</Label>
+                      <Input type="number" value={weight} onChange={e => setWeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
+                    </div>
+                  </div>
+                )}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Sexo Biológico</Label>
-            <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => setSex('male')} className={cn("h-12 rounded-md border text-sm font-bold uppercase transition-all tracking-wider", sex === 'male' ? "bg-[#1a2332] border-blue-900/50 text-white" : "bg-black/50 border-zinc-800 text-zinc-500")}>Masculino</button>
-              <button onClick={() => setSex('female')} className={cn("h-12 rounded-md border text-sm font-bold uppercase transition-all tracking-wider", sex === 'female' ? "bg-[#321a25] border-pink-900/50 text-white" : "bg-black/50 border-zinc-800 text-zinc-500")}>Femenino</button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Edad</Label>
-              <Input type="number" value={age} onChange={(e) => setAge(e.target.value)} className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg" />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Altura (cm)</Label>
-              <Input type="number" value={height} onChange={(e) => setHeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg" />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Peso (kg)</Label>
-              <Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 text-white font-bold text-lg" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-red-600 font-bold text-[10px] uppercase tracking-wider">Objetivos</Label>
-            <Textarea value={objectives} onChange={(e) => setObjectives(e.target.value)} className="bg-black/50 border-zinc-800 text-zinc-300 min-h-[120px]" placeholder="Mis metas..." />
-          </div>
-
-          <div className="pt-4">
-            <Button className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-black italic uppercase tracking-wider text-lg" onClick={handleSave} disabled={loading}>
-                {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Save className="mr-2 h-5 w-5"/>}
-                {loading ? "Guardando..." : "GUARDAR CAMBIOS"}
+          <div className="pt-10">
+            <Button 
+                className="w-full h-16 bg-white text-black hover:bg-zinc-200 font-black italic uppercase tracking-wider text-lg shadow-[0_10px_30px_rgba(255,255,255,0.1)]" 
+                onClick={handleSave} 
+                disabled={loading}
+            >
+                {loading ? <Loader2 className="mr-2 h-6 w-6 animate-spin"/> : <Save className="mr-2 h-6 w-6"/>}
+                GUARDAR CONFIGURACIÓN
             </Button>
           </div>
         </div>

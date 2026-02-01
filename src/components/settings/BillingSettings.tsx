@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Star, Zap, Shield, Loader2, ExternalLink } from "lucide-react";
+import { Check, Star, Zap, Shield, Loader2, ExternalLink, Ticket } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
@@ -11,6 +13,7 @@ export function BillingSettings() {
   const { profile, hasProAccess, daysLeftInTrial, loading: profileLoading } = useProfile();
   const [isLoading, setIsLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
+  const [coupon, setCoupon] = useState("");
 
   const handleSubscribe = async () => {
     setIsLoading(true);
@@ -23,13 +26,13 @@ export function BillingSettings() {
           planType: billingCycle,
           userId: user.id,
           email: user.email,
-          backUrl: window.location.href // Volver a esta misma página
+          referralCode: coupon.toUpperCase().trim(),
+          backUrl: window.location.href
         }
       });
 
       if (error) throw error;
       if (data?.url) {
-        // Redirigir a Mercado Pago
         window.location.href = data.url;
       } else {
         throw new Error("No se pudo generar el link de pago");
@@ -43,9 +46,6 @@ export function BillingSettings() {
   };
 
   const handleManageSubscription = () => {
-    // Mercado Pago no tiene portal de cliente "self-service" tan directo como Stripe.
-    // Generalmente se envía al usuario a su cuenta de MP o se implementa cancelación vía API.
-    // Por simplicidad en MVP, redirigimos a la sección de suscripciones de MP.
     window.open("https://www.mercadopago.com.ar/subscriptions", "_blank");
   };
 
@@ -54,7 +54,6 @@ export function BillingSettings() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
-      {/* STATUS BANNER */}
       <Card className="border-zinc-800 bg-zinc-950">
         <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -75,11 +74,7 @@ export function BillingSettings() {
             </p>
           </div>
           {hasProAccess && (
-             <Button 
-                variant="outline" 
-                onClick={handleManageSubscription} 
-                className="border-zinc-700"
-             >
+             <Button variant="outline" onClick={handleManageSubscription} className="border-zinc-700">
                Gestionar en Mercado Pago <ExternalLink className="ml-2 h-3 w-3" />
              </Button>
           )}
@@ -92,7 +87,6 @@ export function BillingSettings() {
              <h2 className="text-2xl font-black italic uppercase tracking-tight text-white">Elige tu Plan</h2>
              <p className="text-zinc-500">Desbloquea el Coach IA, Análisis Avanzados y más.</p>
              
-             {/* Toggle */}
              <div className="inline-flex bg-zinc-900 p-1 rounded-lg border border-zinc-800 mt-2">
                 <button 
                    onClick={() => setBillingCycle('monthly')}
@@ -110,79 +104,51 @@ export function BillingSettings() {
           </div>
 
           <Card className="relative overflow-hidden border-blue-500/30 bg-gradient-to-b from-blue-900/10 to-zinc-950">
-            {billingCycle === 'yearly' && (
-                <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
-                    Mejor Valor
-                </div>
-            )}
             <CardHeader>
               <CardTitle className="flex items-baseline gap-2">
                  <span className="text-4xl font-black text-white">
-                    {/* Ajustar símbolo de moneda según la configuración en Edge Function */}
                     ${billingCycle === 'monthly' ? '9.99' : '7.49'}
                  </span>
                  <span className="text-zinc-500 text-sm font-medium">/ mes</span>
               </CardTitle>
-              {billingCycle === 'yearly' && (
-                  <CardDescription className="text-green-500 font-medium">Facturado $89.99 anualmente</CardDescription>
-              )}
             </CardHeader>
-            <CardContent className="space-y-4">
-               <Benefit>Coach IA Personalizado (4 tonos)</Benefit>
-               <Benefit>Auditoría Global de Patrones</Benefit>
-               <Benefit>Análisis Post-Entreno Detallado</Benefit>
-               <Benefit>Módulo de Nutrición & Farmacología</Benefit>
-               <Benefit>Check-ins ilimitados</Benefit>
+            <CardContent className="space-y-6">
+               <div className="space-y-4">
+                  <Benefit>Coach IA Personalizado (4 tonos)</Benefit>
+                  <Benefit>Auditoría Global de Patrones</Benefit>
+                  <Benefit>Análisis Post-Entreno Detallado</Benefit>
+                  <Benefit>Módulo de Nutrición & Farmacología</Benefit>
+                  <Benefit>Check-ins ilimitados</Benefit>
+               </div>
+
+               {/* COUPON SECTION */}
+               <div className="pt-4 border-t border-zinc-900">
+                  <Label className="text-[10px] text-zinc-500 uppercase font-black tracking-widest flex items-center gap-2 mb-2">
+                    <Ticket className="h-3 w-3 text-red-500" /> ¿Tienes un código de coach?
+                  </Label>
+                  <Input 
+                    placeholder="INGRESA CÓDIGO" 
+                    value={coupon}
+                    onChange={e => setCoupon(e.target.value.toUpperCase())}
+                    className="bg-zinc-900 border-zinc-800 h-11 font-black tracking-widest text-center"
+                  />
+               </div>
             </CardContent>
             <CardFooter className="flex-col gap-3">
                <Button 
-                 className="w-full h-12 bg-[#009EE3] hover:bg-[#008ED3] text-white font-black uppercase tracking-wider shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2"
+                 className="w-full h-14 bg-[#009EE3] hover:bg-[#008ED3] text-white font-black uppercase tracking-wider flex items-center justify-center gap-2"
                  onClick={handleSubscribe}
                  disabled={isLoading}
                >
-                 {isLoading ? (
-                    <>
-                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Conectando...
-                    </>
-                 ) : (
-                    <>
-                       Suscribirse con Mercado Pago
-                    </>
-                 )}
+                 {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Conectando...</> : "Suscribirse con Mercado Pago"}
                </Button>
-               <p className="text-[10px] text-zinc-500">
-                  Serás redirigido a Mercado Pago para completar la suscripción segura.
+               <p className="text-[10px] text-zinc-500 text-center">
+                  El descuento se aplicará automáticamente al procesar el pago si el código es válido.
                </p>
             </CardFooter>
           </Card>
         </div>
       )}
-
-      {hasProAccess && (
-         <div className="grid sm:grid-cols-2 gap-4">
-            <Card className="bg-zinc-900 border-zinc-800">
-               <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                     <Zap className="h-5 w-5 text-yellow-500" /> Potencia tu entreno
-                  </CardTitle>
-               </CardHeader>
-               <CardContent className="text-sm text-zinc-400">
-                  Estás aprovechando todas las funciones de IA. ¡Sigue registrando para mejores insights!
-               </CardContent>
-            </Card>
-            <Card className="bg-zinc-900 border-zinc-800">
-               <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                     <Shield className="h-5 w-5 text-green-500" /> Datos Seguros
-                  </CardTitle>
-               </CardHeader>
-               <CardContent className="text-sm text-zinc-400">
-                  Tus datos de farmacología y fotos están encriptados en bóvedas privadas.
-               </CardContent>
-            </Card>
-         </div>
-      )}
-
     </div>
   );
 }

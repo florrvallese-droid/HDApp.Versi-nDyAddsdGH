@@ -8,6 +8,7 @@ export interface UserProfile {
   user_id: string;
   created_at: string;
   updated_at: string;
+  email?: string;
   
   // Básico
   display_name?: string;
@@ -18,10 +19,20 @@ export interface UserProfile {
   // Registro
   logging_preference: LoggingPreference;
   
+  // Referidos y Negocio
+  referral_code?: string;
+  business_info?: {
+    brand_name?: string;
+    bio?: string;
+    instagram?: string;
+    whatsapp?: string;
+    specialty?: string;
+  };
+  
   // Premium
   is_premium: boolean;
   is_admin: boolean;
-  is_coach: boolean; // Campo nuevo
+  is_coach: boolean;
   premium_expires_at?: string;
   trial_started_at?: string;
   
@@ -37,8 +48,6 @@ export interface UserProfile {
     language?: 'es' | 'en';
     theme?: 'dark' | 'light';
     nutrition?: NutritionConfig;
-    
-    // Physical Stats & Objectives
     age?: string;
     height?: string;
     current_weight?: string;
@@ -55,7 +64,7 @@ export interface Routine {
   created_at: string;
 }
 
-// Nutrition Specifics
+// ... (resto de interfaces se mantienen iguales)
 export type PhaseGoal = 'volume' | 'definition' | 'maintenance';
 
 export interface DietVariant {
@@ -86,18 +95,13 @@ export interface Log {
   user_id: string;
   type: LogType;
   created_at: string;
-  
-  // Indexables
   muscle_group?: string;
   workout_date?: string;
   cycle_day?: number;
   discipline?: string;
-  
-  // Payload
   data: Record<string, any>;
 }
 
-// Pharmacology Specifics
 export interface Compound {
   id: string;
   name: string;

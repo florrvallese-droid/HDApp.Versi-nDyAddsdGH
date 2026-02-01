@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,16 +14,37 @@ serve(async (req) => {
 
   try {
     const MP_ACCESS_TOKEN = Deno.env.get('MP_ACCESS_TOKEN');
-    if (!MP_ACCESS_TOKEN) throw new Error("Falta MP_ACCESS_TOKEN en las variables de entorno de Supabase.");
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    const { userId, email, planType, backUrl } = await req.json();
+    if (!MP_ACCESS_TOKEN) throw new Error("Falta MP_ACCESS_TOKEN.");
+    
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+    const { userId, email, planType, referralCode, backUrl } = await req.json();
 
-    // PRECIOS ARGENTINA (Ejemplo: $9.900/mes o $89.000/año)
-    // Estos valores deben ser analizados según tus costos operativos de IA.
-    const price = planType === 'yearly' ? 89000 : 9900; 
-    const title = planType === 'yearly' ? "Heavy Duty PRO - Plan Anual" : "Heavy Duty PRO - Plan Mensual";
+    // PRECIOS BASE
+    let price = planType === 'yearly' ? 89000 : 9900; 
+    let discountApplied = false;
 
-    // Mercado Pago Pre-Approval (Suscripciones)
+    // VALIDAR CÓDIGO DE COACH
+    if (referralCode) {
+      const { data: coach } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('referral_code', referralCode)
+        .eq('is_coach', true)
+        .maybeSingle();
+
+      if (coach) {
+        // APLICAR 20% DE DESCUENTO
+        price = Math.round(price * 0.8);
+        discountApplied = true;
+        console.log(`[create-mp-subscription] Descuento del coach ${coach.user_id} aplicado.`);
+      }
+    }
+
+    const title = `Heavy Duty PRO ${discountApplied ? '(Desc. Coach)' : ''} - ${planType === 'yearly' ? 'Anual' : 'Mensual'}`;
+
     const body = {
       reason: title,
       external_reference: userId,
@@ -38,10 +60,8 @@ serve(async (req) => {
     };
     
     if (planType === 'yearly') {
-        body.auto_recurring.frequency = 12; // Cobro cada 12 meses
+        body.auto_recurring.frequency = 12;
     }
-
-    console.log(`[create-mp-subscription] Generando suscripción ${planType} para ${email}`);
 
     const response = await fetch("https://api.mercadopago.com/preapproval", {
       method: "POST",
@@ -53,25 +73,11 @@ serve(async (req) => {
     });
 
     const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Error MP");
 
-    if (!response.ok) {
-      console.error("[create-mp-subscription] Error MP:", data);
-      throw new Error(data.message || "Error al conectar con Mercado Pago");
-    }
-
-    return new Response(
-      JSON.stringify({ url: data.init_point }), 
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    )
+    return new Response(JSON.stringify({ url: data.init_point }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error: any) {
-    console.error("[create-mp-subscription] Error:", error.message);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      },
-    )
+    return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 })
