@@ -53,6 +53,7 @@ export default function CoachBusiness() {
   };
 
   const handleSave = async () => {
+    if (!profile) return;
     setLoading(true);
     try {
         const { error } = await supabase
@@ -68,7 +69,7 @@ export default function CoachBusiness() {
                 },
                 updated_at: new Date().toISOString()
             })
-            .eq('user_id', profile!.user_id);
+            .eq('user_id', profile.user_id);
 
         if (error) throw error;
         toast.success("Configuración de negocio actualizada");
