@@ -1,31 +1,43 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Link2, Trash2, Trophy, TrendingUp } from "lucide-react";
+import { Link2, Trash2, Trophy, TrendingUp, Pencil, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WorkoutExercise, WorkoutSet, UnitSystem } from "@/types";
 import { SetForm } from "./SetForm";
 import { getTechColor, getTechLabel } from "./IntensitySelector";
+import { EditSetDialog } from "./EditSetDialog";
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
   index: number;
+  totalExercises: number;
   units: UnitSystem;
   onRemoveExercise: () => void;
   onToggleSuperset: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
   onAddSet: (set: WorkoutSet) => void;
   onRemoveSet: (setIndex: number) => void;
+  onUpdateSet: (setIndex: number, set: WorkoutSet) => void;
 }
 
 export function ExerciseCard({
   exercise,
   index,
+  totalExercises,
   units,
   onRemoveExercise,
   onToggleSuperset,
+  onMoveUp,
+  onMoveDown,
   onAddSet,
-  onRemoveSet
+  onRemoveSet,
+  onUpdateSet
 }: ExerciseCardProps) {
   
+  const [editingSetIndex, setEditingSetIndex] = useState<number | null>(null);
+
   const defaultFormValues = {
     weight: exercise.previous?.weight?.toString() || "",
     tempo: "3-0-1"
@@ -34,7 +46,7 @@ export function ExerciseCard({
   return (
     <div 
       className={cn(
-        "space-y-3 animate-in fade-in slide-in-from-bottom-2",
+        "space-y-3 animate-in fade-in slide-in-from-bottom-2 transition-all",
         exercise.is_superset ? "-mt-6 pt-8 border-t-2 border-dashed border-red-900/50 relative z-0" : ""
       )}
     >
@@ -44,23 +56,47 @@ export function ExerciseCard({
         </div>
       )}
 
-      <div className="flex justify-between items-center">
-        <h3 className="text-red-500 font-black uppercase text-lg">{exercise.name}</h3>
-        <div className="flex gap-1">
+      <div className="flex justify-between items-start gap-2">
+        <h3 className="text-red-500 font-black uppercase text-lg leading-tight flex-1">{exercise.name}</h3>
+        
+        <div className="flex gap-1 shrink-0">
+          {/* Reordering Controls */}
+          <div className="flex bg-zinc-900 rounded-md border border-zinc-800 mr-2">
+             <Button 
+               variant="ghost" 
+               size="icon" 
+               className="h-8 w-6 rounded-none border-r border-zinc-800 disabled:opacity-20 hover:bg-zinc-800"
+               onClick={onMoveUp}
+               disabled={index === 0}
+             >
+               <ArrowUp className="h-3 w-3 text-zinc-400" />
+             </Button>
+             <Button 
+               variant="ghost" 
+               size="icon" 
+               className="h-8 w-6 rounded-none disabled:opacity-20 hover:bg-zinc-800"
+               onClick={onMoveDown}
+               disabled={index === totalExercises - 1}
+             >
+               <ArrowDown className="h-3 w-3 text-zinc-400" />
+             </Button>
+          </div>
+
+          {/* SUPER SET TOGGLE - Only for index > 0 */}
           {index > 0 && (
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={onToggleSuperset}
               className={cn(
-                "h-8 px-2",
-                exercise.is_superset ? "text-red-500 bg-red-950/20" : "text-zinc-600 hover:text-zinc-400"
+                "h-8 px-2 border border-transparent",
+                exercise.is_superset ? "text-red-500 bg-red-950/20 border-red-900/30" : "text-zinc-600 hover:text-zinc-400 hover:bg-zinc-900"
               )}
             >
               <Link2 className="h-4 w-4" />
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onRemoveExercise} className="h-8 px-2 text-zinc-600 hover:text-red-500">
+          <Button variant="ghost" size="sm" onClick={onRemoveExercise} className="h-8 px-2 text-zinc-600 hover:text-red-500 hover:bg-zinc-900">
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -75,7 +111,7 @@ export function ExerciseCard({
       )}
 
       {exercise.sets.map((set, si) => (
-        <div key={si} className="flex items-center justify-between bg-zinc-900/50 border border-zinc-800 p-3 rounded relative overflow-hidden">
+        <div key={si} className="flex items-center justify-between bg-zinc-900/50 border border-zinc-800 p-3 rounded relative overflow-hidden group hover:border-zinc-700 transition-colors">
           <div className="flex gap-4 items-center">
             <div className="flex flex-col">
               <span className="text-[10px] text-zinc-500 uppercase font-bold">Peso</span>
@@ -86,6 +122,7 @@ export function ExerciseCard({
               <span className="text-xl font-bold text-white">{set.reps}</span>
             </div>
             
+            {/* TAGS DISPLAY */}
             {set.techniques && set.techniques.length > 0 && (
               <div className="flex flex-wrap gap-1 max-w-[100px]">
                 {set.techniques.map(tech => (
@@ -106,9 +143,15 @@ export function ExerciseCard({
               </div>
             )}
           </div>
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onRemoveSet(si)}>
-            <Trash2 className="h-3 w-3 text-zinc-700 hover:text-red-500" />
-          </Button>
+          
+          <div className="flex gap-1">
+             <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-600 hover:text-white" onClick={() => setEditingSetIndex(si)}>
+                <Pencil className="h-3.5 w-3.5" />
+             </Button>
+             <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-600 hover:text-red-500" onClick={() => onRemoveSet(si)}>
+                <Trash2 className="h-3.5 w-3.5" />
+             </Button>
+          </div>
         </div>
       ))}
 
@@ -118,6 +161,19 @@ export function ExerciseCard({
         defaultValues={defaultFormValues}
         onAddSet={onAddSet}
       />
+
+      {/* Edit Dialog */}
+      {editingSetIndex !== null && exercise.sets[editingSetIndex] && (
+        <EditSetDialog 
+          open={true}
+          onOpenChange={(open) => !open && setEditingSetIndex(null)}
+          set={exercise.sets[editingSetIndex]}
+          onSave={(updatedSet) => {
+            onUpdateSet(editingSetIndex, updatedSet);
+            setEditingSetIndex(null);
+          }}
+        />
+      )}
     </div>
   );
 }

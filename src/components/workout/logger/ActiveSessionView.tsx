@@ -66,13 +66,32 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
     setLoadingPrevious(false);
     
     if (prevStats) {
-      toast.success(`Datos previos encontrados: ${prevStats.sets[0].weight}kg x ${prevStats.sets[0].reps}`);
+      toast.success(`Datos previos: ${prevStats.sets[0].weight}kg x ${prevStats.sets[0].reps}`);
     }
   };
 
   const removeExercise = (index: number) => {
     const updated = [...exercises];
     updated.splice(index, 1);
+    setExercises(updated);
+  };
+
+  // NEW: Move Exercise Up/Down
+  const moveExercise = (index: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === exercises.length - 1) return;
+
+    const updated = [...exercises];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    // Swap
+    [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
+    
+    // Fix superset logic logic if moving (if it was superset attached to prev, and moves to 0, it shouldn't be superset)
+    if (updated[0].is_superset) {
+        updated[0].is_superset = false;
+    }
+
     setExercises(updated);
   };
 
@@ -92,6 +111,13 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
   const handleRemoveSet = (exerciseIndex: number, setIndex: number) => {
     const updated = [...exercises];
     updated[exerciseIndex].sets.splice(setIndex, 1);
+    setExercises(updated);
+  };
+
+  // NEW: Update Set
+  const handleUpdateSet = (exerciseIndex: number, setIndex: number, updatedSet: WorkoutSet) => {
+    const updated = [...exercises];
+    updated[exerciseIndex].sets[setIndex] = updatedSet;
     setExercises(updated);
   };
 
@@ -147,12 +173,16 @@ export function ActiveSessionView({ muscleGroup, profile, onCancel }: ActiveSess
           <ExerciseCard
             key={i}
             index={i}
+            totalExercises={exercises.length}
             exercise={ex}
             units={profile?.units || 'kg'}
             onRemoveExercise={() => removeExercise(i)}
+            onMoveUp={() => moveExercise(i, 'up')}
+            onMoveDown={() => moveExercise(i, 'down')}
             onToggleSuperset={() => toggleSuperset(i)}
             onAddSet={(set) => handleAddSet(i, set)}
             onRemoveSet={(setIndex) => handleRemoveSet(i, setIndex)}
+            onUpdateSet={(setIndex, set) => handleUpdateSet(i, setIndex, set)}
           />
         ))}
 
