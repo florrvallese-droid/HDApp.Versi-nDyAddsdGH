@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Check, ChevronsUpDown, Plus, Dumbbell, Loader2, Star } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Loader2, Star, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,7 +74,7 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
 
       // Check if it already exists locally to avoid DB duplicate error
       if (exercises.some(e => e.name.toLowerCase() === formattedName.toLowerCase())) {
-        toast.error("Este ejercicio ya existe");
+        toast.error("Este ejercicio ya existe en la lista.");
         setCreating(false);
         return;
       }
@@ -105,13 +105,28 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
     }
   };
 
+  const handleDelete = async (id: string, name: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita que se seleccione el ejercicio al borrarlo
+    
+    if (!confirm(`¿Estás seguro de eliminar "${name}" de tu lista personalizada?`)) return;
+
+    try {
+      const { error } = await supabase.from('exercises').delete().eq('id', id);
+      
+      if (error) throw error;
+
+      toast.success("Ejercicio eliminado");
+      setExercises(prev => prev.filter(ex => ex.id !== id));
+    } catch (err: any) {
+      toast.error("Error al eliminar: " + err.message);
+    }
+  };
+
   // Sort exercises based on targetMuscleGroup match
   const sortedExercises = React.useMemo(() => {
     if (!targetMuscleGroup) return exercises;
 
     return [...exercises].sort((a, b) => {
-      // Check if exercise muscle group includes or matches the target (case insensitive)
-      // Note: This is a loose match. Ideally we'd have normalized tags.
       const aMatches = a.muscle_group && targetMuscleGroup.toLowerCase().includes(a.muscle_group.toLowerCase()) || 
                        (a.muscle_group && a.muscle_group.toLowerCase() === targetMuscleGroup.toLowerCase());
       
@@ -120,11 +135,10 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
 
       if (aMatches && !bMatches) return -1;
       if (!aMatches && bMatches) return 1;
-      return 0; // Keep alphabetical order within groups (already sorted by fetch)
+      return 0; 
     });
   }, [exercises, targetMuscleGroup]);
 
-  // Separate recommendations from the rest only if we have a target match
   const recommendedExercises = targetMuscleGroup 
     ? sortedExercises.filter(e => e.muscle_group && targetMuscleGroup.toLowerCase().includes(e.muscle_group.toLowerCase()))
     : [];
@@ -161,7 +175,10 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
             <CommandEmpty className="py-2 px-2">
               {searchTerm && (
                 <div className="flex flex-col items-center gap-2 p-2">
-                  <p className="text-sm text-zinc-400">No encontrado.</p>
+                  <p className="text-sm text-zinc-400 text-center">
+                    No encontrado. <br/>
+                    <span className="text-xs opacity-70">Verifica si existe con otro nombre antes de crear.</span>
+                  </p>
                   <Button 
                     size="sm" 
                     className="w-full bg-zinc-800 hover:bg-zinc-700 text-white"
@@ -196,21 +213,36 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
                           onSelect(exercise.name);
                           setOpen(false);
                         }}
-                        className="data-[selected=true]:bg-zinc-800 cursor-pointer text-zinc-300 data-[selected=true]:text-white"
+                        className="data-[selected=true]:bg-zinc-800 cursor-pointer text-zinc-300 data-[selected=true]:text-white flex justify-between group"
                       >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            value === exercise.name ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        <div className="flex flex-col">
-                          <span className="font-medium flex items-center gap-1">
-                            {exercise.name}
-                            <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                          </span>
-                          <span className="text-[10px] text-zinc-500 uppercase">{exercise.muscle_group}</span>
+                        <div className="flex items-center">
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              value === exercise.name ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-medium flex items-center gap-1">
+                              {exercise.name}
+                              <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                            </span>
+                            <span className="text-[10px] text-zinc-500 uppercase">{exercise.muscle_group}</span>
+                          </div>
                         </div>
+                        {exercise.user_id && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] bg-zinc-900 border border-zinc-700 px-1 rounded text-zinc-500">Custom</span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-6 w-6 text-zinc-600 hover:text-red-500 hover:bg-zinc-900"
+                              onClick={(e) => handleDelete(exercise.id, exercise.name, e)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -228,24 +260,34 @@ export function ExerciseSelector({ onSelect, value, targetMuscleGroup }: Exercis
                         onSelect(exercise.name);
                         setOpen(false);
                       }}
-                      className="data-[selected=true]:bg-zinc-800 cursor-pointer text-zinc-300 data-[selected=true]:text-white"
+                      className="data-[selected=true]:bg-zinc-800 cursor-pointer text-zinc-300 data-[selected=true]:text-white flex justify-between group"
                     >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          value === exercise.name ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-medium">{exercise.name}</span>
-                        {exercise.muscle_group && (
-                          <span className="text-[10px] text-zinc-500 uppercase">{exercise.muscle_group}</span>
-                        )}
+                      <div className="flex items-center">
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            value === exercise.name ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-medium">{exercise.name}</span>
+                          {exercise.muscle_group && (
+                            <span className="text-[10px] text-zinc-500 uppercase">{exercise.muscle_group}</span>
+                          )}
+                        </div>
                       </div>
                       {exercise.user_id && (
-                        <span className="ml-auto text-[10px] bg-zinc-900 border border-zinc-700 px-1 rounded text-zinc-500">
-                          Custom
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] bg-zinc-900 border border-zinc-700 px-1 rounded text-zinc-500">Custom</span>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 text-zinc-600 hover:text-red-500 hover:bg-zinc-900"
+                            onClick={(e) => handleDelete(exercise.id, exercise.name, e)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       )}
                     </CommandItem>
                   ))}
