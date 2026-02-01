@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Share2, Home, Dumbbell, Trophy, Loader2, Download, Lock } from "lucide-react";
+import { Share2, Home, Dumbbell, Trophy, Loader2, Download, Lock, Flag } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { aiService, PostWorkoutAIResponse } from "@/services/ai";
@@ -20,6 +20,7 @@ export default function PostWorkout() {
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isFirstSession, setIsFirstSession] = useState(false);
   
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +35,7 @@ export default function PostWorkout() {
       if (hasProAccess) {
         runAnalysis(workoutData);
       } else {
-        setLoading(false); // Stop loading, show locked state
+        setLoading(false);
       }
     }
   }, [workoutData, profile, profileLoading, hasProAccess]);
@@ -44,28 +45,30 @@ export default function PostWorkout() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Buscar sesión previa de este músculo
       const { data: logs } = await supabase
         .from('logs')
         .select('data, created_at')
         .eq('user_id', user.id)
         .eq('type', 'workout')
         .eq('muscle_group', currentWorkout.muscleGroup)
-        .neq('created_at', new Date().toISOString()) 
-        .order('created_at', { ascending: false })
-        .limit(2);
+        .order('created_at', { ascending: false });
+
+      // Filtrar la sesión actual (por si el fetch la trae)
+      const previousLogs = logs?.filter(l => {
+          const logDate = new Date(l.created_at).getTime();
+          const now = new Date().getTime();
+          return (now - logDate) > 60000; // Al menos 1 minuto de antigüedad
+      }) || [];
 
       let previousWorkout = null;
-      
-      if (logs && logs.length > 0) {
-        const possiblePrev = logs.find(l => {
-            const logDate = new Date(l.created_at).getTime();
-            const sessionDate = new Date().getTime(); 
-            return (sessionDate - logDate) > 60000; 
-        });
-        
-        if (possiblePrev) {
-            previousWorkout = possiblePrev.data;
-        }
+      let firstTime = false;
+
+      if (previousLogs.length > 0) {
+        previousWorkout = previousLogs[0].data;
+      } else {
+        firstTime = true;
+        setIsFirstSession(true);
       }
 
       const result = await aiService.getPostWorkoutAnalysis(
@@ -73,6 +76,7 @@ export default function PostWorkout() {
         {
           current: currentWorkout,
           previous: previousWorkout,
+          isFirstSession: firstTime,
           discipline: profile?.discipline || 'general',
           muscleGroup: currentWorkout.muscleGroup
         }
@@ -99,9 +103,9 @@ export default function PostWorkout() {
 
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 2, // Better quality
-        backgroundColor: null, // Transparent background if set in CSS
-        useCORS: true, // For cross-origin images
+        scale: 2,
+        backgroundColor: null,
+        useCORS: true,
       });
 
       const image = canvas.toDataURL("image/png");
@@ -114,7 +118,7 @@ export default function PostWorkout() {
           await navigator.share({
             files: [file],
             title: 'Mi Entrenamiento Heavy Duty',
-            text: `Acabo de destrozar ${workoutData?.muscleGroup}. ${analysis?.coach_quote}`
+            text: `Sesión de ${workoutData?.muscleGroup} completada. ${analysis?.coach_quote}`
           });
           toast.success("Compartido exitosamente");
         } else {
@@ -139,11 +143,10 @@ export default function PostWorkout() {
     toast.success("Imagen descargada");
   };
 
-  if ((!workoutData && loading) || profileLoading) return <div className="min-h-screen flex items-center justify-center bg-black text-white">Cargando datos...</div>;
-  if (!workoutData) return <div className="min-h-screen flex items-center justify-center bg-black text-white">No data found</div>;
+  if ((!workoutData && loading) || profileLoading) return <div className="min-h-screen flex items-center justify-center bg-black text-white">Cargando análisis...</div>;
+  if (!workoutData) return <div className="min-h-screen flex items-center justify-center bg-black text-white">No hay datos de sesión</div>;
 
   const { muscleGroup, duration, volume, exercises } = workoutData;
-  const bestExercise = exercises[0];
 
   return (
     <div className="min-h-screen bg-zinc-950 p-4 flex flex-col items-center justify-center gap-6 overflow-y-auto">
@@ -160,46 +163,40 @@ export default function PostWorkout() {
         id="story-card"
         className="w-full max-w-[350px] aspect-[9/16] bg-gradient-to-br from-zinc-900 to-black text-white rounded-3xl p-8 flex flex-col relative overflow-hidden shadow-2xl border border-zinc-800 shrink-0"
       >
-        {/* Background Texture/Accent - Conditional on Analysis or Default */}
         <div className={cn(
           "absolute top-0 right-0 w-80 h-80 rounded-full blur-[80px] -translate-y-1/3 translate-x-1/3 pointer-events-none opacity-30 mix-blend-screen",
+          isFirstSession ? "bg-blue-500" :
           analysis?.verdict === 'PROGRESS' ? "bg-green-500" :
-          analysis?.verdict === 'REGRESSION' ? "bg-red-500" : "bg-blue-500"
+          analysis?.verdict === 'REGRESSION' ? "bg-red-500" : "bg-zinc-500"
         )} />
         
-        {/* Header */}
         <div className="flex justify-between items-start z-10 mb-6">
           <div>
             <h2 className="text-3xl font-black uppercase tracking-tighter italic leading-none">HEAVY<br/>DUTY</h2>
             <p className="text-xs text-zinc-500 font-mono mt-2 tracking-widest uppercase">{new Date().toLocaleDateString()}</p>
           </div>
           <div className="bg-white/5 backdrop-blur-sm p-3 rounded-full border border-white/10 shadow-inner">
-            <Trophy className={cn(
-                "h-6 w-6",
-                analysis?.verdict === 'PROGRESS' ? "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]" : "text-zinc-500"
-            )} />
+            {isFirstSession ? <Flag className="h-6 w-6 text-blue-400" /> : <Trophy className={cn("h-6 w-6", analysis?.verdict === 'PROGRESS' ? "text-yellow-400" : "text-zinc-500")} />}
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1 z-10 flex flex-col justify-center gap-6 relative">
           
-          {/* Verdict - Locked if no analysis */}
           <div className="space-y-2">
             {loading ? (
                <div className="h-4 w-24 bg-zinc-800 rounded animate-pulse" />
-            ) : !hasProAccess ? (
-               <div className="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-1 border bg-zinc-800 border-zinc-700 text-zinc-500">
-                  LOCKED
-               </div>
+            ) : isFirstSession ? (
+                <div className="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-1 border border-blue-500/30 bg-blue-500/10 text-blue-400">
+                    PUNTO DE PARTIDA
+                </div>
             ) : (
                 <div className={cn(
                     "inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-1 border",
                     analysis?.verdict === 'PROGRESS' ? "bg-green-500/10 text-green-400 border-green-500/20" :
                     analysis?.verdict === 'REGRESSION' ? "bg-red-500/10 text-red-400 border-red-500/20" :
-                    "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                    "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
                 )}>
-                    {analysis?.verdict || "ANALYZED"}
+                    {analysis?.verdict || "ANALIZADO"}
                 </div>
             )}
             <h1 className="text-5xl font-black text-white tracking-tighter uppercase break-words leading-[0.9]">
@@ -218,81 +215,45 @@ export default function PostWorkout() {
             </div>
           </div>
 
-          {/* AI Insights Section - Locked View */}
-          {!hasProAccess ? (
-            <div className="relative mt-4 bg-zinc-900/50 rounded-xl p-4 border border-zinc-800/50 overflow-hidden group cursor-pointer" onClick={() => setShowUpgradeModal(true)}>
-               <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-20 flex items-center justify-center flex-col gap-2">
-                 <Lock className="h-6 w-6 text-yellow-500" />
-                 <p className="text-xs font-bold text-yellow-500 uppercase tracking-widest">Análisis Premium</p>
-               </div>
-               
-               {/* Blurred dummy content */}
-               <div className="opacity-30 filter blur-sm space-y-3">
-                 <p className="text-xs font-bold text-zinc-400 flex items-center gap-2 uppercase tracking-wider">
-                   <Dumbbell className="h-3 w-3 text-primary" /> Highlight
-                 </p>
-                 <div className="bg-zinc-800/30 p-4 rounded-xl border-l-2 border-primary">
-                    <p className="text-sm text-zinc-300">Has superado tu PR en Press de Banca por 5kg...</p>
-                 </div>
-                 <p className="text-sm italic text-center">"Excelente trabajo, sigue así."</p>
-               </div>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-3">
-                <p className="text-xs font-bold text-zinc-400 flex items-center gap-2 uppercase tracking-wider">
-                  <Dumbbell className="h-3 w-3 text-primary" /> Highlight
-                </p>
-                {loading ? (
-                    <div className="space-y-2">
-                        <div className="h-16 bg-zinc-800 rounded-xl animate-pulse" />
-                    </div>
-                ) : (
-                    <div className="bg-zinc-800/30 p-4 rounded-xl border-l-2 border-primary">
-                    {analysis?.highlights && analysis.highlights.length > 0 ? (
-                        <ul className="space-y-1">
-                            {analysis.highlights.slice(0, 2).map((h, i) => (
-                                <li key={i} className="text-sm text-zinc-300 leading-tight">• {h}</li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <>
-                            <p className="font-bold text-lg text-white">{bestExercise?.name}</p>
-                            <p className="text-sm text-zinc-400">
-                                {bestExercise?.sets?.length} sets de pura intensidad
-                            </p>
-                        </>
-                    )}
-                    </div>
-                )}
-              </div>
-
-              {/* Coach Quote */}
-              <div className="mt-2 relative">
-                 {loading ? (
-                     <div className="flex gap-2 justify-center items-center h-12">
-                         <Loader2 className="animate-spin h-4 w-4 text-zinc-500"/>
-                     </div>
-                 ) : (
-                    <p className="text-sm font-medium italic text-zinc-400 text-center px-2 leading-relaxed opacity-80">
-                       "{analysis?.coach_quote}"
+          {/* AI Insights */}
+          <div className="space-y-3">
+            <p className="text-xs font-bold text-zinc-400 flex items-center gap-2 uppercase tracking-wider">
+              <Dumbbell className="h-3 w-3 text-primary" /> Highlight
+            </p>
+            {loading ? (
+                <div className="space-y-2">
+                    <div className="h-16 bg-zinc-800 rounded-xl animate-pulse" />
+                </div>
+            ) : (
+                <div className="bg-zinc-900/40 backdrop-blur-sm p-4 rounded-xl border-l-2 border-primary">
+                    <p className="text-sm text-zinc-300 leading-tight">
+                        {analysis?.highlights && analysis.highlights[0] ? analysis.highlights[0] : (isFirstSession ? "Base técnica establecida." : "Entrenamiento registrado.")}
                     </p>
-                 )}
-              </div>
-            </>
-          )}
+                </div>
+            )}
+          </div>
 
+          <div className="mt-2">
+             {loading ? (
+                 <div className="flex justify-center h-12">
+                     <Loader2 className="animate-spin h-4 w-4 text-zinc-500"/>
+                 </div>
+             ) : (
+                <p className="text-sm font-medium italic text-zinc-400 text-center px-2 leading-relaxed opacity-80">
+                   "{analysis?.coach_quote}"
+                </p>
+             )}
+          </div>
         </div>
 
-        {/* Footer */}
         <div className="mt-auto z-10 pt-6 border-t border-white/5 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-white text-black flex items-center justify-center text-xs font-black uppercase">
-              {profile?.display_name?.substring(0, 2) || "ME"}
+              {profile?.display_name?.substring(0, 2) || "HD"}
             </div>
             <div className="flex flex-col">
                <span className="text-xs font-bold text-white">{profile?.display_name || "Atleta"}</span>
-               <span className="text-[10px] text-zinc-500 uppercase">{profile?.discipline || "Athlete"}</span>
+               <span className="text-[10px] text-zinc-500 uppercase">{profile?.discipline || "Heavy Duty"}</span>
             </div>
           </div>
           <div className="flex flex-col items-end">
@@ -301,9 +262,8 @@ export default function PostWorkout() {
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="w-full max-w-[350px] grid grid-cols-2 gap-3 mb-8">
-        <Button variant="outline" className="w-full border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white bg-transparent" onClick={() => navigate('/dashboard')}>
+        <Button variant="outline" className="w-full border-zinc-700 text-zinc-300 hover:bg-zinc-800 bg-transparent" onClick={() => navigate('/dashboard')}>
           <Home className="mr-2 h-4 w-4" /> Inicio
         </Button>
         <Button 
@@ -311,14 +271,8 @@ export default function PostWorkout() {
           onClick={handleShare}
           disabled={sharing || loading}
         >
-          {sharing ? (
-             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : !hasProAccess ? (
-             <Lock className="mr-2 h-4 w-4" />
-          ) : (
-             <Share2 className="mr-2 h-4 w-4" />
-          )}
-          {hasProAccess ? "Compartir" : "Desbloquear"}
+          {sharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
+          Compartir
         </Button>
       </div>
 
