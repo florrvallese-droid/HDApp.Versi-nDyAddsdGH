@@ -12,7 +12,7 @@ import { RestDayModal } from "@/components/dashboard/RestDayModal";
 import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
 import { CoachInvitationAlert } from "@/components/dashboard/CoachInvitationAlert";
 import { toast } from "sonner";
-import { format, subDays } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function AthleteDashboardView() {
@@ -50,7 +50,29 @@ export default function AthleteDashboardView() {
   };
 
   const checkCheckin = async () => {
-    // Lógica de check-in existente...
+    const { data } = await supabase
+      .from('logs')
+      .select('created_at')
+      .eq('user_id', profile!.user_id)
+      .eq('type', 'checkin')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data) {
+      const lastCheckin = new Date(data.created_at);
+      const diff = differenceInDays(new Date(), lastCheckin);
+      setDaysSinceCheckin(diff);
+      
+      // Si pasaron más de 15 días, mostramos el recordatorio
+      if (diff > 15) {
+        setShowCheckinReminder(true);
+      }
+    } else {
+      // Si nunca hizo uno, lo recordamos a los 7 días de registrarse
+      setDaysSinceCheckin(7);
+      setShowCheckinReminder(true);
+    }
   };
 
   return (
