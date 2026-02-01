@@ -62,7 +62,6 @@ export function ExerciseProgressChart({ userId }: ExerciseProgressChartProps) {
           const ex = log.data.exercises?.find((e: any) => e.name === exerciseName);
           if (!ex || !ex.sets || ex.sets.length === 0) return null;
 
-          // Encontrar el mejor set (mayor 1RM estimado)
           const sets = ex.sets.map((s: any) => ({
             weight: s.weight,
             reps: s.reps,
@@ -207,14 +206,24 @@ export function ExerciseProgressChart({ userId }: ExerciseProgressChartProps) {
             </div>
         )}
 
-        <div className="p-2 px-4 bg-zinc-950 border-t border-zinc-900 flex items-center gap-4">
-             <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-red-600" />
-                <span className="text-[8px] text-zinc-500 font-bold uppercase">Serie Lineal</span>
+        <div className="p-4 bg-zinc-950 border-t border-zinc-900 space-y-3">
+             <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-red-600" />
+                    <span className="text-[8px] text-zinc-500 font-bold uppercase">Serie Lineal</span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-red-600 border border-yellow-500" />
+                    <span className="text-[8px] text-zinc-500 font-bold uppercase">Superserie</span>
+                </div>
              </div>
-             <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-red-600 border border-yellow-500" />
-                <span className="text-[8px] text-zinc-500 font-bold uppercase">Superserie (Punto Crítico)</span>
+             
+             <div className="flex items-start gap-2 p-2 bg-zinc-900/50 rounded border border-zinc-800">
+                <Info className="h-3 w-3 text-zinc-500 shrink-0 mt-0.5" />
+                <p className="text-[9px] text-zinc-500 leading-tight">
+                    El 1RM se calcula mediante la **Fórmula de Epley**: `Peso × (1 + Reps / 30)`. 
+                    Representa tu fuerza máxima teórica basada en la mejor serie de cada sesión.
+                </p>
              </div>
         </div>
       </CardContent>
