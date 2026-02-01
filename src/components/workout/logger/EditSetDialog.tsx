@@ -7,6 +7,7 @@ import { WorkoutSet, SetExtension } from "@/types";
 import { IntensitySelector, getTechColor, getTechLabel } from "./IntensitySelector";
 import { X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface EditSetDialogProps {
   open: boolean;
@@ -19,8 +20,8 @@ const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial', 'static'];
 const EXTENSION_TECHNIQUES = ['rest_pause', 'drop_set'];
 
 export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialogProps) {
-  const [weight, setWeight] = useState(set.weight.toString());
-  const [reps, setReps] = useState(set.reps.toString());
+  const [weight, setWeight] = useState(set.weight === 0 && set.reps === 0 && set.techniques?.length ? "" : set.weight.toString());
+  const [reps, setReps] = useState(set.weight === 0 && set.reps === 0 && set.techniques?.length ? "" : set.reps.toString());
   const [tempo, setTempo] = useState(set.tempo || "3-0-1");
   const [isUnilateral, setIsUnilateral] = useState(set.is_unilateral || false);
   const [techniques, setTechniques] = useState<string[]>(set.techniques || []);
@@ -46,6 +47,16 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
   const [dropReps, setDropReps] = useState(dropExt?.reps.toString() || "");
 
   const handleSave = () => {
+    const w = parseFloat(weight) || 0;
+    const r = parseFloat(reps) || 0;
+
+    const hasAnyData = weight !== "" || reps !== "" || techniques.length > 0;
+    
+    if (!hasAnyData) {
+      toast.error("Ingresa al menos un valor");
+      return;
+    }
+
     const finalCounts: Record<string, number> = {};
     Object.keys(techniqueCounts).forEach(key => {
       if (techniques.includes(key) && techniqueCounts[key]) {
@@ -71,8 +82,8 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
 
     onSave({
       ...set,
-      weight: parseFloat(weight) || 0,
-      reps: parseFloat(reps) || 0,
+      weight: w,
+      reps: r,
       tempo,
       is_unilateral: isUnilateral,
       techniques,
@@ -102,6 +113,7 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
                 className="bg-zinc-900 border-zinc-800 text-white font-bold"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
+                placeholder="0"
               />
             </div>
             <div className="space-y-1">
@@ -111,6 +123,7 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
                 className="bg-zinc-900 border-zinc-800 text-white font-bold"
                 value={reps}
                 onChange={(e) => setReps(e.target.value)}
+                placeholder="0"
               />
             </div>
           </div>
@@ -207,17 +220,6 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
                     onChange={(e) => setDropReps(e.target.value)}
                   />
                 </div>
-              </div>
-            )}
-
-            {techniques.length > 0 && !techniques.some(t => [...COUNTABLE_TECHNIQUES, ...EXTENSION_TECHNIQUES].includes(t)) && (
-              <div className="flex flex-wrap gap-1">
-                {techniques.map(tech => (
-                  <span key={tech} className={cn("text-[9px] px-1.5 py-0.5 rounded border flex items-center gap-1", getTechColor(tech))}>
-                    {getTechLabel(tech)}
-                    <X className="w-3 h-3 cursor-pointer hover:text-white" onClick={() => setTechniques(techniques.filter(t => t !== tech))}/>
-                  </span>
-                ))}
               </div>
             )}
           </div>

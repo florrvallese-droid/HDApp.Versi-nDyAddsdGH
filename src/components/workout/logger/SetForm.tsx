@@ -7,6 +7,7 @@ import { X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IntensitySelector, getTechColor, getTechLabel } from "./IntensitySelector";
 import { WorkoutSet, UnitSystem, SetExtension } from "@/types";
+import { toast } from "sonner";
 
 interface SetFormProps {
   units: UnitSystem;
@@ -43,7 +44,16 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
   };
 
   const handleAdd = () => {
-    if (!weight || !reps) return;
+    const w = parseFloat(weight) || 0;
+    const r = parseFloat(reps) || 0;
+    
+    // Nueva validación: permite 0/vacio si hay alguna técnica (como isometría)
+    const hasAnyData = weight !== "" || reps !== "" || techniques.length > 0;
+    
+    if (!hasAnyData) {
+      toast.error("Ingresa al menos un valor");
+      return;
+    }
 
     const finalCounts: Record<string, number> = {};
     Object.keys(techniqueCounts).forEach(key => {
@@ -61,8 +71,8 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
     }
 
     onAddSet({
-      weight: parseFloat(weight),
-      reps: parseFloat(reps),
+      weight: w,
+      reps: r,
       tempo,
       is_unilateral: isUnilateral,
       rest_seconds: parseFloat(rest) * 60,
@@ -88,7 +98,7 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
             <Input type="number" className="bg-zinc-900 border-zinc-800 text-white h-10 font-bold" placeholder="0" value={weight} onChange={(e) => setWeight(e.target.value)} />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px] text-zinc-500 uppercase font-bold">Reps (Al Fallo)</Label>
+            <Label className="text-[10px] text-zinc-500 uppercase font-bold">Reps</Label>
             <Input type="number" className="bg-zinc-900 border-zinc-800 text-white h-10 font-bold" placeholder="0" value={reps} onChange={(e) => setReps(e.target.value)} />
           </div>
         </div>
@@ -153,9 +163,9 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
           <div className="bg-red-950/20 border border-red-900/30 p-2 rounded space-y-2">
             <div className="flex items-center gap-2 text-red-400 text-[10px] font-bold uppercase">Drop Set</div>
             <div className="flex items-center gap-2">
-              <Input type="number" className="h-8 bg-black/50 border-red-900/30 text-xs text-center" placeholder="Peso" value={dropWeight} onChange={(e) => setDropWeight(e.target.value)} />
+              <Input type="number" className="h-8 bg-black/50 border-blue-900/30 text-xs text-center" placeholder="Peso" value={dropWeight} onChange={(e) => setDropWeight(e.target.value)} />
               <ArrowRight className="h-4 w-4 opacity-50" />
-              <Input type="number" className="h-8 bg-black/50 border-red-900/30 text-xs text-center font-bold" placeholder="+Reps" value={dropReps} onChange={(e) => setDropReps(e.target.value)} />
+              <Input type="number" className="h-8 bg-black/50 border-blue-900/30 text-xs text-center font-bold" placeholder="+Reps" value={dropReps} onChange={(e) => setDropReps(e.target.value)} />
             </div>
           </div>
         )}
