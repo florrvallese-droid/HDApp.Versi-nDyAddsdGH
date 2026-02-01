@@ -5,14 +5,27 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
     Users, MessageCircle, Instagram, Calendar, DollarSign, 
-    ShieldCheck, Loader2, Cake, ExternalLink, AlertCircle 
+    ShieldCheck, Loader2, Cake, ExternalLink, AlertCircle, UserMinus, Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function CoachInfo({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
+  const [unlinking, setUnlinking] = useState(false);
   const [assignment, setAssignment] = useState<any>(null);
 
   useEffect(() => {
@@ -47,6 +60,25 @@ export function CoachInfo({ userId }: { userId: string }) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUnlink = async () => {
+    setUnlinking(true);
+    try {
+      const { error } = await supabase
+        .from('coach_assignments')
+        .delete()
+        .eq('athlete_id', userId);
+
+      if (error) throw error;
+
+      toast.success("Has desvinculado a tu preparador");
+      setAssignment(null);
+    } catch (err: any) {
+      toast.error("Error al desvincular: " + err.message);
+    } finally {
+      setUnlinking(false);
     }
   };
 
@@ -176,6 +208,35 @@ export function CoachInfo({ userId }: { userId: string }) {
            </div>
         </CardContent>
       </Card>
+
+      {/* ZONA DE PELIGRO */}
+      <div className="pt-4">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" className="w-full text-red-900 hover:text-red-500 hover:bg-red-950/20 text-[10px] font-black uppercase tracking-widest">
+              <UserMinus className="w-3 h-3 mr-2" /> Desvincular de mi preparador
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-zinc-950 border-zinc-800 text-white">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-red-500 font-black uppercase italic">¿Confirmar desvinculación?</AlertDialogTitle>
+              <AlertDialogDescription className="text-zinc-400">
+                Al desvincularte, el coach ya no podrá ver tus registros, ni ajustar tu nutrición o tus rutinas. Deberás ser invitado nuevamente si deseas retomar el vínculo.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white">Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleUnlink}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold"
+                disabled={unlinking}
+              >
+                {unlinking ? "Procesando..." : "Sí, desvincular"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
 
     </div>
   );
