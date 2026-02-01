@@ -1,5 +1,7 @@
+"use client";
+
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Home, Dumbbell, Utensils, User, TrendingUp, Users } from "lucide-react";
+import { Home, Dumbbell, Utensils, User, TrendingUp, Users, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -13,10 +15,13 @@ export default function AppLayout() {
     profile?.is_coach 
       ? { label: "Equipo", icon: Users, path: "/coach" }
       : { label: "Train", icon: Dumbbell, path: "/workout" },
-    ...(!profile?.is_coach ? [
-      { label: "Nutri", icon: Utensils, path: "/nutrition" },
-      { label: "Audit", icon: TrendingUp, path: "/analysis" }
-    ] : []),
+    ...(profile?.is_coach 
+      ? [{ label: "Negocio", icon: Briefcase, path: "/coach/business" }]
+      : [
+          { label: "Nutri", icon: Utensils, path: "/nutrition" },
+          { label: "Audit", icon: TrendingUp, path: "/analysis" }
+        ]
+    ),
     { label: "Perfil", icon: User, path: "/settings" },
   ];
 

@@ -131,15 +131,15 @@ export default function CoachAthleteDetail() {
         </div>
       </div>
 
-      <Tabs defaultValue="progreso" className="space-y-6">
+      <Tabs defaultValue="historial" className="space-y-6">
         <TabsList className="w-full bg-zinc-900 border border-zinc-800 p-1">
-          <TabsTrigger value="progreso" className="flex-1 text-[9px] uppercase font-black"><TrendingUp className="w-3 h-3 mr-1.5"/> Log</TabsTrigger>
+          <TabsTrigger value="historial" className="flex-1 text-[9px] uppercase font-black"><TrendingUp className="w-3 h-3 mr-1.5"/> Historial</TabsTrigger>
           <TabsTrigger value="protocolos" className="flex-1 text-[9px] uppercase font-black"><ClipboardList className="w-3 h-3 mr-1.5"/> Protocol</TabsTrigger>
           <TabsTrigger value="competencia" className="flex-1 text-[9px] uppercase font-black"><Trophy className="w-3 h-3 mr-1.5 text-yellow-500"/> Show</TabsTrigger>
           <TabsTrigger value="finanzas" className="flex-1 text-[9px] uppercase font-black"><DollarSign className="w-3 h-3 mr-1.5"/> Biz</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="progreso" className="space-y-4 animate-in slide-in-from-left-2">
+        <TabsContent value="historial" className="space-y-4 animate-in slide-in-from-left-2">
              {logs.length === 0 ? (
                 <div className="text-center py-20 bg-zinc-950 border border-dashed border-zinc-900 rounded-2xl"><p className="text-zinc-600 text-xs font-bold uppercase">Sin actividad</p></div>
              ) : (
