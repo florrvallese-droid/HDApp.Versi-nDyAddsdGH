@@ -15,7 +15,7 @@ interface SetFormProps {
   isSuperset: boolean;
 }
 
-const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial'];
+const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial', 'static'];
 const EXTENSION_TECHNIQUES = ['rest_pause', 'drop_set'];
 
 export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormProps) {
@@ -123,8 +123,16 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
           <div className="bg-zinc-900/50 p-2 rounded border border-zinc-800/50 grid grid-cols-2 gap-2">
             {techniques.filter(t => COUNTABLE_TECHNIQUES.includes(t)).map(tech => (
               <div key={tech} className="flex items-center gap-2">
-                <span className={cn("text-[10px] font-bold uppercase", getTechColor(tech).split(' ')[0])}>+ {getTechLabel(tech)}</span>
-                <Input type="number" className="h-7 w-full text-xs text-center bg-zinc-950 border-zinc-800" value={techniqueCounts[tech] || ""} onChange={(e) => handleTechniqueCountChange(tech, e.target.value)} />
+                <span className={cn("text-[10px] font-bold uppercase", getTechColor(tech).split(' ')[0])}>
+                    {tech === 'static' ? 'Hold' : `+ ${getTechLabel(tech)}`}
+                </span>
+                <Input 
+                    type="number" 
+                    className="h-7 w-full text-xs text-center bg-zinc-950 border-zinc-800" 
+                    placeholder={tech === 'static' ? "seg" : "#"}
+                    value={techniqueCounts[tech] || ""} 
+                    onChange={(e) => handleTechniqueCountChange(tech, e.target.value)} 
+                />
               </div>
             ))}
           </div>

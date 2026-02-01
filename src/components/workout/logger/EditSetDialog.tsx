@@ -15,7 +15,7 @@ interface EditSetDialogProps {
   onSave: (updatedSet: WorkoutSet) => void;
 }
 
-const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial'];
+const COUNTABLE_TECHNIQUES = ['forced_reps', 'partial', 'static'];
 const EXTENSION_TECHNIQUES = ['rest_pause', 'drop_set'];
 
 export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialogProps) {
@@ -150,12 +150,12 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
                 {techniques.filter(t => COUNTABLE_TECHNIQUES.includes(t)).map(tech => (
                   <div key={tech} className="flex items-center gap-2">
                     <span className={cn("text-[10px] font-bold uppercase", getTechColor(tech).split(' ')[0])}>
-                      + {getTechLabel(tech)}
+                      {tech === 'static' ? 'Hold' : `+ ${getTechLabel(tech)}`}
                     </span>
                     <Input 
                       type="number" 
                       className="h-7 w-14 text-xs text-center bg-zinc-950 border-zinc-800"
-                      placeholder="#"
+                      placeholder={tech === 'static' ? "seg" : "#"}
                       value={techniqueCounts[tech] || ""}
                       onChange={(e) => handleTechniqueCountChange(tech, e.target.value)}
                     />
@@ -193,7 +193,7 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
                 <div className="flex items-center gap-2">
                   <Input 
                     type="number"
-                    className="h-8 bg-black/50 border-red-900/30 text-xs text-center text-white"
+                    className="h-8 bg-black/50 border-blue-900/30 text-xs text-center text-white"
                     placeholder="Nuevo Peso"
                     value={dropWeight}
                     onChange={(e) => setDropWeight(e.target.value)}
@@ -201,7 +201,7 @@ export function EditSetDialog({ open, onOpenChange, set, onSave }: EditSetDialog
                   <ArrowRight className="h-4 w-4 text-red-500/50" />
                   <Input 
                     type="number"
-                    className="h-8 bg-black/50 border-red-900/30 text-xs text-center text-white font-bold"
+                    className="h-8 bg-black/50 border-blue-900/30 text-xs text-center text-white font-bold"
                     placeholder="+ Reps"
                     value={dropReps}
                     onChange={(e) => setDropReps(e.target.value)}
