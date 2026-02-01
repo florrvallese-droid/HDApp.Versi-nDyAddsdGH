@@ -22,7 +22,7 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
     const { userId, email, planType, referralCode, backUrl } = await req.json();
 
-    // PRECIOS BASE
+    // PRECIOS BASE (Ajustados a una escala más realista si fuera necesario)
     let price = planType === 'yearly' ? 89000 : 9900; 
     let discountApplied = false;
 
@@ -36,14 +36,14 @@ serve(async (req) => {
         .maybeSingle();
 
       if (coach) {
-        // APLICAR 20% DE DESCUENTO
-        price = Math.round(price * 0.8);
+        // APLICAR 10% DE DESCUENTO (Sostenible como costo de marketing)
+        price = Math.round(price * 0.9);
         discountApplied = true;
-        console.log(`[create-mp-subscription] Descuento del coach ${coach.user_id} aplicado.`);
+        console.log(`[create-mp-subscription] Descuento del 10% aplicado via coach ${coach.user_id}`);
       }
     }
 
-    const title = `Heavy Duty PRO ${discountApplied ? '(Desc. Coach)' : ''} - ${planType === 'yearly' ? 'Anual' : 'Mensual'}`;
+    const title = `Heavy Duty PRO ${discountApplied ? '(Plan Equipo)' : ''} - ${planType === 'yearly' ? 'Anual' : 'Mensual'}`;
 
     const body = {
       reason: title,

@@ -143,7 +143,7 @@ export function BillingSettings() {
                  {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Conectando...</> : "Suscribirse con Mercado Pago"}
                </Button>
                <p className="text-[10px] text-zinc-500 text-center">
-                  El descuento se aplicará automáticamente al procesar el pago si el código es válido.
+                  Si perteneces al equipo de un coach oficial, obtendrás un 10% de descuento adicional.
                </p>
             </CardFooter>
           </Card>
