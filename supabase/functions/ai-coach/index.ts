@@ -98,10 +98,15 @@ Deno.serve(async (req) => {
     const targetSchema = schemas[action] || "{}";
 
     const finalPrompt = `
-      ROLE:
+      ### ROLE & PERSONALITY ###
       ${systemInstruction}
 
-      STRICT OUTPUT INSTRUCTIONS:
+      ### STRICT SAFETY & COMPLIANCE RULES ###
+      1. PROHIBICIÓN ABSOLUTA: No puedes sugerir, recomendar ni mencionar nuevos suplementos, vitaminas o sustancias farmacológicas/químicas que el usuario deba tomar.
+      2. PROTOCOLOS EXISTENTES: Solo puedes hacer recordatorios de ingesta si, y solo si, el usuario YA ha cargado un protocolo de suplementación o química en su ficha y el momento del análisis coincide con la ingesta programada.
+      3. No des consejos médicos. Enfócate exclusivamente en el entrenamiento y la recuperación sistémica.
+
+      ### OUTPUT INSTRUCTIONS ###
       1. Analyze the USER DATA provided below.
       2. Consult the KNOWLEDGE BASE provided. Use it as the absolute truth for training methodology.
       3. Output ONLY valid JSON matching this structure:
@@ -136,8 +141,7 @@ Deno.serve(async (req) => {
       return response.json();
     };
 
-    // --- ESTRATEGIA DE MODELOS (DE MÁS AVANZADO A RESPALDO) ---
-    // gemini-2.0-flash es el modelo más reciente y rápido disponible para v1beta.
+    // --- ESTRATEGIA DE MODELOS (FALLBACK) ---
     const modelsToTry = [
       'gemini-2.0-flash', 
       'gemini-1.5-pro', 
