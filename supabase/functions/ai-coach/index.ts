@@ -30,11 +30,9 @@ Deno.serve(async (req) => {
     const { action, tone, data, userId } = body;
     if (!action || !data) throw new Error("Bad Request: Missing 'action' or 'data'.");
 
-    console.log(`[ai-coach] Request: ${action} (${tone})`);
-
     // 1. Fetch Prompt (Personality)
-    let systemInstruction = `Sos un entrenador experto en Heavy Duty.`;
-    let promptVersion = "v1.5-context-aware";
+    let systemInstruction = `Sos un analista experto en Heavy Duty.`;
+    let promptVersion = "v2.0-analysis-only";
 
     try {
       const { data: promptData } = await supabase
@@ -70,67 +68,57 @@ Deno.serve(async (req) => {
       console.error("[ai-coach] DB Knowledge Error:", kbErr);
     }
 
-    // 3. Define Context-Aware Post-Workout Instructions
-    const postWorkoutInstructions = `
-      ### CONTEXTO DE INTENSIDAD (SOBRECARGA PROGRESIVA) ###
-      - Si un ejercicio tiene la propiedad "is_superset": true, significa que el atleta lo realizó combinado con otro sin descanso.
-      - IMPORTANTE: Una bajada en la carga (peso o reps) NO es necesariamente una regresión si el ejercicio se movió de "aislado" a "superserie". La fatiga sistémica acumulada justifica un rendimiento numérico menor pero una intensidad metabólica mayor.
-      - Tu análisis de "verdict" debe priorizar el esfuerzo relativo y la técnica sobre el número absoluto si hay cambios en el formato de la sesión.
+    // REGLAS GLOBALES DE COMPORTAMIENTO (Fase 3: El Juicio)
+    const globalConstrains = `
+      ### REGLAS DE ORO DEL SISTEMA (ESTRICTAS) ###
+      1. ROL: Sos un ANALISTA DE DATOS, no un planificador. Tu trabajo es EVALUAR lo que ya pasó o el estado actual.
+      2. PROHIBICIÓN: No des pasos a seguir, no sugieras ejercicios nuevos, no des planes de entrenamiento ni sugerencias de qué hacer mañana. No reemplaces al coach humano.
+      3. OBJETIVO: Da un análisis crítico basado en la evidencia de los logs. 
+      4. PERSONALIDAD: Debes mantener el tono "${tone}" en cada palabra. Si sos "strict", sé crudo y directo. Si sos "analytical", hablá de tendencias y métricas.
+      5. NO RECOMENDACIONES: El campo "recommendations" en el JSON debe limitarse a observaciones de cuidado o avisos, no a "hacé X serie mañana".
     `;
 
     const schemas = {
-      preworkout: `
-      {
+      preworkout: `{
         "decision": "TRAIN_HEAVY" | "TRAIN_LIGHT" | "REST",
-        "rationale": "Detailed explanation...",
-        "recommendations": ["Tip 1", "Tip 2"]
+        "rationale": "Análisis del estado sistémico del atleta...",
+        "recommendations": ["Observación 1", "Observación 2"]
       }`,
-      postworkout: `
-      {
+      postworkout: `{
         "verdict": "PROGRESS" | "PLATEAU" | "REGRESSION",
-        "highlights": ["Achievement 1"],
-        "corrections": ["Correction 1"],
-        "coach_quote": "Motivational quote",
-        "judgment": "Detailed Markdown report for Phase 3"
+        "highlights": ["Hito detectado"],
+        "corrections": ["Falla técnica/numérica detectada"],
+        "coach_quote": "Frase de cierre según tu personalidad",
+        "judgment": "Análisis profundo en Markdown sobre el rendimiento de hoy vs el pasado."
       }`,
-      globalanalysis: `
-      {
-        "top_patterns": [{"pattern": "...", "evidence": "...", "action": "..."}],
+      globalanalysis: `{
+        "top_patterns": [{"pattern": "...", "evidence": "...", "action": "Observación para el coach humano"}],
         "performance_insights": {"best_performing_conditions": "...", "worst_performing_conditions": "...", "optimal_frequency": "..."},
-        "red_flags": ["..."],
-        "next_14_days_plan": ["..."],
-        "overall_assessment": "..."
+        "red_flags": ["Alertas de salud/estancamiento"],
+        "next_14_days_plan": ["Tendencias a observar"],
+        "overall_assessment": "Análisis macroscópico del progreso mensual."
       }`
     };
 
-    const targetSchema = schemas[action] || "{}";
-
     const finalPrompt = `
-      ### ROLE & PERSONALITY ###
+      ${globalConstrains}
+
+      ### PERSONALIDAD Y CONTEXTO ###
       ${systemInstruction}
 
-      ### STRICT SAFETY & COMPLIANCE RULES ###
-      1. PROHIBICIÓN ABSOLUTA: No puedes sugerir, recomendar ni mencionar nuevos suplementos, sustancias farmacológicas o químicas.
-      2. Solo puedes hacer recordatorios si el usuario YA los tiene en su protocolo.
-      3. No des consejos médicos.
+      ### FUENTE DE VERDAD (CONOCIMIENTO HEAVY DUTY) ###
+      ${knowledgeContext}
 
-      ${action === 'postworkout' ? postWorkoutInstructions : ''}
+      ### INSTRUCCIONES DE SALIDA ###
+      Analiza los datos del usuario y genera un informe puramente descriptivo y analítico.
+      No des órdenes. No des planes.
+      Responde SOLO en formato JSON:
+      ${schemas[action] || "{}"}
 
-      ### OUTPUT INSTRUCTIONS ###
-      1. Analyze the USER DATA provided below.
-      2. Consult the KNOWLEDGE BASE provided. Use it as the absolute truth for training methodology.
-      3. Output ONLY valid JSON matching this structure:
-      ${targetSchema}
-
-      NO markdown formatting outside the "judgment" or "overall_assessment" fields. Just raw JSON.
-
-      ${knowledgeContext ? `### KNOWLEDGE BASE (HEAVY DUTY PRINCIPLES) ###\n${knowledgeContext}\n` : ''}
-
-      ### USER DATA ###
+      ### DATOS DEL ATLETA ###
       ${JSON.stringify(data)}
     `;
 
-    // Función interna para llamar a la API
     const callGemini = async (modelName: string) => {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
@@ -139,19 +127,16 @@ Deno.serve(async (req) => {
           contents: [{ parts: [{ text: finalPrompt }] }],
           generationConfig: { 
             response_mime_type: "application/json",
-            temperature: 0.4
+            temperature: 0.5 // Un poco más de temperatura para que la personalidad brille
           }
         })
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Model ${modelName} failed (${response.status}): ${errorText}`);
-      }
+      if (!response.ok) throw new Error(`Model ${modelName} failed`);
       return response.json();
     };
 
-    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-pro'];
     let aiResult = null;
     let usedModel = "";
 
@@ -160,23 +145,14 @@ Deno.serve(async (req) => {
             aiResult = await callGemini(model);
             usedModel = model;
             break; 
-        } catch (err) {
-            console.warn(`[ai-coach] Error en ${model}`);
-        }
+        } catch (err) { console.warn(`[ai-coach] ${model} fail`); }
     }
 
     if (!aiResult) throw new Error("IA failure");
     
     const generatedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!generatedText) throw new Error("IA Empty output");
-
-    let parsedOutput;
-    try {
-      const cleanedText = generatedText.replace(/```json\n?|\n?```/g, "").trim();
-      parsedOutput = JSON.parse(cleanedText);
-    } catch (e) {
-      throw new Error("Invalid JSON Output");
-    }
+    const cleanedText = generatedText.replace(/```json\n?|\n?```/g, "").trim();
+    const parsedOutput = JSON.parse(cleanedText);
 
     supabase.from('ai_logs').insert({
       user_id: userId || null, 
