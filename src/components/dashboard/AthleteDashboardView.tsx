@@ -16,6 +16,8 @@ import { WeeklyCheckinModal } from "@/components/dashboard/WeeklyCheckinModal";
 import { format, differenceInDays, isAfter } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function AthleteDashboardView() {
   const navigate = useNavigate();

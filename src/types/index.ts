@@ -25,7 +25,7 @@ export interface UserProfile {
   referral_code?: string;
   business_info?: {
     brand_name?: string;
-    brand_logo_url?: string; // Propiedad añadida para corregir errores de compilación
+    brand_logo_url?: string;
     bio?: string;
     instagram?: string;
     whatsapp?: string;
@@ -78,7 +78,19 @@ export interface Competition {
     category?: string;
     location?: string;
     notes?: string;
-    peak_week_protocol?: any;
+    peak_week_protocol?: {
+        carb_load?: string;
+        water_depletion?: string;
+        sodium_protocol?: string;
+        final_adjustment?: string;
+    };
+    results?: {
+        rank?: string;
+        condition_score?: number; // 1-10
+        strengths?: string;
+        weaknesses?: string;
+        coach_feedback?: string;
+    };
     status: 'scheduled' | 'completed' | 'cancelled';
 }
 
