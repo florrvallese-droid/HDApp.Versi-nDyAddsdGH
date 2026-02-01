@@ -33,6 +33,7 @@ import FeatureFlags from "./pages/admin/FeatureFlags";
 // Coach Pages
 import CoachDashboard from "./pages/coach/CoachDashboard";
 import CoachAthleteDetail from "./pages/coach/CoachAthleteDetail";
+import CoachBusiness from "./pages/coach/CoachBusiness";
 
 const queryClient = new QueryClient();
 
@@ -44,12 +45,10 @@ const App = () => {
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
-            {/* Public Routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/onboarding" element={<Onboarding />} />
 
-            {/* User App Routes (With Bottom Nav) */}
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/workout" element={<WorkoutLogger />} />
@@ -59,17 +58,14 @@ const App = () => {
               <Route path="/pharmacology" element={<Pharmacology />} />
               <Route path="/settings" element={<Settings />} />
               
-              {/* Coach Routes */}
               <Route path="/coach" element={<CoachDashboard />} />
               <Route path="/coach/athlete/:athleteId" element={<CoachAthleteDetail />} />
+              <Route path="/coach/business" element={<CoachBusiness />} />
             </Route>
             
-            {/* Standalone User Pages */}
             <Route path="/workout/analysis" element={<PostWorkout />} />
 
-            {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
-            
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="prompts" element={<PromptManager />} />
@@ -78,7 +74,6 @@ const App = () => {
               <Route path="flags" element={<FeatureFlags />} />
             </Route>
 
-            {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

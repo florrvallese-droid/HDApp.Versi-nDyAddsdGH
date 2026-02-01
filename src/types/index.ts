@@ -28,6 +28,11 @@ export interface UserProfile {
     instagram?: string;
     whatsapp?: string;
     specialty?: string;
+    plans?: Array<{
+      name: string;
+      price: string;
+      features: string;
+    }>;
   };
   
   // Premium

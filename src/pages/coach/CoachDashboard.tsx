@@ -7,14 +7,14 @@ import { supabase } from "@/services/supabase";
 import { 
   Users, Activity, ChevronRight, Search, UserCheck, Loader2, UserPlus, 
   Settings, LogOut, DollarSign, AlertCircle, Cake, ClipboardCheck, TrendingUp,
-  UserMinus
+  UserMinus, Briefcase
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { AddAthleteModal } from "@/components/coach/AddAthleteModal";
 import { cn } from "@/lib/utils";
-import { format, isSameDay, parseISO } from "date-fns";
+import { format } from "date-fns";
 
 export default function CoachDashboard() {
   const navigate = useNavigate();
@@ -36,7 +36,6 @@ export default function CoachDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // 1. Fetch Assignments with Profile Data
       const { data: assignments, error } = await supabase
         .from('coach_assignments')
         .select(`
@@ -59,7 +58,6 @@ export default function CoachDashboard() {
 
       if (error) throw error;
 
-      // 2. Fetch Unreviewed Checkins for these athletes
       const athleteIds = assignments?.map(a => a.athlete_id) || [];
       const { data: checkins } = await supabase
         .from('logs')
@@ -68,7 +66,6 @@ export default function CoachDashboard() {
         .eq('type', 'checkin')
         .order('created_at', { ascending: false });
 
-      // 3. Process Stats
       const today = new Date();
       let lateCount = 0;
       let reviewCount = 0;
@@ -79,8 +76,7 @@ export default function CoachDashboard() {
         const lastReview = a.last_checkin_reviewed_at;
         const lastCheckin = checkins?.find(c => c.user_id === a.athlete_id);
         
-        const isLate = a.payment_status !== 'up_to_date';
-        if (isLate) lateCount++;
+        if (a.payment_status !== 'up_to_date') lateCount++;
 
         const needsReview = lastCheckin && (!lastReview || new Date(lastCheckin.created_at) > new Date(lastReview));
         if (needsReview) reviewCount++;
@@ -92,25 +88,13 @@ export default function CoachDashboard() {
             }
         }
 
-        return {
-          ...profile,
-          status: a.status,
-          payment_status: a.payment_status,
-          monthly_fee: a.monthly_fee,
-          needsReview
-        };
+        return { ...profile, status: a.status, payment_status: a.payment_status, monthly_fee: a.monthly_fee, needsReview };
       }) || [];
 
       setData({
         clients: processedClients,
-        stats: {
-          active: processedClients.filter(c => c.status === 'active').length,
-          late: lateCount,
-          pendingReview: reviewCount,
-          birthdays: birthdayCount
-        }
+        stats: { active: processedClients.filter(c => c.status === 'active').length, late: lateCount, pendingReview: reviewCount, birthdays: birthdayCount }
       });
-
     } catch (err: any) {
       toast.error("Error: " + err.message);
     } finally {
@@ -127,19 +111,17 @@ export default function CoachDashboard() {
       
       <AddAthleteModal open={showAddModal} onOpenChange={setShowAddModal} onSuccess={fetchCoachData} />
 
-      {/* Header */}
       <div className="flex justify-between items-start">
         <div>
             <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">Business Unit</h1>
             <p className="text-red-500 text-xs font-bold uppercase tracking-widest">Gestión de Equipo Di Iorio</p>
         </div>
         <div className="flex gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/coach/business')} className="text-yellow-500 hover:bg-yellow-950/20 border border-yellow-900/30"><Briefcase className="w-5 h-5" /></Button>
             <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-zinc-500"><Settings className="w-5 h-5" /></Button>
-            <Button variant="ghost" size="icon" onClick={async () => { await supabase.auth.signOut(); navigate('/'); }} className="text-red-500 hover:bg-red-950/20"><LogOut className="w-5 h-5" /></Button>
         </div>
       </div>
 
-      {/* Metrics Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard label="Activos" value={data.stats.active} icon={<Users className="w-4 h-4 text-blue-500" />} />
         <MetricCard label="Deuda" value={data.stats.late} icon={<AlertCircle className="w-4 h-4 text-red-500" />} color="text-red-500" />
@@ -147,7 +129,6 @@ export default function CoachDashboard() {
         <MetricCard label="Cumpleaños" value={data.stats.birthdays} icon={<Cake className="w-4 h-4 text-pink-500" />} color="text-pink-500" />
       </div>
 
-      {/* Action Bar */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-600" />
@@ -158,15 +139,11 @@ export default function CoachDashboard() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button 
-            className="bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-[10px] h-11 px-6 shadow-lg shadow-red-900/20"
-            onClick={() => setShowAddModal(true)}
-        >
+        <Button className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[10px] h-11 px-6 shadow-lg shadow-red-900/20" onClick={() => setShowAddModal(true)}>
             <UserPlus className="h-4 w-4 mr-2" /> Nuevo Alumno
         </Button>
       </div>
 
-      {/* Client List */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-zinc-500 text-[10px] font-black uppercase tracking-widest px-1">
            <TrendingUp className="h-3 w-3" /> Estado de Alumnos
@@ -176,18 +153,15 @@ export default function CoachDashboard() {
            <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-red-600 h-8 w-8" /></div>
         ) : filteredClients.length === 0 ? (
           <div className="text-center py-20 bg-zinc-950 border border-dashed border-zinc-900 rounded-2xl">
-            <p className="text-zinc-600 text-sm font-bold uppercase">Sin resultados en tu equipo</p>
+            <p className="text-zinc-600 text-sm font-bold uppercase">Sin resultados</p>
           </div>
         ) : (
           <div className="grid gap-3">
             {filteredClients.map((client: any) => (
               <Card 
                 key={client.user_id} 
-                className={cn(
-                    "bg-zinc-950 border-zinc-900 transition-all hover:border-zinc-800 group",
-                    client.status !== 'active' && "opacity-50 grayscale"
-                )}
-                onClick={() => client.is_premium && navigate(`/coach/athlete/${client.user_id}`)}
+                className={cn("bg-zinc-950 border-zinc-900 transition-all hover:border-zinc-800 group", client.status !== 'active' && "opacity-50 grayscale")}
+                onClick={() => navigate(`/coach/athlete/${client.user_id}`)}
               >
                 <CardContent className="p-4 flex items-center justify-between cursor-pointer">
                   <div className="flex items-center gap-4 flex-1">
@@ -204,12 +178,11 @@ export default function CoachDashboard() {
                       <div className="flex items-center gap-2">
                         <span className="font-black uppercase text-sm text-white group-hover:text-red-500 transition-colors">{client.display_name}</span>
                         {client.payment_status === 'late' && <Badge variant="destructive" className="text-[8px] h-4">DEUDA</Badge>}
-                        {!client.is_premium && <Badge variant="outline" className="text-[8px] h-4 text-zinc-600">FREE APP</Badge>}
                       </div>
-                      <div className="flex gap-2 items-center">
-                         <span className="text-[10px] text-zinc-500 font-bold uppercase">{client.discipline}</span>
-                         <span className="text-[10px] text-zinc-700">•</span>
-                         <span className="text-[10px] text-green-600 font-mono font-bold">${client.monthly_fee}</span>
+                      <div className="flex gap-2 items-center text-[10px] text-zinc-500 font-bold uppercase">
+                         <span>{client.discipline}</span>
+                         <span>•</span>
+                         <span className="text-green-600 font-mono">${client.monthly_fee}</span>
                       </div>
                     </div>
                   </div>
@@ -220,7 +193,6 @@ export default function CoachDashboard() {
           </div>
         )}
       </div>
-
     </div>
   );
 }
