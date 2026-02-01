@@ -184,7 +184,7 @@ export default function CoachBusiness() {
                     desc="Situación crítica. El atleta ha ignorado los avisos. Úsalo como filtro previo a la suspensión del servicio."
                 />
                 <StatusInfoItem 
-                    title="Beca / Cortesía" 
+                    title="Cortesía" 
                     color="text-blue-400" 
                     desc="Atletas que no pagan (colaboraciones, favores, amigos). Se ignoran de las métricas de deuda y no requieren registro de pago."
                 />

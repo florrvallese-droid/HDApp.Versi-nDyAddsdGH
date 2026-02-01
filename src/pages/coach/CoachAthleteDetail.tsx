@@ -78,7 +78,7 @@ export default function CoachAthleteDetail() {
             user_id: athleteId,
             title: "Actualización de ficha",
             message: paymentStatus === 'scholarship' 
-                ? "Tu coach te ha asignado una Beca/Cortesía. ¡Aprovecha el máximo rendimiento!"
+                ? "Tu coach te ha asignado un acceso por Cortesía. ¡Aprovecha el máximo rendimiento!"
                 : `Tu coach ha actualizado tu ficha de cobro. Cuota: $${fee}.`,
             type: 'billing_update'
         });
@@ -144,7 +144,7 @@ export default function CoachAthleteDetail() {
                 paymentStatus === 'scholarship' ? "bg-blue-600" : "bg-red-600"
              )}>
                 {paymentStatus === 'up_to_date' ? "AL DÍA" : 
-                 paymentStatus === 'scholarship' ? "BECA / FAVOR" : "DEUDA"}
+                 paymentStatus === 'scholarship' ? "CORTESÍA" : "DEUDA"}
              </Badge>
              <span className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">{profile?.discipline}</span>
           </div>
@@ -187,7 +187,7 @@ export default function CoachAthleteDetail() {
         </TabsContent>
 
         <TabsContent value="finanzas" className="space-y-6 animate-in slide-in-from-bottom-2">
-            <Card className="bg-zinc-950 border-zinc-900">
+            <Card className="bg-zinc-950 border-zinc-800">
                 <CardHeader>
                     <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-green-500" /> Gestión de Cobro
@@ -215,7 +215,7 @@ export default function CoachAthleteDetail() {
                                 <option value="up_to_date">✅ Al Día</option>
                                 <option value="late">⚠️ Con Deuda</option>
                                 <option value="unpaid">🛑 Impago</option>
-                                <option value="scholarship">💎 Beca / Favor</option>
+                                <option value="scholarship">💎 Cortesía</option>
                             </select>
                         </div>
                     </div>
@@ -231,7 +231,7 @@ export default function CoachAthleteDetail() {
                         )}
                         {paymentStatus === 'scholarship' && (
                             <div className="flex-1 bg-blue-900/20 border border-blue-800 rounded-md flex items-center justify-center text-[9px] font-black uppercase text-blue-400">
-                                <Gift className="h-3 w-3 mr-2" /> Atleta Becado
+                                <Gift className="h-3 w-3 mr-2" /> Atleta por Cortesía
                             </div>
                         )}
                     </div>
@@ -241,7 +241,7 @@ export default function CoachAthleteDetail() {
             <div className="bg-zinc-900/30 p-4 rounded-xl border border-zinc-800 flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-zinc-500 shrink-0 mt-0.5" />
                 <p className="text-xs text-zinc-400 leading-relaxed">
-                   Si cambias el estado a <strong>Beca</strong>, el sistema ignorará las métricas de deuda para este alumno. El atleta recibirá una notificación push sobre cualquier cambio en su ficha.
+                   Si cambias el estado a <strong>Cortesía</strong>, el sistema ignorará las métricas de deuda para este alumno. El atleta recibirá una notificación push sobre cualquier cambio en su ficha.
                 </p>
             </div>
         </TabsContent>
