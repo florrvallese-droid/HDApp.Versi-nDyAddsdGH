@@ -32,6 +32,7 @@ import FeatureFlags from "./pages/admin/FeatureFlags";
 
 // Coach Pages
 import CoachDashboard from "./pages/coach/CoachDashboard";
+import CoachAthleteDetail from "./pages/coach/CoachAthleteDetail";
 
 const queryClient = new QueryClient();
 
@@ -58,8 +59,9 @@ const App = () => {
               <Route path="/pharmacology" element={<Pharmacology />} />
               <Route path="/settings" element={<Settings />} />
               
-              {/* Coach Dashboard inside AppLayout if preferred, or separate */}
+              {/* Coach Routes */}
               <Route path="/coach" element={<CoachDashboard />} />
+              <Route path="/coach/athlete/:athleteId" element={<CoachAthleteDetail />} />
             </Route>
             
             {/* Standalone User Pages */}
