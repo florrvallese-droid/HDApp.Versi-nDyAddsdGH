@@ -3,7 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Trash2, Calendar, Dumbbell, Clock, Plus, History, Trophy, TrendingUp, ChevronLeft } from "lucide-react";
+import { 
+  Trash2, Calendar, Dumbbell, Clock, Plus, History, Trophy, TrendingUp, ChevronLeft, 
+  Link2, Zap, MoreHorizontal, X
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
@@ -16,6 +19,18 @@ import { WorkoutDetailDialog } from "@/components/workout/WorkoutDetailDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RestTimer } from "@/components/workout/RestTimer";
 import { ExerciseSelector } from "@/components/workout/ExerciseSelector";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+const INTENSITY_TECHNIQUES = [
+  { id: "rest_pause", label: "Rest Pause", short: "RP", color: "text-blue-400 border-blue-400" },
+  { id: "drop_set", label: "Drop Set", short: "DROP", color: "text-red-400 border-red-400" },
+  { id: "forced_reps", label: "Forzadas", short: "FORCE", color: "text-orange-400 border-orange-400" },
+  { id: "negatives", label: "Negativas", short: "NEG", color: "text-purple-400 border-purple-400" },
+  { id: "static", label: "Isometría", short: "ISO", color: "text-yellow-400 border-yellow-400" },
+  { id: "partial", label: "Parciales", short: "PART", color: "text-zinc-400 border-zinc-400" },
+];
 
 export default function WorkoutLogger() {
   const navigate = useNavigate();
@@ -39,8 +54,9 @@ export default function WorkoutLogger() {
   // New Exercise Input
   const [newExerciseName, setNewExerciseName] = useState("");
   
-  // New Set Inputs (Map by exercise index to allow multiple forms if needed, for now simple state)
-  const [setInputs, setSetInputs] = useState<Record<number, { weight: string, reps: string, tempo: string, rest: string }>>({});
+  // New Set Inputs
+  // Added 'techniques' array to the state
+  const [setInputs, setSetInputs] = useState<Record<number, { weight: string, reps: string, tempo: string, rest: string, techniques: string[] }>>({});
 
   useEffect(() => {
     if (view === 'history') {
@@ -109,6 +125,7 @@ export default function WorkoutLogger() {
     const newEx: WorkoutExercise = {
       name: newExerciseName,
       sets: [],
+      is_superset: false,
       previous: prevStats ? {
         weight: prevStats.sets[0]?.weight || 0,
         reps: prevStats.sets[0]?.reps || 0
@@ -124,7 +141,8 @@ export default function WorkoutLogger() {
             weight: prevStats?.sets[0]?.weight?.toString() || "",
             reps: "",
             tempo: prevStats?.sets[0]?.tempo || "3-0-1",
-            rest: "2"
+            rest: "2",
+            techniques: []
         }
     }));
 
@@ -136,11 +154,24 @@ export default function WorkoutLogger() {
     }
   };
 
-  const handleSetInputChange = (index: number, field: string, value: string) => {
+  const handleSetInputChange = (index: number, field: string, value: any) => {
     setSetInputs(prev => ({
         ...prev,
         [index]: { ...prev[index], [field]: value }
     }));
+  };
+
+  const toggleTechnique = (exerciseIndex: number, techniqueId: string) => {
+    const currentTechniques = setInputs[exerciseIndex]?.techniques || [];
+    let newTechniques;
+    
+    if (currentTechniques.includes(techniqueId)) {
+      newTechniques = currentTechniques.filter(t => t !== techniqueId);
+    } else {
+      newTechniques = [...currentTechniques, techniqueId];
+    }
+    
+    handleSetInputChange(exerciseIndex, 'techniques', newTechniques);
   };
 
   const addSetToExercise = (exerciseIndex: number) => {
@@ -152,15 +183,16 @@ export default function WorkoutLogger() {
       weight: parseFloat(inputs.weight),
       reps: parseFloat(inputs.reps),
       tempo: inputs.tempo,
-      rest_seconds: parseFloat(inputs.rest) * 60
+      rest_seconds: parseFloat(inputs.rest) * 60,
+      techniques: inputs.techniques // Add selected techniques
     });
     
     setExercises(updatedExercises);
     
-    // Clear reps for next set, keep weight/tempo
+    // Clear reps and techniques for next set, keep weight/tempo
     setSetInputs(prev => ({
         ...prev,
-        [exerciseIndex]: { ...prev[exerciseIndex], reps: "" }
+        [exerciseIndex]: { ...prev[exerciseIndex], reps: "", techniques: [] }
     }));
   };
 
@@ -173,6 +205,13 @@ export default function WorkoutLogger() {
   const removeExercise = (index: number) => {
     const updated = [...exercises];
     updated.splice(index, 1);
+    setExercises(updated);
+  };
+
+  const toggleSuperset = (index: number) => {
+    if (index === 0) return; // Can't be superset if it's first
+    const updated = [...exercises];
+    updated[index].is_superset = !updated[index].is_superset;
     setExercises(updated);
   };
 
@@ -205,6 +244,10 @@ export default function WorkoutLogger() {
         setLoading(false);
     }
   };
+
+  // Helper to get technique short label
+  const getTechLabel = (id: string) => INTENSITY_TECHNIQUES.find(t => t.id === id)?.short || id;
+  const getTechColor = (id: string) => INTENSITY_TECHNIQUES.find(t => t.id === id)?.color || "text-zinc-400";
 
   // VIEW 1: HISTORY (LOGBOOK)
   if (view === 'history') {
@@ -345,12 +388,40 @@ export default function WorkoutLogger() {
       {/* EXERCISES LIST */}
       <div className="space-y-6">
         {exercises.map((ex, i) => (
-            <div key={i} className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
+            <div 
+                key={i} 
+                className={cn(
+                    "space-y-3 animate-in fade-in slide-in-from-bottom-2",
+                    ex.is_superset ? "-mt-6 pt-8 border-t-2 border-dashed border-red-900/50 relative z-0" : ""
+                )}
+            >
+                {ex.is_superset && (
+                    <div className="absolute top-2 left-4 text-[10px] font-black uppercase text-red-500 flex items-center gap-1">
+                        <Link2 className="h-3 w-3" /> Super Serie (Pre-Agotamiento)
+                    </div>
+                )}
+
                 <div className="flex justify-between items-center">
                     <h3 className="text-red-500 font-black uppercase text-lg">{ex.name}</h3>
-                    <Button variant="ghost" size="icon" onClick={() => removeExercise(i)}>
-                        <Trash2 className="h-4 w-4 text-zinc-600" />
-                    </Button>
+                    <div className="flex gap-1">
+                        {/* SUPER SET TOGGLE */}
+                        {i > 0 && (
+                            <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => toggleSuperset(i)}
+                                className={cn(
+                                    "h-8 px-2",
+                                    ex.is_superset ? "text-red-500 bg-red-950/20" : "text-zinc-600 hover:text-zinc-400"
+                                )}
+                            >
+                                <Link2 className="h-4 w-4" />
+                            </Button>
+                        )}
+                        <Button variant="ghost" size="sm" onClick={() => removeExercise(i)} className="h-8 px-2 text-zinc-600 hover:text-red-500">
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
 
                 {/* PREVIOUS PERFORMANCE BADGE */}
@@ -362,9 +433,10 @@ export default function WorkoutLogger() {
                     </div>
                 )}
 
+                {/* SETS LIST */}
                 {ex.sets.map((set, si) => (
-                    <div key={si} className="flex items-center justify-between bg-zinc-900/50 border border-zinc-800 p-3 rounded">
-                        <div className="flex gap-4">
+                    <div key={si} className="flex items-center justify-between bg-zinc-900/50 border border-zinc-800 p-3 rounded relative overflow-hidden">
+                        <div className="flex gap-4 items-center">
                             <div className="flex flex-col">
                                 <span className="text-[10px] text-zinc-500 uppercase font-bold">Peso</span>
                                 <span className="text-xl font-bold text-white">{set.weight}<span className="text-xs text-zinc-500 ml-1">{profile?.units}</span></span>
@@ -373,8 +445,20 @@ export default function WorkoutLogger() {
                                 <span className="text-[10px] text-zinc-500 uppercase font-bold">Reps</span>
                                 <span className="text-xl font-bold text-white">{set.reps}</span>
                             </div>
+                            
+                            {/* TAGS DISPLAY */}
+                            {set.techniques && set.techniques.length > 0 && (
+                                <div className="flex flex-wrap gap-1 max-w-[100px]">
+                                    {set.techniques.map(tech => (
+                                        <Badge key={tech} variant="outline" className={cn("text-[9px] px-1 py-0 h-4 border", getTechColor(tech))}>
+                                            {getTechLabel(tech)}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            )}
+
                             {ex.previous && (
-                                <div className="flex flex-col justify-center">
+                                <div className="flex flex-col justify-center ml-2">
                                     {set.weight > ex.previous.weight || (set.weight === ex.previous.weight && set.reps > ex.previous.reps) ? (
                                         <TrendingUp className="h-5 w-5 text-green-500" />
                                     ) : (
@@ -390,7 +474,7 @@ export default function WorkoutLogger() {
                 ))}
 
                 {/* ADD SET FORM FOR THIS EXERCISE */}
-                <Card className="bg-zinc-950 border border-zinc-800">
+                <Card className={cn("bg-zinc-950 border border-zinc-800", ex.is_superset ? "border-dashed border-zinc-700" : "")}>
                     <CardContent className="p-4 space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
@@ -414,7 +498,7 @@ export default function WorkoutLogger() {
                                 />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-[1fr_1fr_auto] gap-3 items-end">
                             <div className="space-y-1">
                                 <Label className="text-[10px] text-zinc-500 uppercase font-bold">Cadencia</Label>
                                 <Input 
@@ -425,7 +509,7 @@ export default function WorkoutLogger() {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <Label className="text-[10px] text-zinc-500 uppercase font-bold">Descanso (Min)</Label>
+                                <Label className="text-[10px] text-zinc-500 uppercase font-bold">Descanso</Label>
                                 <Input 
                                     type="number"
                                     className="bg-zinc-900 border-zinc-800 text-zinc-400 h-9 text-xs"
@@ -434,7 +518,60 @@ export default function WorkoutLogger() {
                                     onChange={(e) => handleSetInputChange(i, 'rest', e.target.value)}
                                 />
                             </div>
+                            
+                            {/* INTENSITY TECHNIQUES POPOVER */}
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button 
+                                        variant="outline" 
+                                        size="icon" 
+                                        className={cn(
+                                            "h-9 w-9 border-zinc-800 bg-zinc-900 hover:bg-zinc-800",
+                                            (setInputs[i]?.techniques?.length || 0) > 0 ? "border-yellow-500/50 text-yellow-500" : "text-zinc-500"
+                                        )}
+                                    >
+                                        <Zap className="h-4 w-4" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-56 p-2 bg-zinc-950 border-zinc-800 text-white" align="end">
+                                    <div className="space-y-2">
+                                        <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Técnicas de Intensidad</h4>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {INTENSITY_TECHNIQUES.map(tech => {
+                                                const isSelected = setInputs[i]?.techniques?.includes(tech.id);
+                                                return (
+                                                    <button
+                                                        key={tech.id}
+                                                        onClick={() => toggleTechnique(i, tech.id)}
+                                                        className={cn(
+                                                            "text-[10px] font-bold border rounded px-2 py-2 transition-all uppercase",
+                                                            isSelected 
+                                                                ? `bg-zinc-900 ${tech.color}` 
+                                                                : "border-zinc-800 text-zinc-500 hover:border-zinc-600"
+                                                        )}
+                                                    >
+                                                        {tech.label}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
                         </div>
+
+                        {/* Selected Techniques Summary in Input Area */}
+                        {(setInputs[i]?.techniques?.length || 0) > 0 && (
+                            <div className="flex flex-wrap gap-1 pt-1">
+                                {setInputs[i].techniques.map(tech => (
+                                    <span key={tech} className={cn("text-[9px] px-1.5 py-0.5 rounded border flex items-center gap-1", getTechColor(tech))}>
+                                        {getTechLabel(tech)}
+                                        <X className="w-3 h-3 cursor-pointer hover:text-white" onClick={() => toggleTechnique(i, tech)}/>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
                         <Button 
                             className="w-full h-10 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-bold uppercase text-xs tracking-wider mt-2"
                             onClick={() => addSetToExercise(i)}

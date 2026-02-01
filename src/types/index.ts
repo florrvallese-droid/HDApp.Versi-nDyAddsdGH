@@ -120,6 +120,7 @@ export interface WorkoutSet {
   tempo?: string;
   rest_seconds?: number;
   rpe?: number;
+  techniques?: string[]; // Added: Array of strings like "Drop Set", "Rest Pause"
 }
 
 export interface WorkoutExercise {
@@ -128,6 +129,7 @@ export interface WorkoutExercise {
   previous?: { weight: number; reps: number };
   progress?: 'PROGRESS' | 'MANTUVO' | 'REGRESSION';
   notes?: string;
+  is_superset?: boolean; // Added: Links to previous exercise visually
 }
 
 export interface WorkoutData {
