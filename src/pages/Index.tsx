@@ -3,10 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { 
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 import { supabase } from "@/services/supabase";
 import { 
-    Brain, TrendingUp, ShieldCheck, Star, Lock, Users, Activity, 
-    Gavel, Zap, BarChart3, ChevronRight, CheckCircle2, XCircle, AlertTriangle 
+    Brain, TrendingUp, Star, Users, Activity, 
+    Gavel, Zap, BarChart3, ChevronRight, CheckCircle2, XCircle, AlertTriangle, ArrowRight, HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,17 +39,19 @@ const Index = () => {
         </div>
 
         <nav className="absolute top-0 w-full max-w-7xl mx-auto flex justify-between items-center p-6 z-50">
-            <img src="/logo.png" className="h-12 w-auto brightness-0 invert" alt="Heavy Duty" />
-            <div className="flex gap-6 items-center">
+            {/* Logo escalado a un tamaño más estético */}
+            <img src="/logo.png" className="h-8 md:h-10 w-auto brightness-0 invert" alt="Heavy Duty" />
+            
+            <div className="flex gap-4 md:gap-8 items-center">
                 <button 
                     onClick={() => navigate("/coach-landing")}
-                    className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
+                    className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
                 >
                     ¿Sos Preparador?
                 </button>
                 <Button 
                     variant="ghost" 
-                    className="text-zinc-300 hover:text-white font-bold uppercase text-xs border border-zinc-800"
+                    className="text-zinc-300 hover:text-white font-bold uppercase text-[10px] tracking-widest border border-zinc-800 h-9"
                     onClick={() => navigate("/auth")}
                 >
                     Iniciar Sesión
@@ -57,11 +65,11 @@ const Index = () => {
            </div>
 
            <div className="space-y-4">
-              <h1 className="text-6xl md:text-9xl font-black tracking-tighter uppercase italic leading-[0.85]">
+              <h1 className="text-5xl md:text-9xl font-black tracking-tighter uppercase italic leading-[0.85]">
                 ¿VAS A ENTRENAR<br/>
                 <span className="text-zinc-700">O A CUMPLIR HORARIO?</span>
               </h1>
-              <h2 className="text-lg md:text-3xl font-bold tracking-[0.1em] text-red-500 uppercase max-w-3xl mx-auto">
+              <h2 className="text-base md:text-2xl font-bold tracking-[0.1em] text-red-500 uppercase max-w-3xl mx-auto">
                 LA ÚNICA APP CON IA QUE TE PROHÍBE EL <span className="text-white underline decoration-red-600 decoration-4">VOLUMEN BASURA</span>
               </h2>
            </div>
@@ -73,7 +81,7 @@ const Index = () => {
            <div className="pt-8 flex flex-col items-center gap-4">
               <Button 
                 size="lg" 
-                className="h-20 px-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic text-2xl shadow-[0_0_50px_rgba(220,38,38,0.3)] border-2 border-red-500/20 rounded-xl group transition-all"
+                className="h-16 md:h-20 px-8 md:px-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic text-xl md:text-2xl shadow-[0_0_50px_rgba(220,38,38,0.3)] border-2 border-red-500/20 rounded-xl group transition-all"
                 onClick={() => navigate("/auth")}
               >
                 EMPEZAR MI TRANSFORMACIÓN
@@ -84,12 +92,12 @@ const Index = () => {
         </div>
 
         {/* Visual Mockup - Judgment Card Concept */}
-        <div className="mt-20 relative animate-in fade-in slide-in-from-bottom-20 duration-1000 delay-500">
-            <div className="bg-zinc-950 border-4 border-green-500/30 rounded-[2.5rem] p-8 w-72 md:w-80 shadow-[0_0_80px_rgba(34,197,94,0.15)] relative group overflow-hidden">
+        <div className="mt-16 md:mt-20 relative animate-in fade-in slide-in-from-bottom-20 duration-1000 delay-500">
+            <div className="bg-zinc-950 border-4 border-green-500/30 rounded-[2.5rem] p-6 md:p-8 w-64 md:w-80 shadow-[0_0_80px_rgba(34,197,94,0.15)] relative group overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10"><TrendingUp className="w-16 h-16 text-green-500" /></div>
                 <div className="space-y-4">
                     <div className="flex justify-between items-center"><div className="h-2 w-12 bg-zinc-800 rounded-full" /><Badge className="bg-green-600 text-[10px] font-black italic">PROGRESS</Badge></div>
-                    <h3 className="text-4xl font-black italic tracking-tighter uppercase leading-none">SOBRECARGA<br/>CONFIRMADA</h3>
+                    <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter uppercase leading-none text-white">SOBRECARGA<br/>CONFIRMADA</h3>
                     <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className="h-full w-4/5 bg-green-500" /></div>
                     <div className="flex gap-2"><div className="h-8 w-8 bg-zinc-900 rounded flex items-center justify-center"><Zap className="w-4 h-4 text-yellow-500" /></div><div className="h-8 w-8 bg-zinc-900 rounded flex items-center justify-center"><Brain className="w-4 h-4 text-blue-500" /></div></div>
                 </div>
@@ -98,7 +106,7 @@ const Index = () => {
       </section>
 
       {/* 2. EL PROBLEMA */}
-      <section className="bg-zinc-900 py-32 px-6 border-y border-zinc-800">
+      <section className="bg-zinc-900 py-24 md:py-32 px-6 border-y border-zinc-800">
         <div className="max-w-5xl mx-auto space-y-20">
           <div className="text-center space-y-4">
             <h2 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter leading-none">EL 90% DE LA GENTE EN EL GIMNASIO<br/><span className="text-red-600">ESTÁ PERDIENDO EL TIEMPO.</span></h2>
@@ -126,7 +134,7 @@ const Index = () => {
       </section>
 
       {/* 3. LA SOLUCIÓN - ARMAS */}
-      <section className="py-32 px-6 bg-black relative">
+      <section className="py-24 md:py-32 px-6 bg-black relative">
          <div className="max-w-6xl mx-auto space-y-32">
             
             <WeaponSection 
@@ -175,13 +183,13 @@ const Index = () => {
       </section>
 
       {/* 4. CONEXIÓN COACH */}
-      <section className="bg-red-600 py-32 px-6 text-white text-center overflow-hidden relative">
+      <section className="bg-red-600 py-24 md:py-32 px-6 text-white text-center overflow-hidden relative">
          <div className="absolute inset-0 opacity-10 pointer-events-none flex items-center justify-center">
             <Users className="w-[800px] h-[800px] -rotate-12" />
          </div>
          <div className="max-w-4xl mx-auto space-y-8 relative z-10">
             <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">¿TENÉS COACH?<br/>POTENCIALO.</h2>
-            <p className="text-xl md:text-2xl font-bold uppercase italic max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-2xl font-bold uppercase italic max-w-2xl mx-auto leading-relaxed">
                 Heavy Duty App no reemplaza a tu entrenador, lo hace más letal. Si tu coach usa nuestra plataforma, él ve tus datos en tiempo real.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left pt-8">
@@ -192,14 +200,13 @@ const Index = () => {
       </section>
 
       {/* 5. PRICING */}
-      <section className="py-32 px-6 bg-zinc-950">
+      <section className="py-24 md:py-32 px-6 bg-zinc-950">
         <div className="max-w-5xl mx-auto space-y-16">
             <div className="text-center">
                 <h2 className="text-4xl font-black uppercase italic tracking-tighter">ELIGE TU NIVEL DE COMPROMISO</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* FREE */}
                 <Card className="bg-zinc-900 border-zinc-800 flex flex-col p-2">
                     <CardHeader className="text-center">
                         <CardTitle className="text-xl font-black uppercase italic text-zinc-500">ATLETA FREE</CardTitle>
@@ -219,7 +226,6 @@ const Index = () => {
                     </CardFooter>
                 </Card>
 
-                {/* PRO */}
                 <Card className="bg-black border-red-600/50 flex flex-col p-2 relative overflow-hidden shadow-[0_0_40px_rgba(220,38,38,0.15)]">
                     <div className="absolute top-0 right-0 bg-red-600 text-white text-[9px] font-black uppercase px-4 py-1.5 rounded-bl-lg tracking-widest z-10">RECOMENDADO</div>
                     <CardHeader className="text-center">
@@ -243,8 +249,53 @@ const Index = () => {
         </div>
       </section>
 
-      {/* 6. TESTIMONIALS */}
-      <section className="py-32 px-6 bg-black">
+      {/* 6. FAQ SECTION (Acordeones) */}
+      <section className="py-24 px-6 bg-zinc-900/30 border-y border-zinc-800">
+        <div className="max-w-3xl mx-auto space-y-12">
+            <div className="flex items-center gap-4">
+                <div className="p-2 bg-red-600/10 rounded-lg">
+                    <HelpCircle className="w-6 h-6 text-red-600" />
+                </div>
+                <h2 className="text-3xl font-black uppercase italic tracking-tighter">PREGUNTAS FRECUENTES</h2>
+            </div>
+
+            <Accordion type="single" collapsible className="w-full space-y-4">
+                <FAQItem 
+                    value="item-1"
+                    question="Entreno solo/a y no tengo Coach. ¿Me sirve la App?"
+                    answer="¡Por supuesto! De hecho, está diseñada para vos. Si no tenés un humano que te corrija, la IA ocupa ese lugar. El sistema actúa como tu auditor personal: analiza tu progreso, te frena si estás sobreentrenando y te felicita cuando rompés un récord."
+                />
+                <FAQItem 
+                    value="item-2"
+                    question="¿Es obligatorio entrenar con el sistema Heavy Duty?"
+                    answer="La App respira la filosofía de Alta Intensidad, pero la física es universal. Si hacés PPL, Upper/Lower o Frecuencia 2, te va a servir igual para medir la Sobrecarga Progresiva. La IA siempre te va a empujar a que no desperdicies energía en 'series basura'."
+                />
+                <FAQItem 
+                    value="item-3"
+                    question="¿La IA es un chat tipo ChatGPT?"
+                    answer="No. No venís a charlar, venís a entrenar. La IA es un Auditor Silencioso. Analiza tus datos automáticamente y te muestra 'Tarjetas de Juicio' (Verde/Rojo) al terminar cada ejercicio. Es mucho más rápido y directo que un chat."
+                />
+                <FAQItem 
+                    value="item-4"
+                    question="¿Qué pasa si el día de mañana contrato a un Coach?"
+                    answer="Es lo ideal. Con un solo clic, vinculás tu cuenta a la de tu Coach. Él va a recibir acceso inmediato a todo tu historial, gráficos y métricas. Se terminaron los mails con Excels adjuntos o las fotos de cuadernos borrosos."
+                />
+                <FAQItem 
+                    value="item-5"
+                    question="¿El precio es en dólares o en pesos?"
+                    answer="Estamos en Argentina. Cobramos en Pesos Argentinos a través de Mercado Pago. El precio que ves es final. Sin impuestos sorpresa en la tarjeta ni conversiones raras. Invertí en comida y suplementos, no en impuestos."
+                />
+                <FAQItem 
+                    value="item-6"
+                    question="Soy principiante, ¿esto es muy avanzado para mí?"
+                    answer="Al contrario. El mejor momento para usar esto es ahora. La mayoría de los principiantes pierden sus primeros 2 años haciendo las cosas mal. Con Bio-Stop, la App te enseña a cuidar tu cuerpo desde el día 1, evitando que te quemes."
+                />
+            </Accordion>
+        </div>
+      </section>
+
+      {/* 7. TESTIMONIALS */}
+      <section className="py-24 md:py-32 px-6 bg-black">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
             <TestimonialCard 
                 text="Pensé que entrenaba duro hasta que la IA me empezó a marcar 'Estancado' tres veces seguidas. Tuve que dejar el ego y empezar a entrenar de verdad. Subí 8kg en sentadilla en un mes."
@@ -259,32 +310,34 @@ const Index = () => {
         </div>
       </section>
 
-      {/* 7. FINAL CTA */}
-      <section className="py-40 px-6 text-center space-y-12">
+      {/* 8. FINAL CTA */}
+      <section className="py-32 md:py-40 px-6 text-center space-y-12">
           <div className="space-y-4">
             <h2 className="text-5xl md:text-8xl font-black uppercase italic tracking-tighter leading-none">EL DOLOR DE LA DISCIPLINA<br/><span className="text-zinc-800">O EL DOLOR DEL ARREPENTIMIENTO.</span></h2>
-            <p className="text-2xl font-bold uppercase text-red-500 italic">VOS ELEGÍS.</p>
+            <p className="text-xl md:text-2xl font-bold uppercase text-red-500 italic">VOS ELEGÍS.</p>
           </div>
           <Button 
             size="lg" 
-            className="h-24 px-16 bg-white text-black hover:bg-zinc-200 font-black uppercase italic text-3xl shadow-2xl rounded-2xl"
+            className="h-20 md:h-24 px-12 md:px-16 bg-white text-black hover:bg-zinc-200 font-black uppercase italic text-2xl md:text-3xl shadow-2xl rounded-2xl"
             onClick={() => navigate("/auth")}
           >
             DESCARGAR APP
           </Button>
           <div className="flex justify-center gap-8 pt-10 grayscale opacity-40">
-             <img src="/placeholder.svg" className="h-8" alt="iOS" /><img src="/placeholder.svg" className="h-8" alt="Android" />
+             <img src="/placeholder.svg" className="h-6 md:h-8" alt="iOS" /><img src="/placeholder.svg" className="h-6 md:h-8" alt="Android" />
           </div>
       </section>
 
       <footer className="p-8 text-center border-t border-zinc-900 relative z-10 bg-black/80 backdrop-blur-sm mt-20">
+        {/* Logo escalado para el footer */}
+        <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-50 mx-auto mb-6" alt="Logo" />
         <p className="text-zinc-600 text-[10px] font-mono mb-4 tracking-[0.2em] uppercase">
           &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — Powered by Gemini AI
         </p>
         <div className="flex justify-center gap-6 text-[10px] text-zinc-700 uppercase font-black tracking-widest">
-            <span className="hover:text-white cursor-pointer">Privacidad</span>
-            <span className="hover:text-white cursor-pointer">Términos</span>
-            <button onClick={() => navigate('/admin/login')} className="hover:text-red-500">Admin</button>
+            <span className="hover:text-white cursor-pointer transition-colors">Privacidad</span>
+            <span className="hover:text-white cursor-pointer transition-colors">Términos</span>
+            <button onClick={() => navigate('/admin/login')} className="hover:text-red-500 transition-colors">Admin</button>
         </div>
       </footer>
     </div>
@@ -297,6 +350,17 @@ const PainPoint = ({ icon, title, desc }: any) => (
         <h4 className="text-xl font-black text-white uppercase italic leading-none">{title}</h4>
         <p className="text-zinc-500 text-sm leading-relaxed">{desc}</p>
     </div>
+);
+
+const FAQItem = ({ value, question, answer }: any) => (
+    <AccordionItem value={value} className="border-zinc-800 bg-zinc-950/50 rounded-xl px-6 border">
+        <AccordionTrigger className="text-left font-bold uppercase tracking-wide text-zinc-200 hover:text-white hover:no-underline py-4 text-xs md:text-sm">
+            {question}
+        </AccordionTrigger>
+        <AccordionContent className="text-zinc-500 text-xs md:text-sm leading-relaxed pb-4">
+            {answer}
+        </AccordionContent>
+    </AccordionItem>
 );
 
 const WeaponSection = ({ number, title, subtitle, desc, points, icon, visual, reverse = false }: any) => (
@@ -349,9 +413,5 @@ const TestimonialCard = ({ text, author, role }: any) => (
         </div>
     </div>
 );
-
-function ArrowRight({ className }: { className?: string }) {
-    return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>;
-}
 
 export default Index;
