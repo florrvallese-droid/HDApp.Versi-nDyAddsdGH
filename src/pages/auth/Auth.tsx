@@ -45,9 +45,11 @@ const Auth = () => {
         return;
       }
 
+      // Si es Coach, va directo al dashboard de gestión, no necesita el onboarding de peso/sexo de atleta
       if (profile.is_coach) {
-        navigate('/coach');
+        navigate('/dashboard');
       } else if (profile.sex === 'other' || !profile.display_name) {
+        // Solo los atletas normales pasan por el onboarding si no están completos
         navigate('/onboarding');
       } else {
         navigate('/dashboard');
