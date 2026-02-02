@@ -30,7 +30,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col relative selection:bg-red-500/30 font-sans overflow-x-hidden">
       
-      {/* NAV FIX: Sticky or absolute with enough padding */}
+      {/* NAV */}
       <nav className="fixed top-0 w-full bg-black/80 backdrop-blur-md border-b border-zinc-900 z-[100]">
           <div className="max-w-7xl mx-auto flex justify-between items-center p-4 md:p-6">
             <img src="/logo.png" className="h-7 md:h-10 w-auto brightness-0 invert" alt="Heavy Duty" />
@@ -61,12 +61,10 @@ const Index = () => {
 
         <div className="relative z-10 max-w-5xl text-center space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
            
-           {/* BADGE UPDATED */}
            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-600/30 bg-red-600/5 text-red-500 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-2 md:mb-4">
               <Star className="w-3 md:w-3.5 h-3 md:h-3.5 fill-current" /> EL SISTEMA DEFINITIVO PARA EL ALTO RENDIMIENTO
            </div>
 
-           {/* TITLE UPDATED */}
            <div className="space-y-4">
               <h1 className="text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] font-black tracking-tighter uppercase italic leading-[0.85] text-white">
                 HEAVY DUTY
@@ -76,7 +74,19 @@ const Index = () => {
               </h2>
            </div>
 
-           <div className="space-y-4 max-w-2xl mx-auto pt-4">
+           {/* BLOCK RESTORED FROM IMAGE */}
+           <div className="pt-4 md:pt-8 space-y-0 leading-[0.9]">
+                <h3 className="text-4xl sm:text-6xl md:text-8xl font-black italic uppercase tracking-tighter">
+                    <span className="text-white block">MEDÍ TU</span>
+                    <span className="text-white block">PROGRESO</span>
+                    <span className="block">
+                        <span className="text-red-600">REAL,</span> <span className="text-white">NO TUS</span>
+                    </span>
+                    <span className="text-zinc-800 block">SENSACIONES.</span>
+                </h3>
+           </div>
+
+           <div className="space-y-4 max-w-2xl mx-auto">
               <p className="text-base md:text-xl text-zinc-400 font-bold uppercase italic tracking-tight leading-relaxed px-4">
                 Te matás entrenando, comés bien y descansás... pero el espejo te devuelve la misma imagen hace meses. 
                 <span className="text-white"> Dejá de tirar tu tiempo a la basura persiguiendo sensaciones </span> 
@@ -228,7 +238,7 @@ const Index = () => {
                         <PricingFeature text="Congela precio por 1 año" active />
                     </CardContent>
                     <CardFooter className="p-8 pt-0">
-                        <Button variant="outline" className="w-full h-12 border-zinc-800 text-zinc-400 hover:text-white font-black uppercase tracking-widest text-[10px]" onClick={() => navigate('/auth?tab=login')}>SER SOCIO</Button>
+                        <Button variant="outline" className="w-full h-12 border-zinc-800 text-zinc-500 hover:text-white font-black uppercase tracking-widest text-[10px]" onClick={() => navigate('/auth?tab=login')}>SER SOCIO</Button>
                     </CardFooter>
                 </Card>
             </div>
