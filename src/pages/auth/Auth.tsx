@@ -48,11 +48,16 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ 
+        email: email.trim().toLowerCase(), 
+        password 
+      });
+      
       if (error) throw error;
       navigate('/dashboard');
     } catch (err: any) {
-      toast.error("Credenciales inválidas. ¿Confirmaste tu email?");
+      // MOSTRAMOS EL ERROR REAL PARA DIAGNOSTICAR
+      toast.error(err.message || "Error al ingresar");
       setLoading(false);
     }
   };
@@ -66,13 +71,14 @@ const Auth = () => {
 
     setLoading(true);
     
+    const cleanEmail = email.trim().toLowerCase();
     const metadata = role === 'athlete' ? {
         role,
         weight: weight.toString(),
         height,
         phase,
         tone,
-        display_name: email.split('@')[0],
+        display_name: cleanEmail.split('@')[0],
     } : {
         role,
         brand_name: brandName,
@@ -83,7 +89,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.signUp({
-        email,
+        email: cleanEmail,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
