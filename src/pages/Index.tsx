@@ -148,8 +148,56 @@ const Index = () => {
         </div>
       </section>
 
+      {/* FAQ SECTION */}
+      <section className="py-24 md:py-32 px-6 bg-zinc-950 border-y border-zinc-900">
+        <div className="max-w-3xl mx-auto space-y-12">
+            <div className="text-center space-y-2">
+                <h2 className="text-4xl font-black uppercase italic tracking-tighter">PREGUNTAS FRECUENTES</h2>
+                <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.3em]">RESOLVÉ TUS DUDAS TÉCNICAS</p>
+            </div>
+
+            <Accordion type="single" collapsible className="w-full space-y-4">
+                <AccordionItem value="item-1" className="border border-zinc-900 bg-black/40 rounded-2xl px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6">
+                        ¿Qué es el Sistema Heavy Duty?
+                    </AccordionTrigger>
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 uppercase font-bold text-[11px] tracking-wide">
+                        Es una metodología de entrenamiento de alta intensidad enfocada en series únicas al fallo muscular absoluto. Nuestra App digitaliza los principios de Mike Mentzer y los potencia con inteligencia artificial para evitar el sobreentrenamiento y garantizar la sobrecarga progresiva.
+                    </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-2" className="border border-zinc-900 bg-black/40 rounded-2xl px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6">
+                        ¿Cómo funciona el Coach IA?
+                    </AccordionTrigger>
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 uppercase font-bold text-[11px] tracking-wide">
+                        Nuestra IA procesa tus datos de sueño, estrés y rendimiento histórico. Antes de cada entreno, audita tu estado actual y genera recomendaciones técnicas. Al finalizar, juzga tu sesión comparándola con la anterior para determinar si hubo un progreso real en fuerza o volumen.
+                    </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-3" className="border border-zinc-900 bg-black/40 rounded-2xl px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6">
+                        ¿Puedo usarlo con mi propio preparador?
+                    </AccordionTrigger>
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 uppercase font-bold text-[11px] tracking-wide">
+                        Sí. Heavy Duty permite que tu coach se vincule a tu bitácora. Él podrá ver tus pesos, tus fotos de check-in y ajustar tu dieta o protocolos directamente desde su propio panel profesional, eliminando la necesidad de reportes por WhatsApp o Excels.
+                    </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-4" className="border border-zinc-900 bg-black/40 rounded-2xl px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6">
+                        ¿Funciona sin conexión a internet?
+                    </AccordionTrigger>
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 uppercase font-bold text-[11px] tracking-wide">
+                        La bitácora está diseñada para funcionar en el gimnasio aunque no tengas señal. Los datos se guardan localmente y se sincronizan con la nube y con tu IA apenas recuperes conexión, asegurando que nunca pierdas un registro.
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+        </div>
+      </section>
+
       {/* PRICING TABLE SECTION */}
-      <section className="py-24 md:py-32 px-6 bg-zinc-950 border-t border-zinc-900">
+      <section className="py-24 md:py-32 px-6 bg-black">
         <div className="max-w-4xl mx-auto space-y-16">
             <div className="text-center space-y-2">
                 <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter">ELEGÍ TU NIVEL DE COMPROMISO</h2>
