@@ -9,11 +9,12 @@ import { supabase } from "@/services/supabase";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ChevronLeft, Loader2, MailCheck } from "lucide-react";
+import { ChevronLeft, Loader2, MailCheck, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -26,7 +27,6 @@ const Auth = () => {
   const isCoachIntent = searchParams.get("role") === "coach";
   const initialTab = searchParams.get("tab") || "login";
 
-  // Redirigir si ya hay sesión
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) navigate('/dashboard');
@@ -65,7 +65,7 @@ const Auth = () => {
     setError(null);
 
     try {
-      const { data, error: signupError } = await supabase.auth.signUp({
+      const { error: signupError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -85,6 +85,25 @@ const Auth = () => {
     }
   };
 
+  const resendVerification = async () => {
+    setResending(true);
+    try {
+        const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: email,
+            options: {
+                emailRedirectTo: `${window.location.origin}/onboarding`,
+            }
+        });
+        if (error) throw error;
+        toast.success("Email de verificación re-enviado.");
+    } catch (err: any) {
+        toast.error("Error al reenviar: " + err.message);
+    } finally {
+        setResending(false);
+    }
+  };
+
   if (isVerifyStep) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-black p-4">
@@ -99,13 +118,26 @@ const Auth = () => {
               <strong className="text-white">{email}</strong>
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <p className="text-xs text-zinc-500 leading-relaxed">
-              Debes validar tu correo para poder acceder a la bitácora y configurar tu perfil de atleta. Si no lo ves, revisa la carpeta de Spam.
+              Debes validar tu correo para poder acceder a la bitácora y configurar tu perfil. Si no lo ves, revisa la carpeta de Spam.
             </p>
-            <Button variant="outline" className="w-full border-zinc-800 text-zinc-400" onClick={() => setIsVerifyStep(false)}>
-              Volver al inicio
-            </Button>
+            
+            <div className="space-y-3">
+                <Button 
+                    variant="outline" 
+                    className="w-full border-zinc-800 text-zinc-300 font-bold h-12 hover:bg-zinc-900" 
+                    onClick={resendVerification}
+                    disabled={resending}
+                >
+                    {resending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                    RE-ENVIAR CORREO
+                </Button>
+                
+                <Button variant="ghost" className="w-full text-zinc-600 text-[10px] uppercase font-black tracking-widest" onClick={() => setIsVerifyStep(false)}>
+                    Volver al inicio
+                </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
