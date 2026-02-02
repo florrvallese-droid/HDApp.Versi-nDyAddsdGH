@@ -10,18 +10,17 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { profile, loading, session } = useProfile();
 
+  // Gestión de redirección inicial
   useEffect(() => {
-    if (!loading && !profile && session?.user) {
-      navigate('/onboarding');
+    if (!loading) {
+      if (!session) {
+        navigate('/auth');
+      } else if (!profile) {
+        // Si hay sesión pero no hay perfil, es un usuario nuevo
+        navigate('/onboarding');
+      }
     }
   }, [loading, profile, session, navigate]);
-
-  // Si después de cargar no hay sesión, mandamos a Auth (seguridad extra)
-  useEffect(() => {
-    if (!loading && !session) {
-      navigate('/auth');
-    }
-  }, [loading, session, navigate]);
 
   if (loading) {
     return (
@@ -37,24 +36,12 @@ export default function Dashboard() {
     );
   }
 
-  // Fallback para errores de red o inconsistencias en la base de datos
-  if (!profile && session?.user) {
-    return (
-        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 text-center gap-4">
-            <AlertCircle className="h-10 w-10 text-red-600" />
-            <h2 className="font-black uppercase italic text-white text-xl">Error de Perfil</h2>
-            <p className="text-zinc-500 text-sm">No pudimos vincular tu cuenta con un perfil de atleta.</p>
-            <Button variant="outline" className="mt-4" onClick={() => navigate('/onboarding')}>
-                Completar Onboarding
-            </Button>
-        </div>
-    );
-  }
+  // Si no hay perfil tras cargar y habiendo sesión, evitamos renderizar nada hasta que el useEffect anterior redirija
+  if (!profile && session) return null;
+  if (!session) return null;
 
-  if (!profile) return null;
-
-  // DIVISIÓN DEFINITIVA DE INTERFAZ
-  if (profile.is_coach) {
+  // DIVISIÓN DE INTERFAZ SEGÚN ROL
+  if (profile?.is_coach) {
     return <CoachDashboard />;
   }
 

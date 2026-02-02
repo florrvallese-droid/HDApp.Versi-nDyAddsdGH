@@ -59,7 +59,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
         setProfile(userProfile);
         calculateAccess(userProfile);
       } else {
-        // Si no hay perfil pero hay sesión, es un usuario nuevo en onboarding
         setProfile(null);
       }
     } catch (error) {
@@ -76,7 +75,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
       const { data: { session: initSession } } = await supabase.auth.getSession();
       
       if (!mounted) return;
-      
       setSession(initSession);
       
       if (initSession?.user) {
@@ -94,8 +92,8 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
       setSession(newSession);
       
       if (newSession?.user) {
-        // Cargamos perfil en login, refresh o cuando se confirma el registro
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        // En cualquier evento de sesión positiva, forzamos recarga de perfil si no existe o es nuevo login
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
            setLoading(true);
            await loadUserProfile(newSession.user.id);
         }
