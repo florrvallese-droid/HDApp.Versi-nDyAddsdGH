@@ -10,7 +10,7 @@ import {
 import { 
     Brain, Briefcase, Zap, 
     ArrowRight, MessageSquare, TrendingUp, Sparkles, 
-    Star, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, Lock
+    Star, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, Lock, MessageCircle
 } from "lucide-react";
 import { CoachApplicationForm } from "@/components/landing/CoachApplicationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
@@ -18,8 +18,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 export default function CoachLanding() {
   const navigate = useNavigate();
 
+  const openWhatsApp = () => {
+    window.open("https://wa.me/5491154821533?text=Hola!%20Tengo%20una%20duda%20específica%20sobre%20el%20Founders%20Club%20de%20Heavy%20Duty", "_blank");
+  };
+
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-yellow-500/30">
+    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-yellow-500/30 relative">
       
       {/* 1. HERO SECTION */}
       <section className="relative h-[90vh] flex flex-col items-center justify-center overflow-hidden px-6">
@@ -33,7 +37,6 @@ export default function CoachLanding() {
         </div>
 
         <nav className="absolute top-0 w-full max-w-7xl mx-auto flex justify-between items-center p-6 z-50">
-            {/* Logo refinado */}
             <img src="/logo.png" className="h-8 md:h-10 w-auto brightness-0 invert" alt="Heavy Duty" />
             <div className="flex gap-4 items-center">
                 <Button 
@@ -227,6 +230,18 @@ export default function CoachLanding() {
                     answer="El sistema tiene un Radar de Retención. Si detectamos que un alumno dejó de cargar datos o se le venció el plan, te aparece una 'Alerta Roja' en tu Dashboard de inmediato. La idea es que te enteres antes de que el alumno se enfríe y se vaya, para que puedas reactivarlo a tiempo."
                 />
             </Accordion>
+
+            {/* WHATSAPP CTA UNDER FAQ */}
+            <div className="mt-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest mb-4 italic">¿Tenés una duda más específica sobre tu negocio?</p>
+                <Button 
+                    onClick={openWhatsApp}
+                    className="bg-green-600 hover:bg-green-700 text-white font-black uppercase italic tracking-widest h-14 px-8 rounded-xl shadow-lg shadow-green-900/20 group"
+                >
+                    <MessageCircle className="mr-2 h-5 w-5 fill-current" /> HABLEMOS POR WHATSAPP
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+            </div>
         </div>
       </section>
 
@@ -282,6 +297,16 @@ export default function CoachLanding() {
             </p>
          </div>
       </footer>
+
+      {/* FLOATING WHATSAPP BUTTON (FOR INSTANT SUPPORT) */}
+      <div className="fixed bottom-6 right-6 z-[100] animate-bounce-slow">
+         <Button 
+            onClick={openWhatsApp}
+            className="h-16 w-16 rounded-full bg-green-600 hover:bg-green-700 text-white shadow-2xl shadow-green-900/40 p-0 border-4 border-black group"
+         >
+            <MessageCircle className="h-8 w-8 fill-current group-hover:scale-110 transition-transform" />
+         </Button>
+      </div>
 
     </div>
   );
