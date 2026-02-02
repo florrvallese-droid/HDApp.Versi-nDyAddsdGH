@@ -10,10 +10,12 @@ export default function AppLayout() {
   const location = useLocation();
   const { profile, activeRole } = useProfile();
 
-  // La navegación ahora depende del activeRole
-  const navItems = activeRole === 'coach' 
+  // La navegación ahora depende del activeRole o del prefijo de la URL
+  const isCoachPath = location.pathname.startsWith('/coach');
+  
+  const navItems = isCoachPath
     ? [
-        { label: "Equipo", icon: Home, path: "/dashboard" }, // Coach Dashboard es el 'Home' en modo coach
+        { label: "Equipo", icon: Users, path: "/coach" }, 
         { label: "Negocio", icon: Briefcase, path: "/coach/business" },
         { label: "Perfil", icon: User, path: "/settings" },
       ]
@@ -35,7 +37,7 @@ export default function AppLayout() {
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50 h-16 safe-area-bottom">
         <div className="max-w-md mx-auto h-full flex items-center justify-around px-2">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path || (item.path === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard'));
+            const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
             
             return (
               <button

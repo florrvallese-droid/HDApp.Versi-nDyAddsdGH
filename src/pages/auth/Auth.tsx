@@ -50,7 +50,7 @@ const Auth = () => {
         return;
       }
 
-      // Si el perfil existe, entramos al dashboard o coach hub
+      // Redirección estricta según rol
       if (profile) {
         if (profile.is_coach) {
             navigate('/coach');

@@ -55,6 +55,7 @@ const App = () => {
               <Route path="/onboarding" element={<Onboarding />} />
 
               <Route element={<AppLayout />}>
+                {/* Entorno Atleta */}
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/workout" element={<WorkoutLogger />} />
                 <Route path="/nutrition" element={<Nutrition />} />
@@ -63,6 +64,7 @@ const App = () => {
                 <Route path="/pharmacology" element={<Pharmacology />} />
                 <Route path="/settings" element={<Settings />} />
                 
+                {/* Entorno Coach */}
                 <Route path="/coach" element={<CoachDashboard />} />
                 <Route path="/coach/athlete/:athleteId" element={<CoachAthleteDetail />} />
                 <Route path="/coach/business" element={<CoachBusiness />} />
