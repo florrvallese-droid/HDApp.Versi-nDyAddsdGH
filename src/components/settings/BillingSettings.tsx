@@ -113,7 +113,7 @@ export function BillingSettings() {
                   <CardTitle className="flex flex-col gap-1">
                      <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Atleta PRO</span>
                      <div className="flex items-baseline gap-1 mt-2">
-                        <span className="text-4xl font-black text-white">{billingCycle === 'monthly' ? '$9.900' : '$89.000'}</span>
+                        <span className="text-4xl font-black text-white">{billingCycle === 'monthly' ? '$28.500' : '$285.000'}</span>
                         <span className="text-zinc-500 text-xs font-bold uppercase">{billingCycle === 'monthly' ? '/ MES' : '/ AÑO'}</span>
                      </div>
                   </CardTitle>
@@ -142,7 +142,7 @@ export function BillingSettings() {
                     <CardTitle className="flex flex-col gap-1">
                         <span className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em]">Coach Hub</span>
                         <div className="flex items-baseline gap-1 mt-2">
-                            <span className="text-4xl font-black text-white">{billingCycle === 'monthly' ? '$29.900' : '$269.000'}</span>
+                            <span className="text-4xl font-black text-white">{billingCycle === 'monthly' ? '$85.000' : '$850.000'}</span>
                             <span className="text-zinc-500 text-xs font-bold uppercase">{billingCycle === 'monthly' ? '/ MES' : '/ AÑO'}</span>
                         </div>
                     </CardTitle>

@@ -122,7 +122,7 @@ export default function CoachLanding() {
                       <div className="absolute top-0 right-0 bg-red-600 text-white text-[9px] font-black uppercase px-6 py-2 rounded-bl-xl tracking-[0.2em] z-20 shadow-xl">MÁS ELEGIDO</div>
                       <CardHeader className="text-center pb-8 border-b border-red-900/20 bg-red-600/5">
                           <div className="flex justify-center mb-4"><Zap className="h-8 w-8 text-red-500 fill-current" /></div>
-                          <CardTitle className="text-sm font-black uppercase tracking-[0.3em] text-red-500">COACH PRO</CardTitle>
+                          <CardTitle className="text-sm font-black uppercase tracking-[0.3em] text-red-500">COACH HUB</CardTitle>
                           <div className="pt-6">
                               <span className="text-5xl font-black text-white">$85.000</span>
                               <span className="text-zinc-600 text-xs font-bold uppercase ml-2">ARS / mes</span>
@@ -138,7 +138,7 @@ export default function CoachLanding() {
                           <PlanFeature text="Roadmap Estándar" active />
                       </CardContent>
                       <CardFooter className="p-8 pt-0">
-                          <Button className="w-full h-16 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic tracking-widest text-sm shadow-2xl" onClick={() => navigate('/auth')}>OBTENER PLAN PRO</Button>
+                          <Button className="w-full h-16 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic tracking-widest text-sm shadow-2xl" onClick={() => navigate('/auth')}>OBTENER PLAN HUB</Button>
                       </CardFooter>
                   </Card>
 
@@ -216,71 +216,16 @@ export default function CoachLanding() {
                           1. ¿$85.000 no es caro para una App?
                       </AccordionTrigger>
                       <AccordionContent className="text-zinc-300 leading-relaxed pb-8 text-sm font-medium">
-                          Miralo como empresario: Si cobrás una cuota promedio de $50.000 - $80.000, **con un solo alumno y medio ya pagaste todo el sistema**. El plan PRO te permite gestionar hasta 50 alumnos. Básicamente, usás el ingreso de 1 alumno para pagar la herramienta y los otros 49 son ganancia limpia. No es un gasto, es el costo operativo más bajo de tu negocio (apenas el 4% de tu facturación potencial).
-                      </AccordionContent>
-                  </AccordionItem>
-
-                  {/* Q2: AGENCY DIAMOND */}
-                  <AccordionItem value="item-2" className="border border-blue-600/30 bg-blue-600/5 rounded-3xl px-8 shadow-[0_0_40px_rgba(37,99,235,0.05)]">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-base py-8 text-blue-500 text-left">
-                          2. ¿Qué significa que puedo "Pedir Funciones" en el Plan Agency? 💎
-                      </AccordionTrigger>
-                      <AccordionContent className="text-zinc-300 leading-relaxed pb-8 text-sm font-medium">
-                          Es nuestro servicio más exclusivo. Entendemos que los grandes equipos tienen necesidades únicas. Si sos Plan Agency ($150.000), **tenés línea directa con nuestro equipo de desarrollo**. ¿Necesitás un reporte específico para tu centro? ¿Una integración especial? Lo pedís y lo ponemos en nuestro mapa de desarrollo. Es lo más parecido a tener tu propio equipo de programadores, sin gastar millones.
-                      </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="item-3" className="border border-zinc-800 bg-zinc-900/20 rounded-3xl px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-base py-8 text-zinc-400 text-left">
-                          3. Tengo 40 alumnos en Excel. ¿Es muy difícil pasarlos?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
-                          Sabemos que migrar da pereza, por eso lo hacemos nosotros. Si entrás al plan PRO o AGENCY, tenés incluido el **servicio de Migración Asistida**. Nos pasás tus planillas y nosotros te entregamos la cuenta con todos tus alumnos cargados y listos para empezar. Vos no perdés ni una hora cargando datos.
-                      </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="item-4" className="border border-zinc-800 bg-zinc-900/20 rounded-3xl px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-base py-8 text-zinc-400 text-left">
-                          4. ¿La IA va a reemplazar mi trabajo?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
-                          Absolutamente no. **La IA es tu Secretario, no el Jefe**. El sistema se encarga de lo operativo: auditar series, detectar quién se está por bajar y avisarte si alguien no pagó. La Estrategia y la Relación Humana siguen siendo 100% tuyas. La app hace que tu servicio se vea Premium, lo que te permite cobrar más caro.
-                      </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="item-5" className="border border-zinc-800 bg-zinc-900/20 rounded-3xl px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-base py-8 text-zinc-400 text-left">
-                          5. ¿Es obligatorio usar "Heavy Duty" con todos?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
-                          La app prioriza la Alta Intensidad, pero la física es universal. El motor de IA audita la Sobrecarga Progresiva (subir peso, reps o mejorar técnica). Si usás otros sistemas (PPL, Upper/Lower), la herramienta te sirve igual para demostrarle a tu alumno con datos duros que está progresando (o estancado).
+                          Miralo como empresario: Si cobrás una cuota promedio de $50.000 - $80.000, **con un solo alumno y medio ya pagaste todo el sistema**. El plan PRO te permite gestionar hasta 50 alumnos. Básicamente, usás el ingreso de 1 alumno para pagar la herramienta y los otros 49 son ganancia limpia. No es un gasto, es el costo operativo más bajo de tu negocio.
                       </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="item-6" className="border border-zinc-800 bg-zinc-900/20 rounded-3xl px-8">
                       <AccordionTrigger className="hover:no-underline font-black uppercase italic text-base py-8 text-zinc-400 text-left">
-                          6. ¿Cómo se cobra? ¿Dólares o Pesos?
+                          6. ¿Cómo se cobra?
                       </AccordionTrigger>
                       <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
                           Estamos en Argentina. **Cobramos en Pesos Argentinos** a través de Mercado Pago (Débito Automático). El precio es final y te damos factura para que puedas deducirlo como gasto de tu negocio.
-                      </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="item-7" className="border border-zinc-800 bg-zinc-900/20 rounded-3xl px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-base py-8 text-zinc-400 text-left">
-                          7. ¿Qué pasa si mis alumnos no quieren pagar la versión PRO?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
-                          Como Coach, vos tenés acceso total a tu Dashboard. Tus alumnos pueden usar la versión GRATUITA de la app (Bitácora básica) y vos igual ves sus datos. Sin embargo, recomendamos que el alumno tenga la versión PRO para recibir el feedback de la IA en tiempo real, lo que te ahorra a vos tener que corregir cada serie manualmente.
-                      </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="item-8" className="border border-zinc-800 bg-zinc-900/20 rounded-3xl px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-base py-8 text-zinc-400 text-left">
-                          8. ¿La IA habla con mis alumnos? ¿Qué tono usa?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
-                          Sí, y vos lo controlás. Desde tu panel, configurás la personalidad del "Auditor IA". Podés elegir entre un "Sargento Estricto", un "Motivador Eufórico" o un "Analista Frío". El alumno siente que sos vos (o tu equipo) quien le está marcando el ritmo, manteniendo tu identidad de marca.
                       </AccordionContent>
                   </AccordionItem>
               </Accordion>
@@ -308,10 +253,3 @@ const PlanFeature = ({ text, active = true, highlight = false }: any) => (
 function XCircle({ className }: { className?: string }) {
     return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>;
 }
-
-const FeatureItem = ({ text }: { text: string }) => (
-    <li className="flex items-center gap-3">
-        <div className="h-1.5 w-1.5 rounded-full bg-yellow-600 shrink-0" />
-        <span className="text-zinc-300 font-bold uppercase text-[10px] tracking-widest">{text}</span>
-    </li>
-);

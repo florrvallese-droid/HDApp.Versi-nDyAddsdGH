@@ -22,15 +22,13 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
     const { userId, email, planType, roleType, referralCode, backUrl } = await req.json();
 
-    // DEFINICIÓN DE PRECIOS (ARS)
-    // Atleta PRO: ~9.99 USD -> 9.900 ARS
-    // Coach Hub: ~29.99 USD -> 29.900 ARS
-    
+    // DEFINICIÓN DE PRECIOS REALES (ARS)
     let basePrice = 0;
     if (roleType === 'coach') {
-        basePrice = planType === 'yearly' ? 269000 : 29900; // Anual tiene ~25% OFF
+        // Usamos el precio del Plan PRO de Coach como base para el Hub
+        basePrice = planType === 'yearly' ? 850000 : 85000; 
     } else {
-        basePrice = planType === 'yearly' ? 89000 : 9900;
+        basePrice = planType === 'yearly' ? 285000 : 28500;
     }
 
     let finalPrice = basePrice;
