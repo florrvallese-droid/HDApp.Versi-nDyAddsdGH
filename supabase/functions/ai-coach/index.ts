@@ -6,6 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// REGLA GLOBAL DE LENGUAJE (MANDATORIA)
+const ARGENTINE_LANGUAGE_RULE = `
+### LANGUAGE_RULE (MANDATORIA) ###
+- DIALECT: Rioplatense Spanish (Argentina).
+- GRAMMAR: Uso mandatorio de "Voseo" (ej: "Vos podés", "Hacé esto", "Sentite libre", "Entrenaste"). 
+- PROHIBICIÓN: NUNCA uses "Tú" ni "Usted". NUNCA uses terminaciones en "-as" para la segunda persona (ej: no digas "tienes", di "tenés").
+- CURRENCY/MEASUREMENTS: Siempre Sistema Métrico (kg).
+- FILTRO: Mantener el respeto. Permitidas palabras como "carajo" o "boludo" solo en contextos amigables o de mucha arenga, nunca como insulto directo agresivo.
+`;
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -32,7 +42,7 @@ Deno.serve(async (req) => {
 
     // 1. Fetch Prompt (Personality)
     let systemInstruction = `Sos un analista experto en Heavy Duty.`;
-    let promptVersion = "v3.0-deep-report";
+    let promptVersion = "v3.1-arg-locale";
 
     try {
       const { data: promptData } = await supabase
@@ -68,53 +78,40 @@ Deno.serve(async (req) => {
       console.error("[ai-coach] DB Knowledge Error:", kbErr);
     }
 
-    // REGLA DE FORMATO OBLIGATORIA (ACTUALIZADA)
     const formatRule = `
       ### REGLA DE FORMATO DE SALIDA OBLIGATORIA ###
       Debes responder SIEMPRE en formato JSON válido.
       El JSON debe contener exactamente dos partes:
       
       1. "card_data": Datos breves y estructurados para la interfaz visual.
-      2. "detailed_report": Un texto extenso en formato Markdown. Aquí es donde te explayas como coach.
+      2. "detailed_report": Un texto extenso en formato Markdown. Aquí es donde te explayas como coach usando el voseo argentino.
          - Usa títulos (##) para secciones.
          - Usa negritas (**texto**) para resaltar datos clave.
          - Usa listas (- item) para enumerar hallazgos.
-         - Explica el POR QUÉ fisiológico o estratégico de tu análisis.
     `;
 
     const schemas = {
       preworkout: `{
-        "card_data": {
-          "status": "GO" | "CAUTION" | "STOP",
-          "ui_title": "string",
-          "ui_color": "green" | "yellow" | "red"
-        },
+        "card_data": { "status": "GO" | "CAUTION" | "STOP", "ui_title": "string", "ui_color": "green" | "yellow" | "red" },
         "detailed_report": "## Informe de Recuperación SNC\\n\\n..."
       }`,
       postworkout: `{
-        "card_data": {
-          "verdict": "PROGRESS" | "STAGNATION" | "REGRESSION",
-          "score": 1-10,
-          "ui_title": "string"
-        },
+        "card_data": { "verdict": "PROGRESS" | "STAGNATION" | "REGRESSION", "score": 1-10, "ui_title": "string" },
         "detailed_report": "## Auditoría de Sesión\\n\\n..."
       }`,
       globalanalysis: `{
-        "card_data": {
-          "status": "string",
-          "main_insight": "string"
-        },
+        "card_data": { "status": "string", "main_insight": "string" },
         "detailed_report": "## Documento Oficial de Auditoría\\n\\n..."
       }`,
       marketing_generation: `{
-        "card_data": {
-          "hook": "string"
-        },
+        "card_data": { "hook": "string" },
         "detailed_report": "## Copy Estratégico para Instagram\\n\\n..."
       }`
     };
 
     const finalPrompt = `
+      ${ARGENTINE_LANGUAGE_RULE}
+      
       ${formatRule}
 
       ### PERSONALIDAD Y CONTEXTO ###
