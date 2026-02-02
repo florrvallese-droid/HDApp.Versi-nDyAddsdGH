@@ -25,57 +25,23 @@ const Auth = () => {
   const isCoachIntent = searchParams.get("role") === "coach";
   const initialTab = searchParams.get("tab") || "login";
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        checkProfileAndRedirect(session.user.id);
-      }
-    };
-    checkSession();
-  }, []);
-
-  const checkProfileAndRedirect = async (userId: string) => {
-    try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_coach, display_name')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      // Si tiene perfil y ha completado el nombre (fin de onboarding)
-      if (profile && profile.display_name) {
-        if (profile.is_coach) {
-            navigate('/coach');
-        } else {
-            navigate('/dashboard');
-        }
-      } else {
-        // Usuario nuevo o incompleto
-        navigate('/onboarding');
-      }
-    } catch (err) {
-      console.error("Redirect error:", err);
-      navigate('/dashboard'); 
-    }
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      const { data, error: loginError } = await supabase.auth.signInWithPassword({
+      const { error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (loginError) throw loginError;
 
-      if (data.user) {
-        await checkProfileAndRedirect(data.user.id);
-      }
+      // Al loguear con éxito, simplemente vamos al dashboard. 
+      // El ProfileContext detectará el cambio y el Dashboard hará la distribución.
+      navigate('/dashboard');
+      
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión");
       toast.error(err.message || "Error al iniciar sesión");

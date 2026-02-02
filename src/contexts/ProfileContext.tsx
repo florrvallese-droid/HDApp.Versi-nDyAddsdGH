@@ -22,11 +22,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
   const [daysLeftInTrial, setDaysLeftInTrial] = useState(0);
 
   const loadUserProfile = async (userId: string) => {
-    // Failsafe: 5 segundos máximo para intentar cargar
-    const timeout = setTimeout(() => {
-        if (loading) setLoading(false);
-    }, 5000);
-
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -38,11 +33,12 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
         const userProfile = data as UserProfile;
         setProfile(userProfile);
         calculateAccess(userProfile);
+      } else {
+        setProfile(null);
       }
     } catch (error) {
-      console.error("[ProfileContext] Error:", error);
+      console.error("[ProfileContext] Critical Error:", error);
     } finally {
-      clearTimeout(timeout);
       setLoading(false);
     }
   };
@@ -50,25 +46,29 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
   useEffect(() => {
     let mounted = true;
 
+    // 1. Carga inicial de sesión
     const initialize = async () => {
       const { data: { session: initSession } } = await supabase.auth.getSession();
-      if (mounted) {
-        setSession(initSession);
-        if (initSession?.user) {
-          await loadUserProfile(initSession.user.id);
-        } else {
-          setLoading(false);
-        }
+      if (!mounted) return;
+      
+      setSession(initSession);
+      if (initSession?.user) {
+        await loadUserProfile(initSession.user.id);
+      } else {
+        setLoading(false);
       }
     };
 
     initialize();
 
+    // 2. Escuchar cambios de estado (Login/Logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
+      
       setSession(newSession);
       
       if (newSession?.user) {
+        // Solo recargamos si es un evento de entrada o no tenemos perfil
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || !profile) {
            setLoading(true);
            await loadUserProfile(newSession.user.id);
