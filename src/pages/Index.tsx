@@ -12,7 +12,7 @@ import {
 import { supabase } from "@/services/supabase";
 import { 
     Brain, TrendingUp, Star, Users, Activity, 
-    Gavel, Zap, BarChart3, ChevronRight, CheckCircle2, XCircle, AlertTriangle, ArrowRight, HelpCircle, ShieldCheck, Target, FileText, FlaskConical, Clock, DollarSign, Utensils
+    Zap, ChevronRight, CheckCircle2, XCircle, ArrowRight, FlaskConical, Utensils, Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +74,6 @@ const Index = () => {
               </h2>
            </div>
 
-           {/* BLOCK RESTORED FROM IMAGE */}
            <div className="pt-4 md:pt-8 space-y-0 leading-[0.9]">
                 <h3 className="text-4xl sm:text-6xl md:text-8xl font-black italic uppercase tracking-tighter">
                     <span className="text-white block">MEDÍ TU</span>
@@ -305,9 +304,17 @@ const Index = () => {
 
       <footer className="p-12 text-center border-t border-zinc-900 bg-black">
         <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-20 mx-auto mb-8" alt="Logo" />
-        <p className="text-zinc-800 text-[9px] md:text-[10px] font-mono tracking-[0.4em] uppercase">
-          &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — High Performance Software v1.1
-        </p>
+        <div className="space-y-4">
+            <p className="text-zinc-800 text-[9px] md:text-[10px] font-mono tracking-[0.4em] uppercase">
+              &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — High Performance Software v1.1
+            </p>
+            <button 
+                onClick={() => navigate("/admin/login")}
+                className="text-zinc-900 hover:text-zinc-700 text-[8px] font-black uppercase tracking-widest transition-colors"
+            >
+                Acceso Administración
+            </button>
+        </div>
       </footer>
     </div>
   );

@@ -298,9 +298,17 @@ export default function CoachLanding() {
 
         <footer className="p-12 text-center border-t border-zinc-900 bg-black">
           <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-20 mx-auto mb-8" alt="Logo" />
-          <p className="text-zinc-800 text-[9px] md:text-[10px] font-mono tracking-[0.4em] uppercase">
-            &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — Enterprise Edition v17.09
-          </p>
+          <div className="space-y-4">
+              <p className="text-zinc-800 text-[9px] md:text-[10px] font-mono tracking-[0.4em] uppercase">
+                &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — Enterprise Edition v17.09
+              </p>
+              <button 
+                onClick={() => navigate("/admin/login")}
+                className="text-zinc-900 hover:text-zinc-700 text-[8px] font-black uppercase tracking-widest transition-colors"
+              >
+                  Acceso Administración
+              </button>
+          </div>
         </footer>
       </div>
     </TooltipProvider>
