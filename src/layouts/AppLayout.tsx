@@ -8,22 +8,27 @@ import { useProfile } from "@/hooks/useProfile";
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile } = useProfile();
+  const { profile, loading } = useProfile();
 
-  // NAVEGACIÓN EXCLUSIVA PARA COACH
-  const coachNav = [
-    { label: "Dashboard", icon: Home, path: "/dashboard" },
-    { label: "Alumnos", icon: Users, path: "/coach" },
-    { label: "Business", icon: Briefcase, path: "/coach/business" },
-    { label: "Perfil", icon: User, path: "/settings" },
-  ];
+  if (loading) return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-red-600 border-t-transparent animate-spin" />
+    </div>
+  );
 
-  // NAVEGACIÓN EXCLUSIVA PARA ATLETA
+  // NAVEGACIÓN ESTRICTAMENTE SEPARADA
   const athleteNav = [
     { label: "Home", icon: Home, path: "/dashboard" },
     { label: "Entrenar", icon: Dumbbell, path: "/workout" },
     { label: "Nutrición", icon: Utensils, path: "/nutrition" },
     { label: "Auditoría", icon: TrendingUp, path: "/analysis" },
+    { label: "Perfil", icon: User, path: "/settings" },
+  ];
+
+  const coachNav = [
+    { label: "Home", icon: Home, path: "/dashboard" },
+    { label: "Alumnos", icon: Users, path: "/coach" },
+    { label: "Business", icon: Briefcase, path: "/coach/business" },
     { label: "Perfil", icon: User, path: "/settings" },
   ];
 
@@ -35,7 +40,7 @@ export default function AppLayout() {
         <Outlet />
       </main>
 
-      {/* Bottom Nav Bar - Adaptativa según Rol */}
+      {/* Bottom Nav Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-zinc-900 z-50 h-16 safe-area-bottom">
         <div className="max-w-md mx-auto h-full flex items-center justify-around px-2">
           {navItems.map((item) => {
@@ -47,13 +52,12 @@ export default function AppLayout() {
                 onClick={() => navigate(item.path)}
                 className={cn(
                   "flex flex-col items-center justify-center w-full h-full gap-1 transition-all duration-300",
-                  isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"
+                  isActive ? (profile?.is_coach ? "text-red-500" : "text-primary") : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <div className={cn(
                   "p-1.5 rounded-xl transition-all",
-                  isActive && "bg-primary/10",
-                  profile?.is_coach && isActive && "bg-red-600/10 text-red-500"
+                  isActive && (profile?.is_coach ? "bg-red-600/10" : "bg-primary/10")
                 )}>
                   <item.icon className={cn("h-5 w-5", isActive && "fill-current")} />
                 </div>
