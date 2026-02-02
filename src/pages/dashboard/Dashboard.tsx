@@ -10,12 +10,23 @@ export default function Dashboard() {
   const { profile, coachProfile, loading, session } = useProfileContext();
 
   useEffect(() => {
-    if (!loading && !session) {
-      navigate('/auth');
-    }
-  }, [loading, session, navigate]);
+    if (loading) return; // Esperar a que termine la carga inicial
 
-  if (loading) {
+    if (!session) {
+      navigate('/auth');
+      return;
+    }
+
+    // GUARDA DE SEGURIDAD: Si el usuario está logueado pero su perfil no se completó (falta el rol),
+    // lo forzamos a volver al onboarding. Esto evita el congelamiento.
+    if (session && !profile?.user_role) {
+      navigate('/onboarding');
+      return;
+    }
+
+  }, [loading, session, profile, navigate]);
+
+  if (loading || !profile) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center flex-col gap-6">
         <div className="relative">

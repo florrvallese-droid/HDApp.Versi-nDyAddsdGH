@@ -22,51 +22,44 @@ export default function Onboarding() {
   const [planType, setPlanType] = useState<'starter' | 'hub' | 'agency'>('starter');
 
   useEffect(() => {
-    if (profile && (athleteProfile || coachProfile)) {
+    // Si el perfil ya está completo (tiene un rol asignado), lo enviamos al dashboard.
+    if (profile?.user_role) {
       navigate('/dashboard');
     }
-  }, [profile, athleteProfile, coachProfile, navigate]);
+  }, [profile, navigate]);
 
   const handleFinish = async () => {
-    if (!session?.user) return;
+    if (!session?.user) {
+      toast.error("Sesión no encontrada. Por favor, inicia sesión de nuevo.");
+      return;
+    }
     setLoading(true);
 
     try {
+      // MISIÓN: ACTUALIZAR, NO CREAR.
+      // El trigger 'handle_new_user' ya creó las filas base.
+      // Aquí solo completamos la información.
       const { error: profileError } = await supabase
         .from('profiles')
-        .upsert({
-          user_id: session.user.id,
-          email: session.user.email,
+        .update({
           display_name: displayName || session.user.email?.split('@')[0],
           user_role: role,
           updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
+        })
+        .eq('user_id', session.user.id);
 
       if (profileError) throw profileError;
 
-      if (role === 'athlete') {
-        const { error: athleteError } = await supabase
-            .from('athlete_profiles')
-            .upsert({ user_id: session.user.id, tier: 'free', subscription_status: 'active' }, { onConflict: 'user_id' });
-        if (athleteError) throw athleteError;
-      } else {
-        const { error: coachError } = await supabase
-            .from('coach_profiles')
-            .upsert({ 
-                user_id: session.user.id, 
-                plan_type: planType,
-                business_name: displayName,
-                student_limit: planType === 'starter' ? 15 : planType === 'hub' ? 50 : 999
-            }, { onConflict: 'user_id' });
-        if (coachError) throw coachError;
-      }
-
+      // Forzamos al contexto a recargar los datos del perfil ahora que están completos.
       await refreshProfile();
-      toast.success("Perfil sincronizado correctamente.");
+      
+      toast.success("¡Bienvenido a Heavy Duty!");
       navigate('/dashboard');
+
     } catch (err: any) {
       console.error("Onboarding error:", err);
-      toast.error("Error al finalizar el perfil. Reintentando...");
+      toast.error("Error al guardar tu perfil. Por favor, intenta de nuevo.");
+    } finally {
       setLoading(false);
     }
   };
