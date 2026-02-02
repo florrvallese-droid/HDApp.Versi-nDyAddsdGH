@@ -37,7 +37,7 @@ const Auth = () => {
     try {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('sex, display_name, is_coach')
+        .select('sex, display_name, is_coach, is_admin')
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -46,13 +46,14 @@ const Auth = () => {
         return;
       }
 
-      // Si ya es Coach o Admin en la DB, evitamos el onboarding de atleta
-      if (profile.is_coach) {
+      // Si es Coach o Admin, salteamos el onboarding de atleta para no trabar el acceso
+      // El usuario podrá completar sus datos de atleta después desde Ajustes si lo desea
+      if (profile.is_coach || profile.is_admin) {
         navigate('/dashboard');
         return;
       }
 
-      // Solo los atletas con perfil vacío van al onboarding
+      // Solo los atletas puros con perfil vacío van al onboarding
       if (!profile.display_name || profile.sex === 'other') {
         navigate('/onboarding');
       } else {
@@ -120,7 +121,7 @@ const Auth = () => {
       
       <Button 
         variant="ghost" 
-        className="absolute top-4 left-4 text-zinc-500 hover:text-white"
+        className="absolute top-6 left-6 text-zinc-400 hover:text-white z-50 hover:bg-zinc-900/50"
         onClick={() => navigate("/")}
       >
         <ChevronLeft className="mr-2 h-4 w-4" /> Volver
