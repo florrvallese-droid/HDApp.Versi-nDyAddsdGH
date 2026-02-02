@@ -32,8 +32,16 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
     }
   }, []);
 
-  // 2. Lógica de carga de perfil
+  // 2. Lógica de carga de perfil con Failsafe
   const loadUserProfile = async (userId: string) => {
+    // Failsafe: Si después de 5 segundos no cargó, soltamos el loading
+    const timeout = setTimeout(() => {
+        if (loading) {
+            console.warn("[ProfileContext] Carga lenta detectada. Forzando resolución.");
+            setLoading(false);
+        }
+    }, 5000);
+
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -46,17 +54,15 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
         setProfile(userProfile);
         calculateAccess(userProfile);
         
-        // Si no es coach, forzamos rol atleta
         if (!userProfile.is_coach && activeRole === 'coach') {
           setActiveRole('athlete');
           localStorage.setItem('hd_active_role', 'athlete');
         }
-      } else {
-        setProfile(null);
       }
     } catch (error) {
-      console.error("Error loading profile:", error);
+      console.error("[ProfileContext] Error crítico:", error);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
@@ -81,7 +87,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
-      
       setSession(newSession);
       
       if (newSession?.user) {
