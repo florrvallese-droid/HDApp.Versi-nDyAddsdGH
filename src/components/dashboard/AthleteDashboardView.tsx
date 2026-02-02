@@ -5,7 +5,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { 
   Zap, Moon, Camera, FlaskConical, Settings, LogOut, Share2, Loader2, Bell, ClipboardCheck,
-  Target, ShieldCheck, ChevronRight, Briefcase
+  Target, ShieldCheck, ChevronRight, Briefcase, Users
 } from "lucide-react";
 import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
 import { CardioModal } from "@/components/dashboard/CardioModal";
@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default function AthleteDashboardView() {
   const navigate = useNavigate();
-  const { profile, hasProAccess } = useProfile();
+  const { profile, hasProAccess, toggleRole } = useProfile();
   
   const [showPreWorkout, setShowPreWorkout] = useState(false);
   const [showCardio, setShowCardio] = useState(false);
@@ -100,6 +100,16 @@ export default function AthleteDashboardView() {
             <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{profile?.display_name}</span>
         </div>
         <div className="flex gap-2">
+            {profile?.is_coach && (
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={toggleRole}
+                    className="bg-red-600/10 border-red-600/30 text-red-500 font-black uppercase text-[10px] tracking-widest hover:bg-red-600 hover:text-white"
+                >
+                    <Users className="w-3 h-3 mr-1.5" /> Modo Coach
+                </Button>
+            )}
             <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-zinc-500 bg-black/20 backdrop-blur-sm rounded-full"><Settings className="w-5 h-5" /></Button>
         </div>
       </div>

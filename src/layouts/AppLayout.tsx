@@ -8,22 +8,22 @@ import { useProfile } from "@/hooks/useProfile";
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile } = useProfile();
+  const { profile, activeRole } = useProfile();
 
-  const navItems = [
-    { label: "Home", icon: Home, path: "/dashboard" },
-    profile?.is_coach 
-      ? { label: "Equipo", icon: Users, path: "/coach" }
-      : { label: "Train", icon: Dumbbell, path: "/workout" },
-    ...(profile?.is_coach 
-      ? [{ label: "Negocio", icon: Briefcase, path: "/coach/business" }]
-      : [
-          { label: "Nutri", icon: Utensils, path: "/nutrition" },
-          { label: "Audit", icon: TrendingUp, path: "/analysis" }
-        ]
-    ),
-    { label: "Perfil", icon: User, path: "/settings" },
-  ];
+  // La navegación ahora depende del activeRole
+  const navItems = activeRole === 'coach' 
+    ? [
+        { label: "Equipo", icon: Home, path: "/dashboard" }, // Coach Dashboard es el 'Home' en modo coach
+        { label: "Negocio", icon: Briefcase, path: "/coach/business" },
+        { label: "Perfil", icon: User, path: "/settings" },
+      ]
+    : [
+        { label: "Home", icon: Home, path: "/dashboard" },
+        { label: "Train", icon: Dumbbell, path: "/workout" },
+        { label: "Nutri", icon: Utensils, path: "/nutrition" },
+        { label: "Audit", icon: TrendingUp, path: "/analysis" },
+        { label: "Perfil", icon: User, path: "/settings" },
+      ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -35,7 +35,7 @@ export default function AppLayout() {
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50 h-16 safe-area-bottom">
         <div className="max-w-md mx-auto h-full flex items-center justify-around px-2">
           {navItems.map((item) => {
-            const isActive = location.pathname.startsWith(item.path);
+            const isActive = location.pathname === item.path || (item.path === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard'));
             
             return (
               <button

@@ -7,7 +7,7 @@ import AthleteDashboardView from "@/components/dashboard/AthleteDashboardView";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { profile, loading } = useProfile();
+  const { profile, loading, activeRole } = useProfile();
 
   if (loading) {
     return (
@@ -17,11 +17,11 @@ export default function Dashboard() {
     );
   }
 
-  // Si es Coach, mostramos directamente el panel de gestión
-  if (profile?.is_coach) {
+  // Ahora respetamos el activeRole en lugar de solo chequear si es coach
+  if (profile?.is_coach && activeRole === 'coach') {
     return <CoachDashboard />;
   }
 
-  // Si es Atleta, mostramos la vista de entrenamiento
+  // Por defecto, o si el rol activo es atleta, mostramos la vista de entrenamiento
   return <AthleteDashboardView />;
 }

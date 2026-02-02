@@ -7,7 +7,7 @@ import { supabase } from "@/services/supabase";
 import { 
   Users, Activity, ChevronRight, Search, UserCheck, Loader2, UserPlus, 
   Settings, LogOut, DollarSign, AlertCircle, Cake, ClipboardCheck, TrendingUp,
-  UserMinus, Briefcase, BarChart3
+  UserMinus, Briefcase, BarChart3, Dumbbell
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,9 +15,11 @@ import { toast } from "sonner";
 import { AddAthleteModal } from "@/components/coach/AddAthleteModal";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function CoachDashboard() {
   const navigate = useNavigate();
+  const { toggleRole } = useProfile();
   const [data, setData] = useState<any>({
     clients: [],
     stats: { active: 0, late: 0, pendingReview: 0, birthdays: 0 }
@@ -118,6 +120,14 @@ export default function CoachDashboard() {
             <p className="text-red-500 text-xs font-bold uppercase tracking-widest">Gestión de Equipo Di Iorio</p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
+            <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={toggleRole}
+                className="flex-1 sm:flex-none bg-blue-600/10 border-blue-600/30 text-blue-500 font-black uppercase text-[10px] tracking-widest h-10 hover:bg-blue-600 hover:text-white"
+            >
+                <Dumbbell className="w-3 h-3 mr-1.5" /> Modo Atleta
+            </Button>
             <Button 
                 variant="outline" 
                 className="flex-1 sm:flex-none bg-zinc-900 border-zinc-800 text-zinc-300 font-bold uppercase text-[10px] tracking-widest h-10 hover:text-white"

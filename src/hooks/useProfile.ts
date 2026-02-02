@@ -8,11 +8,20 @@ export function useProfile() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   
+  // Role switching logic
+  const [activeRole, setActiveRole] = useState<'athlete' | 'coach'>('athlete');
+  
   // Derived state
   const [hasProAccess, setHasProAccess] = useState(false);
   const [daysLeftInTrial, setDaysLeftInTrial] = useState(0);
 
   useEffect(() => {
+    // Load preferred role from localStorage
+    const savedRole = localStorage.getItem('hd_active_role');
+    if (savedRole === 'coach' || savedRole === 'athlete') {
+      setActiveRole(savedRole);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
@@ -52,6 +61,13 @@ export function useProfile() {
         const userProfile = data as UserProfile;
         setProfile(userProfile);
         calculateAccess(userProfile);
+        
+        // If they are a coach, they might have a saved preference.
+        // If not a coach, always force 'athlete'
+        if (!userProfile.is_coach) {
+          setActiveRole('athlete');
+          localStorage.setItem('hd_active_role', 'athlete');
+        }
       }
     } catch (error) {
       console.error("Error in fetchProfile:", error);
@@ -60,8 +76,17 @@ export function useProfile() {
     }
   };
 
+  const toggleRole = () => {
+    if (profile?.is_coach) {
+      const newRole = activeRole === 'athlete' ? 'coach' : 'athlete';
+      setActiveRole(newRole);
+      localStorage.setItem('hd_active_role', newRole);
+    }
+  };
+
   const calculateAccess = (p: UserProfile) => {
-    if (p.is_premium) {
+    // Coaches always have PRO access to use the tools
+    if (p.is_premium || p.is_coach) {
       setHasProAccess(true);
       setDaysLeftInTrial(0);
       return;
@@ -85,5 +110,5 @@ export function useProfile() {
     }
   };
 
-  return { profile, session, loading, hasProAccess, daysLeftInTrial };
+  return { profile, session, loading, hasProAccess, daysLeftInTrial, activeRole, toggleRole };
 }
