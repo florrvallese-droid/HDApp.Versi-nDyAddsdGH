@@ -12,7 +12,7 @@ import {
 import { supabase } from "@/services/supabase";
 import { 
     Brain, TrendingUp, Star, Users, Activity, 
-    Gavel, Zap, BarChart3, ChevronRight, CheckCircle2, XCircle, AlertTriangle, ArrowRight, HelpCircle, ShieldCheck, Target, FileText, FlaskConical, Clock
+    Gavel, Zap, BarChart3, ChevronRight, CheckCircle2, XCircle, AlertTriangle, ArrowRight, HelpCircle, ShieldCheck, Target, FileText, FlaskConical, Clock, DollarSign, Utensils
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -85,7 +85,7 @@ const Index = () => {
                 PROBAR PRO (7 DÍAS GRATIS)
                 <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest italic">Cero burocracia. Ciencia aplicada.</p>
+              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest italic">Inversión inteligente. Resultados tangibles.</p>
            </div>
         </div>
       </section>
@@ -96,173 +96,228 @@ const Index = () => {
             <FeatureCard 
                 icon={<Brain className="w-8 h-8 text-red-600" />}
                 title="Bio-Stop SNC"
-                desc="La IA analiza tu sueño, estrés y molestias pre-entreno para auditar tu Sistema Nervioso Central. Si no estás para tirar pesado, el sistema te lo advierte y te explica técnicamente por qué deberías descansar."
+                desc="La IA analiza tu sueño, estrés y molestias pre-entreno para auditar tu Sistema Nervioso Central. Si no estás para tirar pesado, el sistema te lo advierte técnicamente."
             />
             <FeatureCard 
                 icon={<Target className="w-8 h-8 text-red-600" />}
                 title="Sobrecarga Forzada"
-                desc="Al iniciar cada ejercicio, la app te muestra exactamente qué tenés que superar de la sesión anterior. No anotás por anotar, anotás para ganar."
+                desc="Al iniciar cada ejercicio, la app te muestra exactamente qué tenés que superar de la sesión anterior. Dejá de adivinar y empezá a crecer."
             />
             <FeatureCard 
                 icon={<TrendingUp className="w-8 h-8 text-red-600" />}
                 title="El Juicio IA"
-                desc="Al terminar, recibís un informe técnico detallado comparando deltas de peso, reps y volumen. Veredictos reales: Progreso, Meseta o Regresión."
+                desc="Veredictos reales en tiempo real: Progreso, Meseta o Regresión. Nuestra IA audita cada serie como un coach profesional 24/7."
             />
         </div>
       </section>
 
-      {/* VERSUS SECTION */}
+      {/* ROI / COMPARISON BLOCK */}
       <section className="py-24 md:py-32 px-6 bg-black">
-        <div className="max-w-5xl mx-auto space-y-20">
-          <div className="text-center space-y-4">
-            <h2 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter leading-none">LA DIFERENCIA TECNOLÓGICA</h2>
-            <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">HUMANO VS HEAVY DUTY IA</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 space-y-8 opacity-60">
-                <div className="flex justify-between items-start">
-                    <h3 className="text-2xl font-black uppercase italic text-zinc-500">ASESORÍA TRADICIONAL</h3>
-                    <span className="text-xl font-mono text-zinc-600">$150.000/mes</span>
-                </div>
-                <ul className="space-y-6">
-                    <VsItem icon={<XCircle className="text-red-600" />} text="Te corrigen con suerte 1 vez por semana." />
-                    <VsItem icon={<XCircle className="text-red-600" />} text="Dependen de 'cómo te sentís' subjetivamente." />
-                    <VsItem icon={<XCircle className="text-red-600" />} text="Excels incómodos y PDFs que nadie lee." />
-                </ul>
+        <div className="max-w-4xl mx-auto space-y-16">
+            <div className="text-center space-y-4">
+                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter">PONÉ TU DINERO DONDE <br/><span className="text-red-600">QUERÉS VER RESULTADOS</span></h2>
+                <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.3em]">COSTO DE OPORTUNIDAD VS. RESULTADOS REALES</p>
             </div>
 
-            <div className="bg-black border-2 border-red-600 rounded-3xl p-8 space-y-8 shadow-[0_0_60px_rgba(220,38,38,0.1)] relative overflow-hidden">
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 blur-3xl rounded-full" />
-                <div className="flex justify-between items-start relative z-10">
-                    <h3 className="text-2xl font-black uppercase italic text-red-500">HEAVY DUTY PRO</h3>
-                    <span className="text-xl font-mono text-white">$28.500/mes</span>
-                </div>
-                <ul className="space-y-6 relative z-10">
-                    <VsItem icon={<CheckCircle2 className="text-green-500" />} text="Auditoría técnica EN TIEMPO REAL cada serie." />
-                    <VsItem icon={<CheckCircle2 className="text-green-500" />} text="Análisis de correlación sueño/dieta vs rendimiento." />
-                    <VsItem icon={<CheckCircle2 className="text-green-500" />} text="Ficha técnica digital compatible con tu Coach." />
-                </ul>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <ComparisonBox 
+                    title="Un Pote de Proteína"
+                    price="$90.000"
+                    duration="Dura 1 mes"
+                    outcome="Si entrenás mal, la tirás a la basura."
+                    icon={<FlaskConical className="text-zinc-700" />}
+                    negative
+                />
+                <ComparisonBox 
+                    title="Una Cena Afuera"
+                    price="$30.000"
+                    duration="Dura 2 horas"
+                    outcome="Te da placer momentáneo. Nada más."
+                    icon={<Utensils className="text-zinc-700" />}
+                    negative
+                />
+                <ComparisonBox 
+                    title="Heavy Duty App"
+                    price="$28.500"
+                    duration="Dura 1 mes"
+                    outcome="Te asegura que tu esfuerzo valga la pena."
+                    icon={<Zap className="text-red-500" />}
+                    highlight
+                />
             </div>
-          </div>
+        </div>
+      </section>
+
+      {/* PRICING TABLE SECTION */}
+      <section id="pricing" className="py-24 md:py-32 px-6 bg-zinc-950 border-y border-zinc-900">
+        <div className="max-w-5xl mx-auto space-y-16">
+            <div className="text-center space-y-2">
+                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter">ELEGÍ TU NIVEL DE COMPROMISO</h2>
+                <div className="h-1 w-24 bg-red-600 mx-auto" />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                
+                {/* BASIC */}
+                <Card className="bg-zinc-950 border border-zinc-900 flex flex-col overflow-hidden opacity-80">
+                    <CardHeader className="text-center pb-8 border-b border-zinc-900 bg-zinc-900/20">
+                        <CardTitle className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500">BASIC</CardTitle>
+                        <div className="pt-4 flex flex-col gap-1">
+                            <span className="text-4xl font-black text-white">$0</span>
+                            <span className="text-zinc-600 text-[9px] font-bold uppercase mt-2">CUADERNO DIGITAL</span>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="flex-1 space-y-5 py-8 px-8">
+                        <PricingFeature text="Anotador de Pesos" active />
+                        <PricingFeature text="Historial de Sesiones" active />
+                        <PricingFeature text="Conexión Coach (Pasiva)" active />
+                        <PricingFeature text="Auditoría IA" active={false} />
+                        <PricingFeature text="Bio-Stop SNC" active={false} />
+                    </CardContent>
+                    <CardFooter className="p-8 pt-0">
+                        <Button variant="outline" className="w-full h-12 border-zinc-800 text-zinc-500 hover:text-white font-black uppercase tracking-widest text-[10px]" onClick={() => navigate('/auth')}>REGISTRARSE</Button>
+                    </CardFooter>
+                </Card>
+
+                {/* HEAVY DUTY PRO */}
+                <Card className="bg-black border-2 border-red-600 flex flex-col overflow-hidden relative shadow-[0_0_80px_rgba(220,38,38,0.15)] scale-105 z-10">
+                    <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black uppercase px-4 py-1.5 rounded-bl-lg tracking-[0.2em] z-20 shadow-xl">RECOMENDADO</div>
+                    <CardHeader className="text-center pb-8 border-b border-red-900/20 bg-red-600/5">
+                        <CardTitle className="text-xs font-black uppercase tracking-[0.3em] text-red-500">HEAVY DUTY PRO</CardTitle>
+                        <div className="pt-4 flex flex-col gap-1">
+                            <div className="flex items-center justify-center gap-1">
+                                <span className="text-4xl font-black text-white">$28.500</span>
+                                <span className="text-zinc-500 text-xs font-bold">/ mes</span>
+                            </div>
+                            <span className="text-red-500/80 text-[9px] font-black uppercase tracking-widest mt-2 italic">TU AUDITOR 24/7</span>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="flex-1 space-y-5 py-8 px-8">
+                        <PricingFeature text="Auditoría IA en Tiempo Real" active highlight color="text-red-500" />
+                        <PricingFeature text="Bio-Stop: SNC Audit" active highlight color="text-red-500" />
+                        <PricingFeature text="Nutrición & Química PRO" active highlight color="text-red-500" />
+                        <PricingFeature text="Reportes Semanales IA" active highlight color="text-red-500" />
+                        <PricingFeature text="Alertas a tu Coach (Activa)" active highlight color="text-red-500" />
+                    </CardContent>
+                    <CardFooter className="p-8 pt-0">
+                        <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic tracking-widest text-xs shadow-2xl" onClick={() => navigate('/auth')}>EMPEZÁ EL TRIAL</Button>
+                    </CardFooter>
+                </Card>
+
+                {/* ANUAL */}
+                <Card className="bg-zinc-950 border border-zinc-900 flex flex-col overflow-hidden">
+                    <CardHeader className="text-center pb-8 border-b border-zinc-900 bg-zinc-900/20">
+                        <CardTitle className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400">ANUAL</CardTitle>
+                        <div className="pt-4 flex flex-col gap-1">
+                            <span className="text-4xl font-black text-white">$285.000</span>
+                            <span className="text-green-500 text-[9px] font-bold uppercase mt-2">2 MESES DE REGALO</span>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="flex-1 space-y-5 py-8 px-8">
+                        <PricingFeature text="Todo lo del Plan PRO" active />
+                        <PricingFeature text="Compromiso de Hierro" active />
+                        <PricingFeature text="Acceso prioritario a Beta" active />
+                        <PricingFeature text="Congela precio por 1 año" active />
+                    </CardContent>
+                    <CardFooter className="p-8 pt-0">
+                        <Button variant="outline" className="w-full h-12 border-zinc-800 text-zinc-400 hover:text-white font-black uppercase tracking-widest text-[10px]" onClick={() => navigate('/auth')}>SER SOCIO</Button>
+                    </CardFooter>
+                </Card>
+            </div>
         </div>
       </section>
 
       {/* FAQ SECTION */}
-      <section className="py-24 md:py-32 px-6 bg-zinc-950 border-y border-zinc-900">
-        <div className="max-w-3xl mx-auto space-y-12">
+      <section className="py-24 md:py-32 px-6 bg-black border-t border-zinc-900">
+        <div className="max-w-4xl mx-auto space-y-16">
             <div className="text-center space-y-2">
-                <h2 className="text-4xl font-black uppercase italic tracking-tighter">PREGUNTAS FRECUENTES</h2>
-                <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.3em]">RESOLVÉ TUS DUDAS TÉCNICAS</p>
+                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">PREGUNTAS <br/><span className="text-red-600">FRECUENTES</span></h2>
+                <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.3em]">DECISIONES BASADAS EN DATOS</p>
             </div>
 
             <Accordion type="single" collapsible className="w-full space-y-4">
-                <AccordionItem value="item-1" className="border border-zinc-900 bg-black/40 rounded-2xl px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6">
-                        ¿Qué es el Sistema Heavy Duty?
+                
+                <AccordionItem value="q1" className="border border-red-600/20 bg-red-600/5 rounded-2xl px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6 text-left leading-snug">
+                        1. ¿Por qué cuesta $28.500? Me parece caro para una app.
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 uppercase font-bold text-[11px] tracking-wide">
-                        Es una metodología de entrenamiento de alta intensidad enfocada en series únicas al fallo muscular absoluto. Nuestra App digitaliza los principios de Mike Mentzer y los potencia con inteligencia artificial para evitar el sobreentrenamiento y garantizar la sobrecarga progresiva.
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-xs font-medium border-t border-red-600/10 pt-4">
+                        No estás pagando por una "app para anotar pesas". Estás pagando por un Motor de Inteligencia Artificial que hace el trabajo técnico de un entrenador humano. Un buen coach te cobra $150.000 al mes. Nosotros te damos la misma auditoría de sobrecarga y control de fatiga por el 20% de ese valor. Es una decisión de inteligencia financiera.
                     </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="item-2" className="border border-zinc-900 bg-black/40 rounded-2xl px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6">
-                        ¿Cómo funciona el Coach IA?
+                <AccordionItem value="q2" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6 text-left leading-snug">
+                        2. No tengo Coach y entreno solo. ¿Esto me sirve?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 uppercase font-bold text-[11px] tracking-wide">
-                        Nuestra IA procesa tus datos de sueño, estrés y rendimiento histórico. Antes de cada entreno, audita tu estado actual y genera recomendaciones técnicas. Al finalizar, juzga tu sesión comparándola con la anterior para determinar si hubo un progreso real en fuerza o volumen.
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-xs font-medium pt-2">
+                        Es exactamente para vos. El problema de entrenar solo es que nadie te dice "eso fue basura" o "hoy descansá". La IA ocupa ese lugar. Es tu Auditor Silencioso que te dice en tiempo real si tu serie fue efectiva o no.
                     </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="item-3" className="border border-zinc-900 bg-black/40 rounded-2xl px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6">
-                        ¿Puedo usarlo con mi propio preparador?
+                <AccordionItem value="q3" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6 text-left leading-snug">
+                        3. ¿Es obligatorio entrenar con el sistema Heavy Duty?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 uppercase font-bold text-[11px] tracking-wide">
-                        Sí. Heavy Duty permite que tu coach se vincule a tu bitácora. Él podrá ver tus pesos, tus fotos de check-in y ajustar tu dieta o protocolos directamente desde su propio panel profesional, eliminando la necesidad de reportes por WhatsApp o Excels.
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-xs font-medium pt-2">
+                        La filosofía es la Alta Intensidad, pero la física es universal. Si hacés PPL, Upper/Lower o Frecuencia 2, la herramienta te sirve igual porque lo que medimos es la Sobrecarga Progresiva. Si no estás subiendo cargas o repeticiones, no estás creciendo.
                     </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="item-4" className="border border-zinc-900 bg-black/40 rounded-2xl px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6">
-                        ¿Funciona sin conexión a internet?
+                <AccordionItem value="q4" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6 text-left leading-snug">
+                        4. ¿La IA es un chat? ¿Tengo que hablarle?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 uppercase font-bold text-[11px] tracking-wide">
-                        La bitácora está diseñada para funcionar en el gimnasio aunque no tengas señal. Los datos se guardan localmente y se sincronizan con la nube y con tu IA apenas recuperes conexión, asegurando que nunca pierdas un registro.
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-xs font-medium pt-2">
+                        No. No venís al gimnasio a chatear. La IA es automática. Vos cargás tus datos y ella te devuelve Dictámenes. Es un semáforo de rendimiento visual y sin vueltas.
+                    </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="q5" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6 text-left leading-snug">
+                        5. ¿Qué es el "Bio-Stop" y por qué no me deja entrenar?
+                    </AccordionTrigger>
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-xs font-medium pt-2">
+                        Es nuestro sistema de seguridad biológica. Si tu Sistema Nervioso Central (SNC) está "frito" por falta de sueño o exceso de estrés, la App te bloquea el entrenamiento pesado para evitar lesiones y sobreentrenamiento. Te enseñamos a descansar para crecer.
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>
         </div>
       </section>
 
-      {/* PRICING TABLE SECTION */}
-      <section className="py-24 md:py-32 px-6 bg-black">
-        <div className="max-w-4xl mx-auto space-y-16">
-            <div className="text-center space-y-2">
-                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter">ELEGÍ TU NIVEL DE COMPROMISO</h2>
-                <div className="h-1 w-24 bg-red-600 mx-auto" />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-                <Card className="bg-zinc-950 border border-zinc-900 flex flex-col overflow-hidden">
-                    <CardHeader className="text-center pb-8 border-b border-zinc-900 bg-zinc-900/20">
-                        <CardTitle className="text-sm font-black uppercase tracking-[0.3em] text-zinc-500">BASIC</CardTitle>
-                        <div className="pt-4">
-                            <span className="text-5xl font-black text-white">$0</span>
-                        </div>
-                        <p className="text-[10px] font-bold text-zinc-600 uppercase mt-2">Bitácora Pasiva</p>
-                    </CardHeader>
-                    <CardContent className="flex-1 space-y-6 py-10 px-8">
-                        <PricingFeature text="Anotador Digital de Pesos" active />
-                        <PricingFeature text="Historial de Sesiones" active />
-                        <PricingFeature text="Calculadora 1RM" active />
-                        <PricingFeature text="Auditoría IA Real-time" active={false} />
-                        <PricingFeature text="Análisis Bio-Stop (SNC)" active={false} />
-                    </CardContent>
-                    <CardFooter className="p-8 pt-0">
-                        <Button variant="outline" className="w-full h-14 border-zinc-800 text-zinc-500 hover:text-white font-black uppercase tracking-widest" onClick={() => navigate('/auth')}>DESCARGAR</Button>
-                    </CardFooter>
-                </Card>
-
-                <Card className="bg-black border-2 border-red-600 flex flex-col overflow-hidden relative shadow-[0_0_80px_rgba(220,38,38,0.15)]">
-                    <div className="absolute top-0 right-0 bg-red-600 text-white text-[9px] font-black uppercase px-6 py-2 rounded-bl-xl tracking-[0.2em] z-10 shadow-xl">RECOMENDADO</div>
-                    <CardHeader className="text-center pb-8 border-b border-red-900/20 bg-red-600/5">
-                        <CardTitle className="text-sm font-black uppercase tracking-[0.3em] text-red-500">HEAVY DUTY PRO</CardTitle>
-                        <div className="pt-4 flex flex-col gap-1">
-                            <span className="text-5xl font-black text-white">$28.500</span>
-                            <span className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-2">voseo argentino habilitado</span>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="flex-1 space-y-6 py-10 px-8">
-                        <PricingFeature text="Auditoría IA: El Juez HD" active highlight color="text-red-500" />
-                        <PricingFeature text="Bio-Stop: SNC Pre-flight" active highlight color="text-red-500" />
-                        <PricingFeature text="Módulo de Nutrición y Química" active highlight color="text-red-500" />
-                        <PricingFeature text="Check-in Físico con Galería" active highlight color="text-red-500" />
-                        <PricingFeature text="Auditoría Global cada 30 días" active highlight color="text-red-500" />
-                    </CardContent>
-                    <CardFooter className="p-8 pt-0">
-                        <Button className="w-full h-16 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic tracking-widest shadow-2xl" onClick={() => navigate('/auth')}>EMPEZÁ TRANSFORMACIÓN</Button>
-                    </CardFooter>
-                </Card>
-            </div>
-        </div>
-      </section>
-
       <footer className="p-12 text-center border-t border-zinc-900 bg-black">
         <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-20 mx-auto mb-8" alt="Logo" />
-        <div className="space-y-1">
-            <p className="text-zinc-700 text-[10px] font-mono tracking-[0.3em] uppercase">
-                &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — High Performance Software
-            </p>
-            <p className="text-zinc-800 text-[9px] font-mono tracking-[0.1em] uppercase">
-                Versión 17.09 • Stable Build
-            </p>
-        </div>
+        <p className="text-zinc-800 text-[10px] font-mono tracking-[0.4em] uppercase">
+          &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — High Performance Software v1.1
+        </p>
       </footer>
     </div>
   );
 };
+
+const ComparisonBox = ({ icon, title, price, duration, outcome, highlight = false, negative = false }: any) => (
+    <div className={cn(
+        "p-8 rounded-3xl border flex flex-col items-center text-center gap-4 transition-all",
+        highlight ? "bg-red-600/5 border-red-600/30 shadow-2xl" : "bg-zinc-950 border-zinc-900 opacity-60"
+    )}>
+        <div className="p-3 bg-zinc-900 rounded-xl mb-2">{icon}</div>
+        <div className="space-y-1">
+            <h4 className="text-sm font-black uppercase tracking-widest text-white">{title}</h4>
+            <div className="flex items-center justify-center gap-2">
+                <span className={cn("text-2xl font-black", negative ? "text-zinc-500" : "text-red-600")}>{price}</span>
+                <span className="text-[10px] font-bold text-zinc-600 uppercase">/ {duration}</span>
+            </div>
+        </div>
+        <p className={cn("text-xs font-medium leading-relaxed uppercase tracking-tighter", highlight ? "text-zinc-300" : "text-zinc-600")}>
+            {outcome}
+        </p>
+        {highlight && (
+            <div className="mt-2 text-[10px] font-black uppercase text-red-500 tracking-widest animate-pulse">
+                DECISIÓN INTELIGENTE
+            </div>
+        )}
+    </div>
+);
 
 const FeatureCard = ({ icon, title, desc }: any) => (
     <div className="space-y-6 p-8 rounded-3xl bg-zinc-900/30 border border-zinc-900 hover:border-red-600/30 transition-all group">
@@ -272,17 +327,10 @@ const FeatureCard = ({ icon, title, desc }: any) => (
     </div>
 );
 
-const VsItem = ({ icon, text }: any) => (
-    <li className="flex items-center gap-4">
-        <div className="shrink-0">{icon}</div>
-        <span className="text-zinc-300 font-bold uppercase text-xs tracking-wide">{text}</span>
-    </li>
-);
-
 const PricingFeature = ({ text, active = true, highlight = false, color = "text-zinc-500" }: any) => (
     <div className={cn("flex items-center gap-3", !active && "opacity-20")}>
-        {active ? <CheckCircle2 className={cn("h-4 w-4", highlight ? color : "text-zinc-500")} /> : <XCircle className="h-4 w-4 text-zinc-700" />}
-        <span className={cn("text-xs font-black uppercase tracking-widest", active ? "text-zinc-200" : "text-zinc-700", highlight && color)}>{text}</span>
+        {active ? <CheckCircle2 className={cn("h-4 w-4", highlight ? color : "text-zinc-600")} /> : <XCircle className="h-4 w-4 text-zinc-700" />}
+        <span className={cn("text-[10px] font-black uppercase tracking-widest", active ? "text-zinc-200" : "text-zinc-700", highlight && color)}>{text}</span>
     </div>
 );
 
