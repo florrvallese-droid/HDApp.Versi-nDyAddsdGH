@@ -9,7 +9,7 @@ import { supabase } from "@/services/supabase";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ChevronLeft, Loader2 } from "lucide-center";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Auth = () => {
@@ -52,7 +52,6 @@ const Auth = () => {
       }
 
       // Si el perfil EXISTE (aunque esté incompleto), dejamos pasar.
-      // Eliminamos validaciones de nombre/sexo para evitar bucles.
       if (profile) {
         if (profile.is_coach) {
             navigate('/coach');
