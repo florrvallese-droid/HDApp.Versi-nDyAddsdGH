@@ -14,10 +14,11 @@ export default defineConfig(() => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
       workbox: {
-        // Aumentamos el límite a 4MB para evitar el error de build en Vercel
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
+        cleanupOutdatedCaches: true,
       },
       manifest: {
         name: 'Heavy Duty Di Iorio',
@@ -50,16 +51,14 @@ export default defineConfig(() => ({
     },
   },
   build: {
-    // Aumentamos el límite de advertencia para que no moleste en consola
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {
-        // Estrategia de división de código para optimizar la carga
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['@radix-ui/react-accordion', '@radix-ui/react-alert-dialog', '@radix-ui/react-avatar', '@radix-ui/react-checkbox', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-label', '@radix-ui/react-popover', '@radix-ui/react-progress', '@radix-ui/react-select', '@radix-ui/react-separator', '@radix-ui/react-slider', '@radix-ui/react-slot', '@radix-ui/react-switch', '@radix-ui/react-tabs', '@radix-ui/react-toast', '@radix-ui/react-toggle', '@radix-ui/react-tooltip', 'lucide-react', 'class-variance-authority', 'clsx', 'tailwind-merge'],
+          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-tabs', '@radix-ui/react-select', 'lucide-react'],
           'vendor-utils': ['date-fns', 'recharts', 'html2canvas'],
-          'vendor-supabase': ['@supabase/supabase-js', '@tanstack/react-query'],
+          'vendor-supabase': ['@supabase/supabase-js'],
         }
       }
     }
