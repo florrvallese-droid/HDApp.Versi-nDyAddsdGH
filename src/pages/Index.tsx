@@ -58,25 +58,25 @@ const Index = () => {
             </div>
         </nav>
 
-        <div className="relative z-10 max-w-5xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-900/50 bg-red-900/10 text-red-500 text-[10px] font-black uppercase tracking-widest mb-4">
+        <div className="relative z-10 max-w-4xl text-center space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-900/50 bg-red-900/10 text-red-500 text-[10px] font-black uppercase tracking-widest mb-2">
               <Star className="w-3 h-3 fill-current" /> EL SISTEMA DEFINITIVO PARA CAMBIAR TU CUERPO
            </div>
 
-           <div className="space-y-4">
-              <h1 className="text-5xl md:text-9xl font-black tracking-tighter uppercase italic leading-[0.85]">
+           <div className="space-y-6">
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase italic leading-[0.9] text-white">
                 LA ÚNICA APP QUE TE ENSEÑA <br/>
                 <span className="text-zinc-700">A ENTRENAR DE VERDAD</span>
               </h1>
               <div className="flex flex-col items-center gap-2">
-                <h2 className="text-sm md:text-xl font-black tracking-[0.3em] text-red-600 uppercase">
+                <h2 className="text-xs md:text-sm font-black tracking-[0.4em] text-red-600 uppercase">
                     {" >> "} VERSIÓN 17.09 INTEGRADA CON IA
                 </h2>
               </div>
            </div>
 
-           <div className="space-y-2">
-              <p className="text-lg md:text-xl text-white font-black uppercase italic tracking-tight">
+           <div className="space-y-3">
+              <p className="text-lg md:text-xl text-zinc-200 font-bold uppercase italic tracking-tight">
                 Hoy vas a dejar de perder tiempo en el gimnasio.
               </p>
               <p className="text-sm md:text-base text-zinc-500 font-medium italic">
@@ -84,16 +84,16 @@ const Index = () => {
               </p>
            </div>
 
-           <div className="pt-8 flex flex-col items-center gap-4">
+           <div className="pt-6 flex flex-col items-center gap-4">
               <Button 
                 size="lg" 
                 className="h-16 md:h-20 px-8 md:px-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic text-xl md:text-2xl shadow-[0_0_50px_rgba(220,38,38,0.3)] border-2 border-red-500/20 rounded-xl group transition-all"
                 onClick={() => navigate("/auth")}
               >
-                EMPEZAR MI TRANSFORMACIÓN
+                EMPEZÁ TU TRANSFORMACIÓN
                 <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest">Prueba Gratis — Sin Tarjeta de Crédito</p>
+              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest italic">Probá Gratis — Sin Tarjeta de Crédito</p>
            </div>
         </div>
 
@@ -140,7 +140,7 @@ const Index = () => {
 
       {/* 3. LA SOLUCIÓN - ARMAS */}
       <section className="py-24 md:py-32 px-6 bg-black relative">
-         <div className="max-w-3xl mx-auto space-y-32">
+         <div className="max-w-5xl mx-auto space-y-32">
             
             <WeaponSection 
                 number="01"
@@ -188,13 +188,13 @@ const Index = () => {
          <div className="absolute inset-0 opacity-10 pointer-events-none flex items-center justify-center">
             <Users className="w-[800px] h-[800px] -rotate-12" />
          </div>
-         <div className="max-w-4xl mx-auto space-y-8 relative z-10">
+         <div className="max-w-5xl mx-auto space-y-8 relative z-10">
             <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">¿TENÉS COACH?<br/>POTENCIALO.</h2>
             <p className="text-lg md:text-2xl font-bold uppercase italic max-w-2xl mx-auto leading-relaxed">
                 Heavy Duty App no reemplaza a tu entrenador, lo hace más letal. Si tu coach usa nuestra plataforma, él ve tus datos en tiempo real.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left pt-8">
-                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20"><CheckCircle2 className="w-6 h-6 mb-3" /><p className="font-bold uppercase text-sm">Adiós a mandar Excels por mail.</p></div>
+                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20"><CheckCircle2 className="w-6 h-6 mb-3" /><p className="font-bold uppercase text-sm">Chau a mandar Excels por mail.</p></div>
                 <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20"><CheckCircle2 className="w-6 h-6 mb-3" /><p className="font-bold uppercase text-sm">Tu coach recibe alertas si te estancás.</p></div>
             </div>
          </div>
@@ -204,7 +204,7 @@ const Index = () => {
       <section className="py-24 md:py-32 px-6 bg-zinc-950">
         <div className="max-w-5xl mx-auto space-y-16">
             <div className="text-center">
-                <h2 className="text-4xl font-black uppercase italic tracking-tighter">ELIGE TU NIVEL DE COMPROMISO</h2>
+                <h2 className="text-4xl font-black uppercase italic tracking-tighter">ELEGÍ TU NIVEL DE COMPROMISO</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -223,7 +223,7 @@ const Index = () => {
                         <PricingItem text="Sin Bio-Stop" disabled />
                     </CardContent>
                     <CardFooter className="pt-6">
-                        <Button variant="outline" className="w-full h-14 border-zinc-800 text-zinc-400 hover:text-white uppercase font-black tracking-widest" onClick={() => navigate('/auth')}>EMPEZAR GRATIS</Button>
+                        <Button variant="outline" className="w-full h-14 border-zinc-800 text-zinc-400 hover:text-white uppercase font-black tracking-widest" onClick={() => navigate('/auth')}>EMPEZÁ GRATIS</Button>
                     </CardFooter>
                 </Card>
 
@@ -243,7 +243,7 @@ const Index = () => {
                         <PricingItem text="Modo Competidor Activado" highlight />
                     </CardContent>
                     <CardFooter className="pt-6">
-                        <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white uppercase font-black tracking-widest italic shadow-xl shadow-red-900/20 border border-red-500/20" onClick={() => navigate('/auth')}>PROBAR PRO GRATIS 7 DÍAS</Button>
+                        <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white uppercase font-black tracking-widest italic shadow-xl shadow-red-900/20 border border-red-500/20" onClick={() => navigate('/auth')}>PROBÁ PRO GRATIS 7 DÍAS</Button>
                     </CardFooter>
                 </Card>
             </div>
@@ -306,11 +306,8 @@ const Index = () => {
             className="h-20 md:h-24 px-12 md:px-16 bg-white text-black hover:bg-zinc-200 font-black uppercase italic text-2xl md:text-3xl shadow-2xl rounded-2xl"
             onClick={() => navigate("/auth")}
           >
-            DESCARGAR APP
+            DESCARGÁ LA APP
           </Button>
-          <div className="flex justify-center gap-8 pt-10 grayscale opacity-40">
-             <img src="/placeholder.svg" className="h-6 md:h-8" alt="iOS" /><img src="/placeholder.svg" className="h-6 md:h-8" alt="Android" />
-          </div>
       </section>
 
       <footer className="p-8 text-center border-t border-zinc-900 relative z-10 bg-black/80 backdrop-blur-sm mt-20">
@@ -329,8 +326,8 @@ const Index = () => {
 };
 
 const PainPoint = ({ icon, title, desc }: any) => (
-    <div className="space-y-4 group">
-        <div className="bg-zinc-800 p-5 rounded-2xl w-fit group-hover:bg-red-600/10 transition-colors">{icon}</div>
+    <div className="space-y-4 group text-center md:text-left">
+        <div className="bg-zinc-800 p-5 rounded-2xl w-fit mx-auto md:mx-0 group-hover:bg-red-600/10 transition-colors">{icon}</div>
         <h4 className="text-xl font-black text-white uppercase italic leading-none">{title}</h4>
         <p className="text-zinc-500 text-sm leading-relaxed">{desc}</p>
     </div>

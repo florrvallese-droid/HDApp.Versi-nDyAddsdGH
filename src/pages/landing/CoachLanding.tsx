@@ -49,30 +49,30 @@ export default function CoachLanding() {
             </div>
         </nav>
 
-        <div className="relative z-20 max-w-4xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/5 text-yellow-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+        <div className="relative z-20 max-w-5xl text-center space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/5 text-yellow-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2">
               <Star className="w-3 h-3 fill-current" /> Coach Command Center
            </div>
 
-           <div className="space-y-4">
-              <h1 className="text-5xl md:text-8xl font-black tracking-tighter uppercase italic leading-[0.85]">
+           <div className="space-y-6">
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase italic leading-[0.85] text-white">
                 DEJÁ DE SER UN<br/>
                 <span className="text-zinc-600">SECRETARIO DE EXCEL</span>
               </h1>
-              <h2 className="text-2xl md:text-4xl font-black tracking-tight text-white uppercase">
+              <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white uppercase">
                 EMPEZÁ A SER EL <span className="text-red-500">CEO</span> DE TU NEGOCIO.
               </h2>
            </div>
 
            <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto font-medium">
-             La primera plataforma de Gestión High-Performance con Inteligencia Artificial. Audita entrenamientos, detecta fugas de clientes y genera tu marketing.
+             La primera plataforma de Gestión High-Performance con Inteligencia Artificial. Auditá entrenamientos, detectá fugas de clientes y generá tu marketing.
            </p>
 
-           <div className="pt-8">
+           <div className="pt-6">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button className="h-20 px-10 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-black font-black uppercase italic text-xl shadow-[0_0_50px_rgba(245,158,11,0.2)] border-2 border-yellow-400/20 rounded-xl">
-                     SOLICITAR ACCESO FUNDADOR
+                     SOLICITÁ ACCESO FUNDADOR
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-md">
@@ -89,7 +89,7 @@ export default function CoachLanding() {
       </section>
 
       {/* 2. EL PROBLEMA */}
-      <section className="bg-zinc-100 py-24 px-6">
+      <section className="bg-zinc-100 py-24 md:py-32 px-6">
         <div className="max-w-5xl mx-auto space-y-16">
           <div className="text-center space-y-2">
             <h2 className="text-4xl md:text-6xl font-black text-black uppercase italic tracking-tighter leading-none">¿TE SUENA ESTA HISTORIA?</h2>
@@ -117,10 +117,10 @@ export default function CoachLanding() {
       </section>
 
       {/* 3. LA SOLUCIÓN */}
-      <section className="py-32 px-6 relative overflow-hidden">
+      <section className="py-24 md:py-32 px-6 relative overflow-hidden">
          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
-               <div className="space-y-3">
+               <div className="space-y-3 text-center lg:text-left">
                   <h3 className="text-red-500 font-black uppercase tracking-widest text-sm">TU CENTRO DE COMANDO</h3>
                   <h2 className="text-5xl md:text-7xl font-black uppercase italic leading-[0.9]">NO ES OTRA "APP DE RUTINAS".</h2>
                   <p className="text-2xl text-zinc-500 font-bold uppercase italic">ES TU SOCIO DE NEGOCIOS INTELIGENTE.</p>
@@ -137,7 +137,7 @@ export default function CoachLanding() {
                </div>
             </div>
 
-            <div className="relative group">
+            <div className="relative group mx-auto w-full max-w-md lg:max-w-none">
                 <div className="absolute -inset-4 bg-red-600/20 blur-[60px] opacity-30 group-hover:opacity-50 transition-opacity" />
                 <Card className="bg-zinc-950 border-zinc-900 rounded-[2rem] overflow-hidden shadow-2xl relative z-10">
                     <CardContent className="p-0">
@@ -153,7 +153,7 @@ export default function CoachLanding() {
       </section>
 
       {/* 4. FEATURES */}
-      <section className="bg-zinc-900/30 py-24 px-6 border-y border-zinc-900">
+      <section className="bg-zinc-900/30 py-24 md:py-32 px-6 border-y border-zinc-900">
         <div className="max-w-6xl mx-auto space-y-16">
             <div className="text-center">
                 <h2 className="text-4xl font-black uppercase italic tracking-tighter">LOS SUPERPODERES DEL COACH</h2>
@@ -167,24 +167,24 @@ export default function CoachLanding() {
                 <FeatureCard 
                     icon={<Zap className="text-yellow-500" />}
                     title="Radar de Retención"
-                    desc="Detecta patrones de abandono antes de que sucedan. Salva al cliente antes de que deje de pagar."
+                    desc="Detectá patrones de abandono antes de que sucedan. Salvá al cliente antes de que deje de pagar."
                 />
                 <FeatureCard 
                     icon={<Sparkles className="text-blue-500" />}
                     title="Marketing Viral"
-                    desc="Genera automáticamente posteos basados en los récords reales de tus alumnos. Convertí resultados en ventas."
+                    desc="Generá automáticamente posteos basados en los récords reales de tus alumnos. Convertí resultados en ventas."
                 />
                 <FeatureCard 
                     icon={<Lock className="text-green-500" />}
                     title="Bóveda de Protocolos"
-                    desc="Guardá tus esquemas maestros. La IA audita los borradores para evitar errores de seguridad o dosis ilógicas."
+                    desc="Guardá tus esquemas maestros. La IA auditá los borradores para evitar errores de seguridad o dosis ilógicas."
                 />
             </div>
         </div>
       </section>
 
       {/* 5. FAQ (OBJETION HANDLING) */}
-      <section className="py-24 px-6 bg-black border-b border-zinc-900">
+      <section className="py-24 md:py-32 px-6 bg-black border-b border-zinc-900">
         <div className="max-w-3xl mx-auto space-y-12">
             <div className="flex items-center gap-4">
                 <div className="p-2 bg-yellow-500/10 rounded-lg">
@@ -246,7 +246,7 @@ export default function CoachLanding() {
       </section>
 
       {/* 6. LA OFERTA */}
-      <section className="py-24 px-6">
+      <section className="py-24 md:py-32 px-6">
         <Card className="max-w-4xl mx-auto bg-gradient-to-br from-zinc-900 to-black border-2 border-yellow-500/20 overflow-hidden rounded-[3rem] shadow-[0_0_100px_rgba(245,158,11,0.1)]">
             <CardContent className="p-8 md:p-16 flex flex-col md:flex-row items-center gap-12">
                 <div className="flex-1 space-y-8 text-center md:text-left">
@@ -313,8 +313,8 @@ export default function CoachLanding() {
 }
 
 const PainPoint = ({ icon, title, desc }: any) => (
-    <div className="space-y-4">
-        <div className="bg-white shadow-xl p-4 rounded-2xl w-fit">{icon}</div>
+    <div className="space-y-4 group text-center md:text-left">
+        <div className="bg-white shadow-xl p-4 rounded-2xl w-fit mx-auto md:mx-0 group-hover:scale-110 transition-transform">{icon}</div>
         <h4 className="text-xl font-black text-black uppercase italic leading-none">{title}</h4>
         <p className="text-zinc-600 text-sm leading-relaxed">{desc}</p>
     </div>
