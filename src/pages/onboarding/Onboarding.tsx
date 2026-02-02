@@ -41,11 +41,6 @@ const Onboarding = () => {
         const { data } = await supabase.auth.getUser();
         if (data.user) {
             setUserId(data.user.id);
-            // Si el email es el tuyo, pre-seteamos como coach
-            if (data.user.email === 'florr.vallese@gmail.com') {
-                setRole('coach');
-                setStep(2); // Saltamos la elección de rol
-            }
         } else {
             navigate("/auth");
         }
@@ -56,6 +51,10 @@ const Onboarding = () => {
   const isProfessional = role === 'coach' || role === 'agency';
 
   const handleNext = () => {
+    if (step === 1 && isProfessional) {
+        setStep(2);
+        return;
+    }
     if (step === 2 && isProfessional) {
         setStep(5);
         return;
@@ -76,10 +75,7 @@ const Onboarding = () => {
   };
 
   const handleSubmit = async () => {
-    if (!userId) {
-        toast.error("Error de sesión.");
-        return;
-    }
+    if (!userId) return;
     setLoading(true);
 
     try {
@@ -100,37 +96,24 @@ const Onboarding = () => {
         updateData.settings = { current_weight: weight.toString() }; 
       }
 
-      // IMPORTANTE: Primero verificamos si el registro ya existe para usar UPDATE
-      const { data: existing } = await supabase.from('profiles').select('user_id').eq('user_id', userId).maybeSingle();
-
-      let error;
-      if (existing) {
-        const { error: updateError } = await supabase
-            .from("profiles")
-            .update(updateData)
-            .eq('user_id', userId);
-        error = updateError;
-      } else {
-        const { error: insertError } = await supabase
-            .from("profiles")
-            .insert({ ...updateData, user_id: userId });
-        error = insertError;
-      }
+      const { error } = await supabase
+        .from("profiles")
+        .update(updateData)
+        .eq('user_id', userId);
 
       if (error) throw error;
 
-      toast.success("¡Perfil guardado!");
+      toast.success("¡Perfil configurado!");
       
-      // Redirect forcing refresh
+      // Redirección definitiva
       if (isProfessional) {
-          window.location.assign("/coach");
+          navigate("/coach");
       } else {
-          window.location.assign("/dashboard");
+          navigate("/dashboard");
       }
       
     } catch (error: any) {
-      console.error("Onboarding error:", error);
-      toast.error("Fallo al guardar: " + error.message);
+      toast.error("Error al guardar: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -173,7 +156,6 @@ const Onboarding = () => {
         </CardHeader>
         
         <CardContent className="py-6">
-          
           {step === 1 && (
             <div className="space-y-4">
                <Label className="text-zinc-400 font-bold uppercase tracking-wider text-xs block text-center mb-4">¿Cuál es tu función principal?</Label>

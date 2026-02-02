@@ -13,7 +13,7 @@ export default function Dashboard() {
       navigate('/onboarding');
     }
     
-    // Si el perfil es Coach, NO debería estar en esta ruta de atleta
+    // REDIRECCIÓN ESTRICTA: Un coach nunca debe ver la vista de atleta.
     if (!loading && profile?.is_coach) {
       navigate('/coach');
     }
