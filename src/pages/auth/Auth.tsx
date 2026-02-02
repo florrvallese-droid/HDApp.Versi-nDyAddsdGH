@@ -23,6 +23,7 @@ const Auth = () => {
   const navigate = useNavigate();
   
   const isCoachIntent = searchParams.get("role") === "coach";
+  const initialTab = searchParams.get("tab") || "login";
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -45,11 +46,14 @@ const Auth = () => {
         return;
       }
 
-      // Si es Coach, va directo al dashboard de gestión, no necesita el onboarding de peso/sexo de atleta
+      // Si ya es Coach o Admin en la DB, evitamos el onboarding de atleta
       if (profile.is_coach) {
         navigate('/dashboard');
-      } else if (profile.sex === 'other' || !profile.display_name) {
-        // Solo los atletas normales pasan por el onboarding si no están completos
+        return;
+      }
+
+      // Solo los atletas con perfil vacío van al onboarding
+      if (!profile.display_name || profile.sex === 'other') {
         navigate('/onboarding');
       } else {
         navigate('/dashboard');
@@ -138,7 +142,7 @@ const Auth = () => {
             </Alert>
           )}
           
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={initialTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-zinc-900 border border-zinc-800 p-1">
               <TabsTrigger value="login" className="font-bold uppercase text-[10px]">Ingresar</TabsTrigger>
               <TabsTrigger value="signup" className="font-bold uppercase text-[10px]">Registro</TabsTrigger>

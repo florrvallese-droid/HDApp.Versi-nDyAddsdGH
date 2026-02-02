@@ -44,7 +44,7 @@ const Index = () => {
                 <Button 
                     variant="ghost" 
                     className="text-zinc-300 hover:text-white font-bold uppercase text-[9px] md:text-[10px] tracking-widest border border-zinc-800 h-8 md:h-9"
-                    onClick={() => navigate("/auth")}
+                    onClick={() => navigate("/auth?tab=login")}
                 >
                     Entrar
                 </Button>
@@ -84,7 +84,7 @@ const Index = () => {
               <Button 
                 size="lg" 
                 className="h-16 md:h-20 px-8 md:px-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic text-xl md:text-2xl shadow-[0_0_50px_rgba(220,38,38,0.3)] border-2 border-red-400/20 rounded-xl group transition-all"
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/auth?tab=signup")}
               >
                 PROBAR PRO (7 DÍAS GRATIS)
                 <ArrowRight className="ml-3 h-5 md:h-6 w-5 md:w-6 group-hover:translate-x-1 transition-transform" />
@@ -179,7 +179,7 @@ const Index = () => {
                         <PricingFeature text="Bio-Stop SNC" active={false} />
                     </CardContent>
                     <CardFooter className="p-8 pt-0">
-                        <Button variant="outline" className="w-full h-12 border-zinc-800 text-zinc-500 hover:text-white font-black uppercase tracking-widest text-[10px]" onClick={() => navigate('/auth')}>REGISTRARSE</Button>
+                        <Button variant="outline" className="w-full h-12 border-zinc-800 text-zinc-500 hover:text-white font-black uppercase tracking-widest text-[10px]" onClick={() => navigate('/auth?tab=login')}>REGISTRARSE</Button>
                     </CardFooter>
                 </Card>
 
@@ -204,7 +204,7 @@ const Index = () => {
                         <PricingFeature text="Alertas a tu Coach (Activa)" active highlight color="text-red-500" />
                     </CardContent>
                     <CardFooter className="p-8 pt-0">
-                        <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic tracking-widest text-xs shadow-2xl" onClick={() => navigate('/auth')}>EMPEZÁ EL TRIAL</Button>
+                        <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic tracking-widest text-xs shadow-2xl" onClick={() => navigate('/auth?tab=signup')}>EMPEZÁ EL TRIAL</Button>
                     </CardFooter>
                 </Card>
 
@@ -224,7 +224,7 @@ const Index = () => {
                         <PricingFeature text="Congela precio por 1 año" active />
                     </CardContent>
                     <CardFooter className="p-8 pt-0">
-                        <Button variant="outline" className="w-full h-12 border-zinc-800 text-zinc-400 hover:text-white font-black uppercase tracking-widest text-[10px]" onClick={() => navigate('/auth')}>SER SOCIO</Button>
+                        <Button variant="outline" className="w-full h-12 border-zinc-800 text-zinc-400 hover:text-white font-black uppercase tracking-widest text-[10px]" onClick={() => navigate('/auth?tab=login')}>SER SOCIO</Button>
                     </CardFooter>
                 </Card>
             </div>
@@ -263,7 +263,7 @@ const Index = () => {
                     <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
                         3. ¿Es obligatorio entrenar con el sistema Heavy Duty?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-[11px] md:text-xs font-medium pt-2">
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
                         La filosofía es la Alta Intensidad, pero la física es universal. Si hacés PPL, Upper/Lower o Frecuencia 2, la herramienta te sirve igual porque lo que medimos es la Sobrecarga Progresiva. Si no estás su biendo cargas o repeticiones, no estás creciendo.
                     </AccordionContent>
                 </AccordionItem>
@@ -272,7 +272,7 @@ const Index = () => {
                     <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
                         4. ¿La IA es un chat? ¿Tengo que hablarle?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-[11px] md:text-xs font-medium pt-2">
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
                         No. No venís al gimnasio a chatear. La IA es automática. Vos cargás tus datos y ella te devuelve Dictámenes. Es un semáforo de rendimiento visual y sin vueltas.
                     </AccordionContent>
                 </AccordionItem>
@@ -281,7 +281,7 @@ const Index = () => {
                     <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
                         5. ¿Qué es el "Bio-Stop" y por qué no me deja entrenar?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-[11px] md:text-xs font-medium pt-2">
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
                         Es nuestro sistema de seguridad biológica. Si tu Sistema Nervioso Central (SNC) está "frito" por falta de sueño o exceso de estrés, la App te bloquea el entrenamiento pesado para evitar lesiones y sobreentrenamiento. Te enseñamos a descansar para crecer.
                     </AccordionContent>
                 </AccordionItem>
