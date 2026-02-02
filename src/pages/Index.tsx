@@ -60,19 +60,23 @@ const Index = () => {
         </div>
 
         <div className="relative z-10 max-w-5xl text-center space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+           
+           {/* BADGE UPDATED */}
            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-600/30 bg-red-600/5 text-red-500 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-2 md:mb-4">
-              <ShieldCheck className="w-3 md:w-3.5 h-3 md:h-3.5" /> TU CUADERNO DE ENTRENAMIENTO INTEGRADO CON IA
+              <Star className="w-3 md:w-3.5 h-3 md:h-3.5 fill-current" /> EL SISTEMA DEFINITIVO PARA EL ALTO RENDIMIENTO
            </div>
 
-           <div className="space-y-4 md:space-y-6">
-              <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter uppercase italic leading-[0.9] text-white">
-                MEDÍ TU PROGRESO <br/>
-                <span className="text-red-600">REAL,</span> NO TUS <br/>
-                <span className="text-zinc-800">SENSACIONES.</span>
+           {/* TITLE UPDATED */}
+           <div className="space-y-4">
+              <h1 className="text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] font-black tracking-tighter uppercase italic leading-[0.85] text-white">
+                HEAVY DUTY
               </h1>
+              <h2 className="text-lg sm:text-2xl md:text-3xl font-black uppercase tracking-[0.15em] md:tracking-[0.3em] leading-tight">
+                <span className="text-white">TU CUADERNO</span> <span className="text-red-600">DE ENTRENAMIENTO INTELIGENTE</span>
+              </h2>
            </div>
 
-           <div className="space-y-4 max-w-2xl mx-auto">
+           <div className="space-y-4 max-w-2xl mx-auto pt-4">
               <p className="text-base md:text-xl text-zinc-400 font-bold uppercase italic tracking-tight leading-relaxed px-4">
                 Te matás entrenando, comés bien y descansás... pero el espejo te devuelve la misma imagen hace meses. 
                 <span className="text-white"> Dejá de tirar tu tiempo a la basura persiguiendo sensaciones </span> 
