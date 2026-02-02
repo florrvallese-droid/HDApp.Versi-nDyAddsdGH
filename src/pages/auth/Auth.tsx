@@ -7,30 +7,28 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/services/supabase";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ChevronLeft, Loader2, MailCheck, User, Dumbbell, Users, Building2, ChevronRight } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ChevronLeft, Loader2, MailCheck, RefreshCw, User, Dumbbell, Users, Building2, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Auth = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isVerifyStep, setIsVerifyStep] = useState(false);
   
-  // Wizard State - Initialize from URL if present
+  // Wizard State
   const [signupStep, setSignupStep] = useState(1);
-  const [role, setRole] = useState<'athlete' | 'coach' | 'agency'>(() => {
-    const urlRole = searchParams.get("role");
-    if (urlRole === "coach" || urlRole === "agency") return urlRole;
-    return "athlete";
-  });
+  const [role, setRole] = useState<'athlete' | 'coach' | 'agency'>('athlete');
   const [displayName, setDisplayName] = useState("");
   const [sex, setSex] = useState<'male' | 'female' | 'other'>('male');
 
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
   const initialTab = searchParams.get("tab") || "login";
 
   useEffect(() => {
@@ -43,15 +41,11 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    console.log("[Auth] Attempting login for:", email);
-    
     try {
       const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
       if (loginError) throw loginError;
-      console.log("[Auth] Login successful");
       navigate('/dashboard');
     } catch (err: any) {
-      console.error("[Auth] Login failed:", err.message);
       setError(err.message || "Error al iniciar sesión");
       toast.error("Credenciales inválidas");
       setLoading(false);
@@ -67,7 +61,6 @@ const Auth = () => {
 
     setLoading(true);
     setError(null);
-    console.log("[Auth] Starting signup process", { role, displayName, sex });
 
     try {
       const { error: signupError } = await supabase.auth.signUp({
@@ -77,18 +70,16 @@ const Auth = () => {
           emailRedirectTo: `${window.location.origin}/onboarding`,
           data: {
             display_name: displayName,
-            role: role, 
+            role: role,
             sex: sex
           }
         }
       });
 
       if (signupError) throw signupError;
-      console.log("[Auth] Signup successful, verification email sent");
       setIsVerifyStep(true);
       toast.success("Cuenta creada. Por favor verifica tu email.");
     } catch (err: any) {
-      console.error("[Auth] Signup error:", err.message);
       setError(err.message);
       toast.error(err.message);
     } finally {

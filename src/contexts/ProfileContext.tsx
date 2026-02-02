@@ -48,7 +48,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
   const loadUserProfile = async (userId: string) => {
     try {
-      console.log("[ProfileContext] Loading profile for UID:", userId);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -57,15 +56,9 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
       if (data) {
         const userProfile = data as UserProfile;
-        console.log("[ProfileContext] Profile loaded successfully:", { 
-          role: userProfile.is_coach ? "COACH" : "ATHLETE",
-          admin: userProfile.is_admin,
-          displayName: userProfile.display_name
-        });
         setProfile(userProfile);
         calculateAccess(userProfile);
       } else {
-        console.warn("[ProfileContext] No profile found in database for this user.");
         setProfile(null);
       }
     } catch (error) {
@@ -79,17 +72,14 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
     let mounted = true;
 
     const initialize = async () => {
-      console.log("[ProfileContext] Initializing session check...");
       const { data: { session: initSession } } = await supabase.auth.getSession();
       
       if (!mounted) return;
       setSession(initSession);
       
       if (initSession?.user) {
-        console.log("[ProfileContext] Active session found:", initSession.user.email);
         await loadUserProfile(initSession.user.id);
       } else {
-        console.log("[ProfileContext] No active session.");
         setLoading(false);
       }
     };
@@ -98,11 +88,11 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
-      console.log("[ProfileContext] Auth State Change:", event);
       
       setSession(newSession);
       
       if (newSession?.user) {
+        // En cualquier evento de sesión positiva, forzamos recarga de perfil si no existe o es nuevo login
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
            setLoading(true);
            await loadUserProfile(newSession.user.id);
