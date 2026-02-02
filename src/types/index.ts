@@ -1,4 +1,4 @@
-export type CoachTone = 'strict' | 'motivational' | 'analytical' | 'friendly';
+export type CoachTone = 'strict' | 'motivational' | 'analytical' | 'friendly' | 'business_analytical';
 export type Discipline = 'bodybuilding' | 'crossfit' | 'powerlifting' | 'general';
 export type UnitSystem = 'kg' | 'lb';
 export type Sex = 'male' | 'female' | 'other';

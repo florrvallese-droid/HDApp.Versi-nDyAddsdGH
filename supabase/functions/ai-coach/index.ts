@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
     // 1. Fetch Prompt (Personality)
     let systemInstruction = `Sos un analista experto en Heavy Duty.`;
-    let promptVersion = "v2.1-spanish-fixed";
+    let promptVersion = "v2.2-business-hybrid";
 
     try {
       const { data: promptData } = await supabase
@@ -71,32 +71,36 @@ Deno.serve(async (req) => {
     // REGLAS GLOBALES DE COMPORTAMIENTO (Fase 3: El Juicio)
     const globalConstrains = `
       ### REGLAS DE ORO DEL SISTEMA (ESTRICTAS) ###
-      1. IDIOMA: Responde EXCLUSIVAMENTE en ESPAÑOL. No uses términos técnicos en inglés si existe una traducción clara en el culturismo (ej: usa 'fallo' en vez de 'failure').
-      2. ROL: Sos un ANALISTA DE DATOS, no un planificador. Tu trabajo es EVALUAR lo que ya pasó o el estado actual.
-      3. PROHIBICIÓN: No des pasos a seguir, no sugieras ejercicios nuevos, no des planes de entrenamiento ni sugerencias de qué hacer mañana. No reemplaces al coach humano.
-      4. OBJETIVO: Da un análisis crítico basado en la evidencia de los logs. 
-      5. PERSONALIDAD: Debes mantener el tono "${tone}" en cada palabra. Si sos "strict", sé crudo y directo. Si sos "analytical", hablá de tendencias y métricas.
+      1. IDIOMA: Responde EXCLUSIVAMENTE en ESPAÑOL.
+      2. ROL: Sos un ANALISTA DE DATOS y un ESTRATEGA DE NEGOCIO fitness.
+      3. PERSONALIDAD: Debes mantener el tono "${tone}". 
+      4. SI EL TONO ES "business_analytical": Tu prioridad es detectar patrones que afecten la rentabilidad (ej: falta de progreso del alumno = riesgo de abandono) y oportunidades de marca (ej: hitos para redes sociales).
+      5. OBJETIVO: Da un análisis crítico basado en la evidencia de los logs. 
     `;
 
     const schemas = {
       preworkout: `{
         "decision": "TRAIN_HEAVY" | "TRAIN_LIGHT" | "REST",
-        "rationale": "Análisis en ESPAÑOL del estado sistémico del atleta...",
-        "recommendations": ["Observación 1 en español", "Observación 2 en español"]
+        "rationale": "Análisis en ESPAÑOL del estado sistémico...",
+        "recommendations": ["Observación 1", "Observación 2"]
       }`,
       postworkout: `{
-        "verdict": "PROGRESS" | "PLATEAU" | "REGRESSION",
-        "highlights": ["Hito detectado en español"],
-        "corrections": ["Falla técnica detectada en español"],
-        "coach_quote": "Frase de cierre en español según tu personalidad",
-        "judgment": "Análisis profundo en Markdown y en ESPAÑOL sobre el rendimiento de hoy vs el pasado."
+        "verdict": "PROGRESS" | "STAGNATION" | "REGRESSION",
+        "highlights": ["Hito detectado"],
+        "corrections": ["Falla técnica"],
+        "coach_quote": "Frase de cierre según tu personalidad",
+        "judgment": "Análisis profundo en Markdown sobre el rendimiento."
       }`,
       globalanalysis: `{
-        "top_patterns": [{"pattern": "Descripción en español", "evidence": "Dato en español", "action": "Observación en español"}],
-        "performance_insights": {"best_performing_conditions": "en español", "worst_performing_conditions": "en español", "optimal_frequency": "en español"},
-        "red_flags": ["Alertas en español"],
-        "next_14_days_plan": ["Tendencias en español"],
-        "overall_assessment": "Análisis macroscópico en ESPAÑOL del progreso mensual."
+        "top_patterns": [{"pattern": "Descripción", "evidence": "Dato", "action": "Observación estratégica"}],
+        "performance_insights": {"best_performing_conditions": "...", "worst_performing_conditions": "...", "optimal_frequency": "..."},
+        "red_flags": ["Alertas"],
+        "next_14_days_plan": ["Tendencias detectadas"],
+        "overall_assessment": "Análisis macroscópico del progreso mensual o del negocio."
+      }`,
+      marketing_generation: `{
+        "top_patterns": [{"pattern": "Hito viral", "evidence": "Dato real", "action": "Hook para copy"}],
+        "overall_assessment": "Copy de Instagram completo con emojis y estructura de storytelling."
       }`
     };
 
@@ -106,15 +110,15 @@ Deno.serve(async (req) => {
       ### PERSONALIDAD Y CONTEXTO ###
       ${systemInstruction}
 
-      ### FUENTE DE VERDAD (CONOCIMIENTO HEAVY DUTY) ###
+      ### FUENTE DE VERDAD (CONOCIMIENTO TÉCNICO) ###
       ${knowledgeContext}
 
       ### INSTRUCCIONES DE SALIDA ###
-      Analiza los datos del usuario y genera un informe puramente descriptivo y analítico en ESPAÑOL.
+      Analiza los datos y genera un informe en ESPAÑOL.
       Responde SOLO en formato JSON:
       ${schemas[action] || "{}"}
 
-      ### DATOS DEL ATLETA ###
+      ### DATOS DE ENTRADA ###
       ${JSON.stringify(data)}
     `;
 
@@ -126,7 +130,7 @@ Deno.serve(async (req) => {
           contents: [{ parts: [{ text: finalPrompt }] }],
           generationConfig: { 
             response_mime_type: "application/json",
-            temperature: 0.4
+            temperature: tone === 'business_analytical' ? 0.5 : 0.2
           }
         })
       });
