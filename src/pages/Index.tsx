@@ -39,7 +39,6 @@ const Index = () => {
         </div>
 
         <nav className="absolute top-0 w-full max-w-7xl mx-auto flex justify-between items-center p-6 z-50">
-            {/* Logo escalado a un tamaño más estético */}
             <img src="/logo.png" className="h-8 md:h-10 w-auto brightness-0 invert" alt="Heavy Duty" />
             
             <div className="flex gap-4 md:gap-8 items-center">
@@ -61,21 +60,23 @@ const Index = () => {
 
         <div className="relative z-10 max-w-5xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-900/50 bg-red-900/10 text-red-500 text-[10px] font-black uppercase tracking-widest mb-4">
-              <Star className="w-3 h-3 fill-current" /> EL SISTEMA DEFINITIVO PARA EL ALTO RENDIMIENTO
+              <Star className="w-3 h-3 fill-current" /> EL SISTEMA DEFINITIVO PARA CAMBIAR TU CUERPO
            </div>
 
            <div className="space-y-4">
               <h1 className="text-5xl md:text-9xl font-black tracking-tighter uppercase italic leading-[0.85]">
-                ¿VAS A ENTRENAR<br/>
-                <span className="text-zinc-700">O A CUMPLIR HORARIO?</span>
+                LA ÚNICA APP CON IA QUE TE PROHÍBE EL <br/>
+                <span className="text-zinc-700">VOLUMEN BASURA</span>
               </h1>
-              <h2 className="text-base md:text-2xl font-bold tracking-[0.1em] text-red-500 uppercase max-w-3xl mx-auto">
-                LA ÚNICA APP CON IA QUE TE PROHÍBE EL <span className="text-white underline decoration-red-600 decoration-4">VOLUMEN BASURA</span>
-              </h2>
+              <div className="flex flex-col items-center gap-2">
+                <h2 className="text-sm md:text-xl font-black tracking-[0.3em] text-red-600 uppercase">
+                    {" >> "} VERSIÓN 17.09 INTEGRADA CON IA
+                </h2>
+              </div>
            </div>
 
            <p className="text-lg md:text-xl text-zinc-500 max-w-2xl mx-auto font-medium italic">
-             "Si no hubo sobrecarga, no cuenta. Si no descansaste, no entrenás. Bienvenido a la era de la Verdad Biológica."
+             "Bienvenido a la era de la verdad fisiológica."
            </p>
 
            <div className="pt-8 flex flex-col items-center gap-4">
@@ -147,8 +148,8 @@ const Index = () => {
                     { text: "LUZ ROJA: Estancamiento o Regresión.", color: "text-red-600" },
                     { text: "Sin aplausos falsos. Solo la verdad cruda.", color: "text-zinc-500" }
                 ]}
-                icon={<Gavel className="w-12 h-12 text-red-600" />}
-                visual={<div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 aspect-video flex items-center justify-center"><Gavel className="w-24 h-24 text-zinc-800" /></div>}
+                icon={<Gavel className="w-8 h-8 text-red-600" />}
+                visual={<div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 aspect-video flex items-center justify-center"><Gavel className="w-16 h-16 text-zinc-800" /></div>}
             />
 
             <WeaponSection 
@@ -161,8 +162,8 @@ const Index = () => {
                     { text: "Aprendé a descansar para crecer.", color: "text-white" },
                     { text: "Evitá lesiones por fatiga acumulada.", color: "text-zinc-500" }
                 ]}
-                icon={<Activity className="w-12 h-12 text-blue-500" />}
-                visual={<div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 aspect-video flex items-center justify-center"><Activity className="w-24 h-24 text-zinc-800" /></div>}
+                icon={<Activity className="w-8 h-8 text-blue-500" />}
+                visual={<div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 aspect-video flex items-center justify-center"><Activity className="w-16 h-16 text-zinc-800" /></div>}
                 reverse
             />
 
@@ -176,8 +177,8 @@ const Index = () => {
                     { text: "Detección de patrones de estancamiento.", color: "text-white" },
                     { text: "Auditoría Global cada 30 días.", color: "text-zinc-500" }
                 ]}
-                icon={<BarChart3 className="w-12 h-12 text-green-500" />}
-                visual={<div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 aspect-video flex items-center justify-center"><BarChart3 className="w-24 h-24 text-zinc-800" /></div>}
+                icon={<BarChart3 className="w-8 h-8 text-green-500" />}
+                visual={<div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 aspect-video flex items-center justify-center"><BarChart3 className="w-16 h-16 text-zinc-800" /></div>}
             />
          </div>
       </section>
@@ -263,7 +264,7 @@ const Index = () => {
                 <FAQItem 
                     value="item-1"
                     question="Entreno solo/a y no tengo Coach. ¿Me sirve la App?"
-                    answer="¡Por supuesto! De hecho, está diseñada para vos. Si no tenés un humano que te corrija, la IA ocupa ese lugar. El sistema actúa como tu auditor personal: analiza tu progreso, te frena si estás sobreentrenando y te felicita cuando rompés un récord."
+                    answer="¡Por supuesto! De hecho, está diseñada para vos. Si no tenés un humano que te corrija, la IA ocupa ese lugar. El sistema actúa como tu auditor personal: analiza tu progreso, te frena si estás sobreentrenando y te felicita cuando rompés un récord. Vos ponés el cuerpo, la App pone la inteligencia."
                 />
                 <FAQItem 
                     value="item-2"
@@ -329,7 +330,6 @@ const Index = () => {
       </section>
 
       <footer className="p-8 text-center border-t border-zinc-900 relative z-10 bg-black/80 backdrop-blur-sm mt-20">
-        {/* Logo escalado para el footer */}
         <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-50 mx-auto mb-6" alt="Logo" />
         <p className="text-zinc-600 text-[10px] font-mono mb-4 tracking-[0.2em] uppercase">
           &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — Powered by Gemini AI
@@ -369,10 +369,10 @@ const WeaponSection = ({ number, title, subtitle, desc, points, icon, visual, re
             <div className="space-y-2">
                 <span className="text-red-600 font-black italic text-5xl opacity-20">{number}</span>
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-zinc-900 rounded-xl">{icon}</div>
+                    <div className="p-3 bg-zinc-900 rounded-xl border border-zinc-800 shadow-lg">{icon}</div>
                     <div>
-                        <h3 className="text-5xl font-black uppercase italic tracking-tighter text-white">{title}</h3>
-                        <p className="text-xs font-bold text-zinc-500 tracking-widest uppercase">{subtitle}</p>
+                        <h3 className="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight">{title}</h3>
+                        <p className="text-[10px] font-black text-zinc-500 tracking-[0.2em] uppercase">{subtitle}</p>
                     </div>
                 </div>
             </div>
