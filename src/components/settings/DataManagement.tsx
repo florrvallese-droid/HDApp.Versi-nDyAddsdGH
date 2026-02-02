@@ -7,10 +7,11 @@ import { Download, Trash2, AlertTriangle, Loader2, Mail, Lock, ShieldCheck, Eye,
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useProfile } from "@/hooks/useProfile";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export function DataManagement() {
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const { session } = useProfile();
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [updatingPassword, setUpdatingPassword] = useState(false);
@@ -21,26 +22,17 @@ export function DataManagement() {
   
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) setUserEmail(user.email || null);
-    };
-    getUser();
-  }, []);
-
   const handleExport = async () => {
     setExporting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
+      if (!session?.user) throw new Error("No authenticated user");
 
-      const { data: logs } = await supabase.from('logs').select('*').eq('user_id', user.id);
-      const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
-      const { data: aiLogs } = await supabase.from('ai_logs').select('*').eq('user_id', user.id);
+      const { data: logs } = await supabase.from('logs').select('*').eq('user_id', session.user.id);
+      const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', session.user.id).single();
+      const { data: aiLogs } = await supabase.from('ai_logs').select('*').eq('user_id', session.user.id);
 
       const exportData = {
-        user_id: user.id,
+        user_id: session.user.id,
         exported_at: new Date().toISOString(),
         profile,
         logs: logs || [],
@@ -94,10 +86,9 @@ export function DataManagement() {
   const handleDeleteAccount = async () => {
     setDeleting(true);
     try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("No user");
+        if (!session?.user) throw new Error("No user");
 
-        const { error } = await supabase.from('profiles').delete().eq('user_id', user.id);
+        const { error } = await supabase.from('profiles').delete().eq('user_id', session.user.id);
         if (error) throw error;
 
         await supabase.auth.signOut();
@@ -108,6 +99,8 @@ export function DataManagement() {
         setDeleting(false);
     }
   };
+
+  const userEmail = session?.user?.email;
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
@@ -122,7 +115,7 @@ export function DataManagement() {
         <CardContent>
           <div className="bg-black/50 border border-zinc-800 p-4 rounded-xl flex items-center justify-between">
             <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Email Vinculado</span>
-            <span className="text-white font-bold text-sm">{userEmail || "Cargando..."}</span>
+            <span className="text-white font-bold text-sm">{userEmail || "Sesión no detectada"}</span>
           </div>
         </CardContent>
       </Card>
