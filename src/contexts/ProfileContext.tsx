@@ -38,12 +38,14 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
   const loadAllProfiles = async (userId: string) => {
     try {
-      // Carga del perfil base (Bloqueante mínimo)
-      const { data: baseProfile } = await supabase
+      // 1. Carga del perfil base (Prioridad máxima)
+      const { data: baseProfile, error: baseError } = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
+
+      if (baseError) throw baseError;
 
       if (baseProfile) {
         const fullProfile = baseProfile as UserProfile;
@@ -54,21 +56,21 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
         setHasProAccess(fullProfile.is_premium === true || trialDays > 0);
         setIsAdmin(fullProfile.is_admin === true);
 
-        // Consultas secundarias (No bloqueantes)
-        if (fullProfile.user_role === 'athlete' || !fullProfile.is_coach) {
-             supabase.from('athlete_profiles').select('*').eq('user_id', userId).maybeSingle()
-                .then(({ data }) => setAthleteProfile(data));
-        } 
+        // 2. Carga asíncrona de datos de especialidad (No bloqueante)
+        const isCoach = fullProfile.user_role === 'coach' || fullProfile.is_coach;
         
-        if (fullProfile.user_role === 'coach' || fullProfile.is_coach) {
-             supabase.from('coach_profiles').select('*').eq('user_id', userId).maybeSingle()
+        if (isCoach) {
+            supabase.from('coach_profiles').select('*').eq('user_id', userId).maybeSingle()
                 .then(({ data }) => setCoachProfile(data));
+        } else {
+            supabase.from('athlete_profiles').select('*').eq('user_id', userId).maybeSingle()
+                .then(({ data }) => setAthleteProfile(data));
         }
       }
     } catch (error) {
-      console.error("[ProfileContext] Error en carga:", error);
+      console.error("[ProfileContext] Fallo en sincronización:", error);
     } finally {
-      // El apagado del loading es obligatorio aquí
+      // Seguro de vida: la app siempre se desbloquea
       setLoading(false);
     }
   };

@@ -1,7 +1,7 @@
 "use client";
 
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Home, Dumbbell, Utensils, User, TrendingUp, Users, Briefcase, Sparkles, Library } from "lucide-react";
+import { Home, Dumbbell, Utensils, User, TrendingUp, Users, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -16,7 +16,9 @@ export default function AppLayout() {
     </div>
   );
 
-  // NAVEGACIÓN ESTRICTAMENTE SEPARADA
+  // Lógica de navegación basada en identidad validada
+  const isCoach = profile?.user_role === 'coach' || profile?.is_coach;
+
   const athleteNav = [
     { label: "Home", icon: Home, path: "/dashboard" },
     { label: "Entrenar", icon: Dumbbell, path: "/workout" },
@@ -32,7 +34,7 @@ export default function AppLayout() {
     { label: "Perfil", icon: User, path: "/settings" },
   ];
 
-  const navItems = profile?.is_coach ? coachNav : athleteNav;
+  const navItems = isCoach ? coachNav : athleteNav;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -40,7 +42,6 @@ export default function AppLayout() {
         <Outlet />
       </main>
 
-      {/* Bottom Nav Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-zinc-900 z-50 h-16 safe-area-bottom">
         <div className="max-w-md mx-auto h-full flex items-center justify-around px-2">
           {navItems.map((item) => {
@@ -52,12 +53,12 @@ export default function AppLayout() {
                 onClick={() => navigate(item.path)}
                 className={cn(
                   "flex flex-col items-center justify-center w-full h-full gap-1 transition-all duration-300",
-                  isActive ? (profile?.is_coach ? "text-red-500" : "text-primary") : "text-muted-foreground hover:text-foreground"
+                  isActive ? (isCoach ? "text-red-500" : "text-primary") : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <div className={cn(
                   "p-1.5 rounded-xl transition-all",
-                  isActive && (profile?.is_coach ? "bg-red-600/10" : "bg-primary/10")
+                  isActive && (isCoach ? "bg-red-600/10" : "bg-primary/10")
                 )}>
                   <item.icon className={cn("h-5 w-5", isActive && "fill-current")} />
                 </div>
