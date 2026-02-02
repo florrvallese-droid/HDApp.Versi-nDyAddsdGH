@@ -116,38 +116,27 @@ export default function CoachLanding() {
         </div>
       </section>
 
-      {/* 3. LA SOLUCIÓN */}
-      <section className="py-24 md:py-32 px-6 relative overflow-hidden">
-         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
-               <div className="space-y-3 text-center lg:text-left">
-                  <h3 className="text-red-500 font-black uppercase tracking-widest text-sm">TU CENTRO DE COMANDO</h3>
-                  <h2 className="text-5xl md:text-7xl font-black uppercase italic leading-[0.9]">NO ES OTRA "APP DE RUTINAS".</h2>
-                  <p className="text-2xl text-zinc-500 font-bold uppercase italic">ES TU SOCIO DE NEGOCIOS INTELIGENTE.</p>
-               </div>
-               
-               <div className="space-y-6">
-                  <p className="text-zinc-400 text-lg leading-relaxed">Imaginate empezar el día y que la IA ya haya trabajado por vos:</p>
-                  <ul className="space-y-4">
-                     <CheckItem text="Ya revisó las 200 series que hicieron tus alumnos ayer." />
-                     <CheckItem text="Ya detectó quién rompió un récord y quién se lesionó." />
-                     <CheckItem text="Ya te armó la lista de a quién cobrarle hoy." />
-                  </ul>
-                  <p className="text-white font-black uppercase tracking-widest italic pt-4">VOS SOLO TOMÁS DECISIONES. LA APP HACE EL TRABAJO SUCIO.</p>
-               </div>
+      {/* 3. LA SOLUCIÓN (REESTRUCTURADA SIN IMAGEN) */}
+      <section className="py-24 md:py-32 px-6 relative overflow-hidden text-center">
+         <div className="max-w-4xl mx-auto space-y-12">
+            <div className="space-y-4">
+               <h3 className="text-red-500 font-black uppercase tracking-widest text-sm">TU CENTRO DE COMANDO</h3>
+               <h2 className="text-5xl md:text-8xl font-black uppercase italic leading-[0.9] tracking-tighter">NO ES OTRA "APP DE RUTINAS".</h2>
+               <p className="text-2xl md:text-4xl text-zinc-500 font-bold uppercase italic">ES TU SOCIO DE NEGOCIOS INTELIGENTE.</p>
             </div>
-
-            <div className="relative group mx-auto w-full max-w-md lg:max-w-none">
-                <div className="absolute -inset-4 bg-red-600/20 blur-[60px] opacity-30 group-hover:opacity-50 transition-opacity" />
-                <Card className="bg-zinc-950 border-zinc-900 rounded-[2rem] overflow-hidden shadow-2xl relative z-10">
-                    <CardContent className="p-0">
-                      <img 
-                          src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop" 
-                          className="w-full h-auto opacity-80"
-                          alt="Smart Briefing Dashboard"
-                      />
-                    </CardContent>
-                </Card>
+            
+            <div className="space-y-10 max-w-2xl mx-auto">
+               <p className="text-zinc-400 text-lg md:text-xl leading-relaxed">Imaginate empezá el día y que la IA ya haya trabajado por vos:</p>
+               <ul className="space-y-6 text-left inline-block">
+                  <CheckItem text="Ya revisó las 200 series que hicieron tus alumnos ayer." />
+                  <CheckItem text="Ya detectó quién rompió un récord y quién se lesionó." />
+                  <CheckItem text="Ya te armó la lista de a quién cobrarle hoy." />
+               </ul>
+               <div className="pt-8">
+                  <p className="text-white font-black uppercase tracking-[0.2em] italic border-y border-zinc-900 py-6">
+                    VOS SOLO TOMÁS DECISIONES. LA APP HACE EL TRABAJO SUCIO.
+                  </p>
+               </div>
             </div>
          </div>
       </section>
@@ -231,7 +220,6 @@ export default function CoachLanding() {
                 />
             </Accordion>
 
-            {/* WHATSAPP CTA UNDER FAQ */}
             <div className="mt-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest mb-4 italic">¿Tenés una duda más específica sobre tu negocio?</p>
                 <Button 
@@ -298,7 +286,7 @@ export default function CoachLanding() {
          </div>
       </footer>
 
-      {/* FLOATING WHATSAPP BUTTON (FOR INSTANT SUPPORT) */}
+      {/* FLOATING WHATSAPP BUTTON */}
       <div className="fixed bottom-6 right-6 z-[100] animate-bounce-slow">
          <Button 
             onClick={openWhatsApp}
@@ -342,9 +330,9 @@ const FAQItem = ({ value, question, answer }: any) => (
 );
 
 const CheckItem = ({ text }: { text: string }) => (
-    <li className="flex items-center gap-3">
-        <div className="h-2 w-2 rounded-full bg-red-600" />
-        <span className="text-sm font-bold text-zinc-300 uppercase italic tracking-wide">{text}</span>
+    <li className="flex items-start gap-3">
+        <div className="h-2 w-2 rounded-full bg-red-600 mt-1.5 shrink-0" />
+        <span className="text-lg font-bold text-zinc-300 uppercase italic tracking-wide">{text}</span>
     </li>
 );
 
