@@ -1,126 +1,72 @@
 import { supabase } from "./supabase";
-import { GlobalAnalysisResponse } from "@/types";
 
-export interface AIResponse {
-  decision: 'TRAIN_HEAVY' | 'TRAIN_LIGHT' | 'REST';
+export interface BioStopResponse {
+  status: 'GO' | 'CAUTION' | 'STOP';
+  ui_color: 'green' | 'yellow' | 'red';
+  short_message: string;
   rationale: string;
-  recommendations: string[];
+  modification: string | null;
 }
 
-export interface PostWorkoutAIResponse {
-  verdict: 'PROGRESS' | 'PLATEAU' | 'REGRESSION';
+export interface PostWorkoutJudgeResponse {
+  verdict: 'PROGRESS' | 'STAGNATION' | 'REGRESSION';
+  intensity_score: number;
+  feedback_card: {
+    title: string;
+    body: string;
+    action_item: string;
+  };
+  coach_alert: boolean;
+  coach_quote?: string;
   highlights: string[];
   corrections: string[];
-  coach_quote: string;
-  judgment: string; // Informe detallado de la fase 3
+  judgment?: string;
 }
 
+// Alias para compatibilidad con páginas de resultados
+export type PostWorkoutAIResponse = PostWorkoutJudgeResponse;
+
 export const aiService = {
-  async getPreWorkoutAdvice(
-    tone: string, 
-    data: any
-  ): Promise<AIResponse> {
-    
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data: response, error } = await supabase.functions.invoke('ai-coach', {
-        body: {
-          action: 'preworkout',
-          tone: tone,
-          data: data,
-          userId: user?.id
-        }
-      });
-
-      if (error) {
-        console.error("AI Service Network Error:", error);
-        throw new Error(error.message || "Error de red al conectar con IA");
-      }
-
-      if (response && response.error) {
-        throw new Error(response.message || "Error interno del servidor IA");
-      }
-
-      return response as AIResponse;
-      
-    } catch (err: any) {
-      console.error("Failed to call AI Coach:", err);
-      return {
-        decision: 'TRAIN_LIGHT',
-        rationale: `⚠️ Error: ${err.message}. Por seguridad, entrena ligero o descansa.`,
-        recommendations: ["Verificar API Keys", "Revisar conexión a internet"]
-      };
-    }
+  // Módulo A: Bio-Stop Pre-Entreno
+  async getPreWorkoutAudit(data: {
+    sleep: number;
+    stress: number;
+    cycle_day?: number;
+    pain_level: number;
+    pain_location: string;
+  }): Promise<BioStopResponse> {
+    const { data: response, error } = await supabase.functions.invoke('ai-pre-workout', {
+      body: data
+    });
+    if (error) throw error;
+    return response;
   },
 
-  async getPostWorkoutAnalysis(
-    tone: string,
-    data: any
-  ): Promise<PostWorkoutAIResponse> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      const { data: response, error } = await supabase.functions.invoke('ai-coach', {
-        body: {
-          action: 'postworkout',
-          tone: tone,
-          data: data,
-          userId: user?.id
-        }
-      });
-
-      if (error) throw error;
-      if (response && response.error) throw new Error(response.message);
-
-      return response as PostWorkoutAIResponse;
-    } catch (err) {
-      console.error("Failed to call AI Coach (Post):", err);
-      return {
-        verdict: 'PLATEAU',
-        highlights: ["Sesión completada"],
-        corrections: ["Intenta aumentar peso la próxima"],
-        coach_quote: "La consistencia es clave. Sigue así.",
-        judgment: "No pudimos generar un juicio detallado debido a un error de conexión, pero tu esfuerzo ha sido registrado."
-      };
-    }
+  // Módulo B: Juez Post-Entreno
+  async getPostWorkoutAnalysis(tone: string, data: any): Promise<PostWorkoutAIResponse> {
+    // Redirigimos a la función específica de post-workout siguiendo el nuevo modelo
+    const { data: response, error } = await supabase.functions.invoke('ai-coach', {
+      body: { action: 'postworkout', tone, data }
+    });
+    if (error) throw error;
+    return response;
   },
 
-  async getGlobalAnalysis(
-    tone: string,
-    summaryData: any
-  ): Promise<GlobalAnalysisResponse> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
+  // Módulo C: Auditoría de Protocolos (Solo Coach)
+  async auditPharmaProtocol(draftText: string) {
+    const { data: response, error } = await supabase.functions.invoke('ai-audit-protocol', {
+      body: { protocol_text_draft: draftText }
+    });
+    if (error) throw error;
+    return response;
+  },
 
-      const { data: response, error } = await supabase.functions.invoke('ai-coach', {
-        body: {
-          action: 'globalanalysis',
-          tone: tone,
-          data: summaryData,
-          userId: user?.id
-        }
-      });
-
-      if (error) throw error;
-      if (response && response.error) throw new Error(response.message);
-
-      return response as GlobalAnalysisResponse;
-    } catch (err: any) {
-      console.error("Failed to call AI Coach (Global):", err);
-      return {
-        top_patterns: [
-          { pattern: "Error de análisis", evidence: "N/A", action: "Intenta más tarde" }
-        ],
-        performance_insights: {
-          best_performing_conditions: "Desconocido",
-          worst_performing_conditions: "Desconocido",
-          optimal_frequency: "Desconocido"
-        },
-        next_14_days_plan: ["Continuar rutina actual", "Priorizar sueño"],
-        red_flags: [],
-        overall_assessment: `Hubo un error al procesar tus datos: ${err.message}`
-      };
-    }
+  // Auditorías Generales y Marketing
+  async getGlobalAnalysis(tone: string, data: any): Promise<any> {
+    const { data: response, error } = await supabase.functions.invoke('ai-coach', {
+      body: { action: data.type === 'marketing_generation' ? 'marketing_generation' : 'globalanalysis', tone, data }
+    });
+    if (error) throw error;
+    return response;
   }
 };
