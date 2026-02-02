@@ -11,6 +11,7 @@ import { DataManagement } from "@/components/settings/DataManagement";
 import { CoachInfo } from "@/components/settings/CoachInfo";
 import { CoachCollaborations } from "@/components/settings/CoachCollaborations";
 import { useProfile } from "@/hooks/useProfile";
+import { cn } from "@/lib/utils";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -104,8 +105,4 @@ export default function Settings() {
 
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(' ');
 }
