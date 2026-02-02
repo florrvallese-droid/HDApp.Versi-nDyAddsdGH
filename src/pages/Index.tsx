@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/services/supabase";
-import { Brain, TrendingUp, ShieldCheck, Star, Lock, Users, Activity, NotebookPen } from "lucide-react";
+import { Brain, TrendingUp, ShieldCheck, Star, Lock, Users, Activity, NotebookPen, ArrowRight } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -31,13 +31,21 @@ const Index = () => {
              className="h-16 w-auto object-contain brightness-0 invert" 
            />
         </div>
-        <Button 
-            variant="ghost" 
-            className="text-zinc-300 hover:text-white font-bold uppercase text-xs tracking-wider"
-            onClick={() => navigate("/auth")}
-        >
-            Iniciar Sesión
-        </Button>
+        <div className="flex items-center gap-4">
+            <button 
+                onClick={() => navigate("/coach-landing")}
+                className="hidden md:block text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
+            >
+                ¿Sos Preparador?
+            </button>
+            <Button 
+                variant="ghost" 
+                className="text-zinc-300 hover:text-white font-bold uppercase text-xs tracking-wider border border-zinc-800"
+                onClick={() => navigate("/auth")}
+            >
+                Iniciar Sesión
+            </Button>
+        </div>
       </nav>
 
       {/* Hero Section */}
@@ -58,31 +66,28 @@ const Index = () => {
           </div>
           
           <p className="text-lg md:text-xl text-zinc-400 max-w-3xl mx-auto leading-relaxed pt-4 font-medium">
-            Registrá tus entrenamientos, tu nutrición, tu cardio, tus descansos y todo tu progreso en tu bitácora digital. 
-            Analizá tu progreso, medí tus sensaciones y llevá tu entrenamiento al siguiente nivel.
+            Registrá tus entrenamientos, nutrición y cardio en tu bitácora digital. 
+            Dejá que la <span className="text-white font-black italic">IA de Di Iorio</span> audite tu progreso y te diga qué superar en cada serie.
           </p>
         </div>
 
-        {/* Differentiated CTAs */}
-        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-2xl animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200 pt-2">
+        {/* CTA */}
+        <div className="flex flex-col gap-4 w-full max-w-md animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200 pt-2">
           <Button 
             size="lg" 
-            className="flex-1 h-20 text-lg font-black italic uppercase bg-red-600 hover:bg-red-700 text-white shadow-[0_0_30px_rgba(220,38,38,0.4)] border border-red-500/20 rounded-xl flex flex-col items-center justify-center gap-0"
+            className="w-full h-20 text-2xl font-black italic uppercase bg-red-600 hover:bg-red-700 text-white shadow-[0_0_30px_rgba(220,38,38,0.4)] border border-red-500/20 rounded-xl"
             onClick={() => navigate("/auth")}
           >
-            <span className="text-2xl">SOY ATLETA</span>
-            <span className="text-[10px] font-bold tracking-widest opacity-70">LLEVAR MI REGISTRO</span>
+            EMPEZAR MI BITÁCORA
           </Button>
 
-          <Button 
-            size="lg" 
-            variant="outline"
-            className="flex-1 h-20 text-lg font-black italic uppercase bg-zinc-950/50 hover:bg-zinc-900 border-zinc-800 text-zinc-100 rounded-xl flex flex-col items-center justify-center gap-0"
-            onClick={() => navigate("/auth?role=coach")}
+          <button 
+            onClick={() => navigate("/coach-landing")}
+            className="flex items-center justify-center gap-2 py-4 text-xs font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-red-500 transition-all group"
           >
-            <span className="text-2xl">SOY COACH</span>
-            <span className="text-[10px] font-bold tracking-widest text-red-500">GESTIÓN MULTI-ATLETA</span>
-          </Button>
+            MODO PREPARADOR / COACH 
+            <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
 
         {/* Persona Comparison Section */}
@@ -98,44 +103,25 @@ const Index = () => {
                     <BenefitItem 
                       icon={<NotebookPen className="w-4 h-4 text-red-500"/>} 
                       title="Bitácora de Alta Intensidad" 
-                      desc="El cuaderno definitivo para registrar tu rutina, tus técnicas de intensidad, nutrición, descanso y todo tu progreso sin distracciones." 
+                      desc="El cuaderno definitivo para registrar tu rutina, tus técnicas de intensidad, nutrición y descanso sin distracciones." 
                     />
                     <BenefitItem 
-                      icon={<TrendingUp className="w-4 h-4 text-red-500"/>} 
+                      icon={<TrendingUp className="h-4 w-4 text-red-500"/>} 
                       title="Sobrecarga Progresiva" 
                       desc="Visualización directa de tu objetivo a batir en cada serie, basada en tu historial de entrenamiento." 
                     />
                     <BenefitItem 
                       icon={<Brain className="w-4 h-4 text-red-500"/>} 
                       title="Análisis Integrado" 
-                      desc="Evaluación de SNC pre-entreno, juicio crítico post-sesión y auditoría general para validar tu progreso real y evitar estancamientos." 
+                      desc="Evaluación de SNC pre-entreno y juicio crítico post-sesión para validar tu progreso real." 
                     />
                 </ul>
             </div>
 
-            {/* For Coaches */}
-            <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-600/20 rounded-lg"><Users className="text-blue-500 w-6 h-6"/></div>
-                    <h3 className="text-2xl font-black uppercase italic tracking-tighter">PARA EL COACH</h3>
-                </div>
-                <ul className="space-y-4">
-                    <BenefitItem 
-                      icon={<Users className="w-4 h-4 text-blue-500"/>} 
-                      title="Panel de Alumnos" 
-                      desc="Supervisa los cuadernos de tus atletas desde una sola interfaz centralizada. Cambiá las rutinas y los macros de su dieta." 
-                    />
-                    <BenefitItem 
-                      icon={<Activity className="w-4 h-4 text-blue-500"/>} 
-                      title="Auditoría de Carga" 
-                      desc="Mira exactamente el progreso de cada alumno en tiempo real, sin pedir capturas de pantalla." 
-                    />
-                    <BenefitItem 
-                      icon={<ShieldCheck className="w-4 h-4 text-blue-500"/>} 
-                      title="Validación de Adherencia" 
-                      desc="Monitoreá el cumplimiento de dieta, suplementación y check-ins físicos de todo tu equipo." 
-                    />
-                </ul>
+            {/* Visual Teaser */}
+            <div className="relative h-64 md:h-full bg-zinc-900/50 rounded-3xl border border-zinc-800 flex items-center justify-center group overflow-hidden">
+                <div className="absolute inset-0 bg-red-600/5 blur-xl opacity-50 group-hover:opacity-100 transition-opacity" />
+                <NotebookPen className="h-24 w-24 text-zinc-800 relative z-10" />
             </div>
 
         </div>
@@ -146,19 +132,10 @@ const Index = () => {
         <p className="text-zinc-500 text-xs font-mono mb-4">
           &copy; {new Date().getFullYear()} Heavy Duty Di Iorio. 
         </p>
-        <div className="flex justify-center gap-4 text-[10px] text-zinc-600 uppercase font-bold tracking-wider mb-8">
+        <div className="flex justify-center gap-4 text-[10px] text-zinc-600 uppercase font-bold tracking-wider">
             <span>Privacidad</span>
             <span>Términos</span>
-            <span>Soporte</span>
-        </div>
-        
-        <div className="mt-8 border-t border-zinc-900 pt-4">
-            <button 
-                onClick={() => navigate('/admin/login')}
-                className="text-[10px] text-zinc-600 hover:text-red-500 transition-colors font-mono uppercase tracking-widest flex items-center justify-center gap-2 mx-auto px-4 py-2 rounded hover:bg-zinc-900/50"
-            >
-                <Lock className="w-3 h-3" /> Acceso Administrativo
-            </button>
+            <button onClick={() => navigate('/admin/login')} className="hover:text-red-500">Admin</button>
         </div>
       </footer>
     </div>
