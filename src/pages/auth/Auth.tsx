@@ -29,27 +29,34 @@ const Auth = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        checkProfileAndRedirect(session.user.id);
+        checkProfileAndRedirect(session.user.id, session.user.email);
       }
     };
     checkSession();
   }, []);
 
-  const checkProfileAndRedirect = async (userId: string) => {
+  const checkProfileAndRedirect = async (userId: string, userEmail?: string) => {
     try {
+      // LOGICA HARDCODED PARA CUENTA MAESTRA (Flora)
+      if (userEmail === 'florr.vallese@gmail.com') {
+        navigate('/coach');
+        return;
+      }
+
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_coach')
+        .select('is_coach, display_name')
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (profile) {
+      if (profile && profile.display_name) {
         if (profile.is_coach) {
             navigate('/coach');
         } else {
             navigate('/dashboard');
         }
       } else {
+        // Si no tiene display_name, asumimos que no terminó el onboarding
         navigate('/onboarding');
       }
     } catch (err) {
@@ -72,7 +79,7 @@ const Auth = () => {
       if (loginError) throw loginError;
 
       if (data.user) {
-        await checkProfileAndRedirect(data.user.id);
+        await checkProfileAndRedirect(data.user.id, data.user.email);
       }
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión");

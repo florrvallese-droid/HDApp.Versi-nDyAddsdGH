@@ -41,6 +41,11 @@ const Onboarding = () => {
         const { data } = await supabase.auth.getUser();
         if (data.user) {
             setUserId(data.user.id);
+            // Si el email es el tuyo, pre-seteamos como coach
+            if (data.user.email === 'florr.vallese@gmail.com') {
+                setRole('coach');
+                setStep(2); // Saltamos la elección de rol
+            }
         } else {
             navigate("/auth");
         }
@@ -51,13 +56,10 @@ const Onboarding = () => {
   const isProfessional = role === 'coach' || role === 'agency';
 
   const handleNext = () => {
-    // Si es profesional, saltamos los pasos de configuración física y coach IA personal
-    // Directamente a confirmación
     if (step === 2 && isProfessional) {
         setStep(5);
         return;
     }
-    
     if (step < STEPS.length) {
       setStep(step + 1);
     } else {
@@ -67,7 +69,7 @@ const Onboarding = () => {
 
   const handleBack = () => {
     if (step === 5 && isProfessional) {
-      setStep(2); // Volver al nombre
+      setStep(2);
       return;
     }
     if (step > 1) setStep(step - 1);
@@ -75,30 +77,20 @@ const Onboarding = () => {
 
   const handleSubmit = async () => {
     if (!userId) {
-        toast.error("Error de sesión. Por favor recarga la página.");
+        toast.error("Error de sesión.");
         return;
     }
     setLoading(true);
 
     try {
       const updateData: any = {
-        user_id: userId, // CRÍTICO para el upsert
         display_name: displayName,
         updated_at: new Date().toISOString(),
       };
 
       if (isProfessional) {
         updateData.is_coach = true;
-        // Valores por defecto para profesionales (no se piden en UI)
-        updateData.coach_tone = 'analytical';
-        updateData.sex = 'other'; 
-        updateData.units = 'kg';
-        // Si es agencia, podríamos guardar un flag adicional en business_info si fuera necesario
-        if (role === 'agency') {
-            updateData.business_info = { type: 'agency' };
-        }
       } else {
-        // Datos de Atleta
         updateData.sex = sex;
         updateData.birth_date = birthDate || null;
         updateData.units = units;
@@ -108,26 +100,37 @@ const Onboarding = () => {
         updateData.settings = { current_weight: weight.toString() }; 
       }
 
-      // Usamos UPSERT en lugar de UPDATE para garantizar que se guarde 
-      // incluso si el perfil no se creó correctamente en el registro.
-      const { error } = await supabase
-        .from("profiles")
-        .upsert(updateData, { onConflict: 'user_id' });
+      // IMPORTANTE: Primero verificamos si el registro ya existe para usar UPDATE
+      const { data: existing } = await supabase.from('profiles').select('user_id').eq('user_id', userId).maybeSingle();
+
+      let error;
+      if (existing) {
+        const { error: updateError } = await supabase
+            .from("profiles")
+            .update(updateData)
+            .eq('user_id', userId);
+        error = updateError;
+      } else {
+        const { error: insertError } = await supabase
+            .from("profiles")
+            .insert({ ...updateData, user_id: userId });
+        error = insertError;
+      }
 
       if (error) throw error;
 
-      toast.success("Perfil configurado correctamente");
+      toast.success("¡Perfil guardado!");
       
-      // Forzar recarga del contexto de perfil navegando
+      // Redirect forcing refresh
       if (isProfessional) {
-          window.location.href = "/coach";
+          window.location.assign("/coach");
       } else {
-          window.location.href = "/dashboard";
+          window.location.assign("/dashboard");
       }
       
     } catch (error: any) {
       console.error("Onboarding error:", error);
-      toast.error("Error al guardar perfil: " + error.message);
+      toast.error("Fallo al guardar: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -145,7 +148,7 @@ const Onboarding = () => {
               className={cn(
                 "flex flex-col items-center gap-1 transition-colors",
                 step >= s.id ? "text-red-500" : "text-zinc-700",
-                (s.id === 3 || s.id === 4) && isProfessional && "opacity-20" // Visual clue that steps are skipped
+                (s.id === 3 || s.id === 4) && isProfessional && "opacity-20"
               )}
             >
               <div className={cn("h-2 w-2 rounded-full", step >= s.id ? "bg-red-600" : "bg-zinc-800")} />
@@ -224,7 +227,6 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* PASO 3: Solo atletas */}
           {step === 3 && !isProfessional && (
             <div className="space-y-6">
               <div className="space-y-4">
@@ -266,7 +268,6 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* PASO 4: Solo atletas */}
           {step === 4 && !isProfessional && (
             <div className="space-y-4">
               <Label className="text-zinc-400 font-bold uppercase tracking-wider text-xs block text-center mb-2">Elige la personalidad de tu IA</Label>
@@ -301,7 +302,7 @@ const Onboarding = () => {
               <div className="space-y-2">
                 <h3 className="text-xl font-black italic uppercase text-white">¡Todo listo, {displayName}!</h3>
                 <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
-                    Estás configurado como {role === 'agency' ? 'AGENCIA' : role === 'coach' ? 'COACH' : 'ATLETA'}.
+                    Haz click abajo para entrar a tu panel de control.
                 </p>
               </div>
               <div className="bg-zinc-900 p-6 rounded-2xl text-left space-y-4 border border-zinc-800 text-xs">
@@ -309,14 +310,11 @@ const Onboarding = () => {
                     <span className="text-zinc-500 font-bold uppercase">Perfil:</span>
                     <span className="font-black uppercase italic text-red-500">{role === 'agency' ? 'Agencia' : role === 'coach' ? 'Coach' : 'Atleta'}</span>
                 </div>
-                {!isProfessional && birthDate && (
-                    <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 font-bold uppercase">Nacimiento:</span><span className="font-black text-white">{birthDate}</span></div>
-                )}
                 {!isProfessional && (
                     <div className="flex justify-between"><span className="text-zinc-500 font-bold uppercase">Peso:</span><span className="font-black text-white">{weight} {units}</span></div>
                 )}
                 {isProfessional && (
-                    <div className="flex justify-between"><span className="text-zinc-500 font-bold uppercase">Panel:</span><span className="font-black text-white">Business Hub Habilitado</span></div>
+                    <div className="flex justify-between"><span className="text-zinc-500 font-bold uppercase">Panel:</span><span className="font-black text-white">Coach Hub Habilitado</span></div>
                 )}
               </div>
             </div>
