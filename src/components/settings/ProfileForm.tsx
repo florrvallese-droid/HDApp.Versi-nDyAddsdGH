@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save, Brain, Target, Calendar } from "lucide-react";
+import { User, Camera, Loader2, Save, Brain, Target, Calendar, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CoachTone } from "@/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -97,6 +97,7 @@ export function ProfileForm() {
   };
 
   if (profileLoading) return <div className="p-12 text-center text-zinc-500"><Loader2 className="animate-spin h-6 w-6 mx-auto"/></div>;
+  if (!profile) return null;
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-10">
@@ -111,14 +112,14 @@ export function ProfileForm() {
           </div>
           <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-20" accept="image/*" onChange={handleAvatarUpload} disabled={uploadingAvatar}/>
         </div>
-        <Badge variant="outline" className={cn("uppercase font-black text-[10px] py-1 px-4", profile?.is_coach ? "border-blue-500 text-blue-500" : "border-red-500 text-red-500")}>
-            {profile?.is_coach ? "PREPARADOR" : "ATLETA"}
+        <Badge variant="outline" className={cn("uppercase font-black text-[10px] py-1 px-4", profile.is_coach ? "border-blue-500 text-blue-500" : "border-red-500 text-red-500")}>
+            {profile.is_coach ? "PREPARADOR" : "ATLETA"}
         </Badge>
       </div>
 
       <div className="grid gap-6">
         <div className="space-y-2">
-            <Label className="text-zinc-500 text-[10px] uppercase font-black tracking-widest">Nombre Completo</Label>
+            <Label className="text-zinc-500 text-[10px] uppercase font-black tracking-widest">Nombre Completo / Marca</Label>
             <Input value={displayName} onChange={e => setDisplayName(e.target.value)} className="bg-black border-zinc-800 h-12 font-bold text-white" />
         </div>
 
@@ -136,7 +137,7 @@ export function ProfileForm() {
                     <Input value={height} onChange={e => setHeight(e.target.value)} className="bg-black border-zinc-800 h-12 font-bold text-white text-center" />
                 </div>
                 <div className="space-y-2">
-                    <Label className="text-zinc-500 text-[10px] uppercase font-black tracking-widest">Peso Inicial (kg)</Label>
+                    <Label className="text-zinc-500 text-[10px] uppercase font-black tracking-widest">Peso Actual (kg)</Label>
                     <Input value={weight} onChange={e => setWeight(e.target.value)} className="bg-black border-zinc-800 h-12 font-bold text-white text-center" />
                 </div>
             </div>
@@ -148,7 +149,7 @@ export function ProfileForm() {
                 <h3 className="font-black uppercase italic text-sm">Tus Objetivos</h3>
             </div>
             <p className="text-[11px] text-zinc-500 font-bold uppercase leading-tight italic">
-              Rellená este campo para no olvidarte de tu para qué. <br/>
+              Rellená este campo para no olvidarte de tu "para qué". <br/>
               Cuando la motivación falla, recordar esto te va a ser muy útil.
             </p>
             <Textarea 
@@ -169,6 +170,15 @@ export function ProfileForm() {
                 <PersonalityCard id="analytical" label="Analytical" desc="Basado en datos duros. Frío y enfocado únicamente en las métricas." current={coachTone} />
                 <PersonalityCard id="motivational" label="Motivational" desc="Energía positiva y empuje constante para superar tus límites." current={coachTone} />
                 <PersonalityCard id="friendly" label="Friendly" desc="Empático y profesional. Apoyo técnico con cercanía emocional." current={coachTone} />
+                {profile.is_coach && (
+                    <PersonalityCard 
+                        id="business_analytical" 
+                        label="Business Logic" 
+                        desc="Análisis estratégico orientado a la rentabilidad y retención del equipo." 
+                        current={coachTone}
+                        icon={<Briefcase className="h-4 w-4" />}
+                    />
+                )}
             </RadioGroup>
         </div>
 
@@ -181,7 +191,7 @@ export function ProfileForm() {
   );
 }
 
-function PersonalityCard({ id, label, desc, current, className }: { id: string, label: string, desc: string, current: string, className?: string }) {
+function PersonalityCard({ id, label, desc, current, className, icon }: { id: string, label: string, desc: string, current: string, className?: string, icon?: React.ReactNode }) {
     const isSelected = id === current;
     return (
         <Label htmlFor={id} className={cn(
@@ -191,7 +201,9 @@ function PersonalityCard({ id, label, desc, current, className }: { id: string, 
         )}>
             <RadioGroupItem value={id} id={id} className="mt-1 border-zinc-700" />
             <div className="grid gap-1.5 leading-none">
-                <span className="font-black uppercase italic text-white text-sm">{label}</span>
+                <span className="font-black uppercase italic text-white text-sm flex items-center gap-2">
+                    {icon} {label}
+                </span>
                 <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter leading-tight">{desc}</p>
             </div>
         </Label>
