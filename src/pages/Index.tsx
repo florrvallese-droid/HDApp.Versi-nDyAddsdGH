@@ -71,7 +71,8 @@ const Index = () => {
 
            <div className="space-y-4 max-w-2xl mx-auto">
               <p className="text-xl md:text-2xl text-zinc-400 font-bold uppercase italic tracking-tight">
-                La bitácora inteligente que audita tu sobrecarga progresiva y decide si hoy debés entrenar o descansar.
+                Ingeniería biométrica para el fallo muscular absoluto. <br className="hidden md:block" />
+                Calma la ansiedad del progreso con feedback basado en datos puros.
               </p>
            </div>
 
@@ -84,7 +85,7 @@ const Index = () => {
                 PROBAR PRO (7 DÍAS GRATIS)
                 <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest italic">Cero burocracia. Ciencia pura.</p>
+              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest italic">Cero burocracia. Ciencia aplicada.</p>
            </div>
         </div>
       </section>
@@ -95,7 +96,7 @@ const Index = () => {
             <FeatureCard 
                 icon={<Brain className="w-8 h-8 text-red-600" />}
                 title="Bio-Stop SNC"
-                desc="La IA analiza tu sueño, estrés y molestias pre-entreno para auditar tu Sistema Nervioso Central. Si no estás para tirar pesado, el sistema te lo impide."
+                desc="La IA analiza tu sueño, estrés y molestias pre-entreno para auditar tu Sistema Nervioso Central. Si no estás para tirar pesado, el sistema te lo advierte y te explica técnicamente por qué deberías descansar."
             />
             <FeatureCard 
                 icon={<Target className="w-8 h-8 text-red-600" />}
@@ -201,10 +202,15 @@ const Index = () => {
       </section>
 
       <footer className="p-12 text-center border-t border-zinc-900 bg-black">
-        <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-30 mx-auto mb-8" alt="Logo" />
-        <p className="text-zinc-700 text-[10px] font-mono tracking-[0.3em] uppercase">
-          &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — High Performance Software
-        </p>
+        <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-20 mx-auto mb-8" alt="Logo" />
+        <div className="space-y-1">
+            <p className="text-zinc-700 text-[10px] font-mono tracking-[0.3em] uppercase">
+                &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — High Performance Software
+            </p>
+            <p className="text-zinc-800 text-[9px] font-mono tracking-[0.1em] uppercase">
+                Versión 17.09 • Stable Build
+            </p>
+        </div>
       </footer>
     </div>
   );
