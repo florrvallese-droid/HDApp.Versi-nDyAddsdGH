@@ -17,51 +17,57 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!MP_ACCESS_TOKEN) throw new Error("Falta MP_ACCESS_TOKEN.");
+    if (!MP_ACCESS_TOKEN) throw new Error("Falta MP_ACCESS_TOKEN en las variables de entorno.");
     
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-    const { userId, email, planType, referralCode, backUrl } = await req.json();
+    const { userId, email, planType, roleType, referralCode, backUrl } = await req.json();
 
-    // PRECIOS BASE (Ajustados a una escala más realista si fuera necesario)
-    let price = planType === 'yearly' ? 89000 : 9900; 
+    // DEFINICIÓN DE PRECIOS (ARS)
+    // Atleta PRO: ~9.99 USD -> 9.900 ARS
+    // Coach Hub: ~29.99 USD -> 29.900 ARS
+    
+    let basePrice = 0;
+    if (roleType === 'coach') {
+        basePrice = planType === 'yearly' ? 269000 : 29900; // Anual tiene ~25% OFF
+    } else {
+        basePrice = planType === 'yearly' ? 89000 : 9900;
+    }
+
+    let finalPrice = basePrice;
     let discountApplied = false;
 
-    // VALIDAR CÓDIGO DE COACH
+    // VALIDAR CÓDIGO DE COACH PARA DESCUENTO ADICIONAL
     if (referralCode) {
       const { data: coach } = await supabase
         .from('profiles')
         .select('user_id')
-        .eq('referral_code', referralCode)
+        .eq('referral_code', referralCode.toUpperCase())
         .eq('is_coach', true)
         .maybeSingle();
 
       if (coach) {
-        // APLICAR 10% DE DESCUENTO (Sostenible como costo de marketing)
-        price = Math.round(price * 0.9);
+        finalPrice = Math.round(basePrice * 0.9); // 10% OFF extra por referido
         discountApplied = true;
-        console.log(`[create-mp-subscription] Descuento del 10% aplicado via coach ${coach.user_id}`);
       }
     }
 
-    const title = `Heavy Duty PRO ${discountApplied ? '(Plan Equipo)' : ''} - ${planType === 'yearly' ? 'Anual' : 'Mensual'}`;
+    const planName = roleType === 'coach' ? 'COACH HUB' : 'ATLETA PRO';
+    const recurrence = planType === 'yearly' ? 'Anual' : 'Mensual';
+    const title = `Heavy Duty ${planName} ${discountApplied ? '(Promo Team)' : ''} - ${recurrence}`;
 
     const body = {
       reason: title,
       external_reference: userId,
       payer_email: email,
       auto_recurring: {
-        frequency: 1,
+        frequency: planType === 'yearly' ? 12 : 1,
         frequency_type: "months",
-        transaction_amount: price,
+        transaction_amount: finalPrice,
         currency_id: "ARS" 
       },
       back_url: backUrl,
       status: "pending"
     };
-    
-    if (planType === 'yearly') {
-        body.auto_recurring.frequency = 12;
-    }
 
     const response = await fetch("https://api.mercadopago.com/preapproval", {
       method: "POST",
@@ -73,7 +79,7 @@ serve(async (req) => {
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Error MP");
+    if (!response.ok) throw new Error(data.message || "Error en la comunicación con Mercado Pago");
 
     return new Response(JSON.stringify({ url: data.init_point }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
