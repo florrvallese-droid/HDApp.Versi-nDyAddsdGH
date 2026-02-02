@@ -70,9 +70,10 @@ const Index = () => {
            </div>
 
            <div className="space-y-4 max-w-2xl mx-auto">
-              <p className="text-xl md:text-2xl text-zinc-400 font-bold uppercase italic tracking-tight">
-                Ingeniería biométrica para el fallo muscular absoluto. <br className="hidden md:block" />
-                Calma la ansiedad del progreso con feedback basado en datos puros.
+              <p className="text-lg md:text-xl text-zinc-400 font-bold uppercase italic tracking-tight leading-relaxed">
+                Te matás entrenando, comés bien y descansás... pero el espejo te devuelve la misma imagen hace meses. 
+                <span className="text-white"> Dejá de tirar tu tiempo a la basura persiguiendo sensaciones </span> 
+                y empezá a construir un cuerpo real con la única verdad que no miente: los datos.
               </p>
            </div>
 
