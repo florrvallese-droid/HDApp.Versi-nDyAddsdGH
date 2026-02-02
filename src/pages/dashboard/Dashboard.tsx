@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useProfileContext } from "@/contexts/ProfileContext";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AthleteDashboardView from "@/components/dashboard/AthleteDashboardView";
 import CoachDashboard from "@/pages/coach/CoachDashboard";
@@ -31,11 +31,13 @@ export default function Dashboard() {
 
   if (!session) return null;
 
-  // Si es Coach, dashboard de gestión
-  if (coachProfile || profile?.user_role === 'coach') {
+  // Lógica de detección de Coach redundante
+  const isCoach = profile?.user_role === 'coach' || profile?.is_coach === true || !!coachProfile;
+
+  if (isCoach) {
     return <CoachDashboard />;
   }
 
-  // Por defecto (o Atleta), dashboard de entreno
+  // Por defecto, vista de atleta
   return <AthleteDashboardView />;
 }

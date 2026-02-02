@@ -38,6 +38,7 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
   const loadAllProfiles = async (userId: string) => {
     try {
+      // Carga del perfil base (Bloqueante mínimo)
       const { data: baseProfile } = await supabase
         .from("profiles")
         .select("*")
@@ -53,21 +54,21 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
         setHasProAccess(fullProfile.is_premium === true || trialDays > 0);
         setIsAdmin(fullProfile.is_admin === true);
 
-        // Consultas secundarias no bloqueantes
-        if (fullProfile.user_role === 'athlete') {
-            const { data: athlete } = await supabase.from('athlete_profiles').select('*').eq('user_id', userId).maybeSingle();
-            setAthleteProfile(athlete);
-        } else if (fullProfile.user_role === 'coach') {
-            const { data: coach } = await supabase.from('coach_profiles').select('*').eq('user_id', userId).maybeSingle();
-            setCoachProfile(coach);
+        // Consultas secundarias (No bloqueantes)
+        if (fullProfile.user_role === 'athlete' || !fullProfile.is_coach) {
+             supabase.from('athlete_profiles').select('*').eq('user_id', userId).maybeSingle()
+                .then(({ data }) => setAthleteProfile(data));
+        } 
+        
+        if (fullProfile.user_role === 'coach' || fullProfile.is_coach) {
+             supabase.from('coach_profiles').select('*').eq('user_id', userId).maybeSingle()
+                .then(({ data }) => setCoachProfile(data));
         }
-      } else {
-        setProfile(null);
       }
     } catch (error) {
-      console.error("[ProfileContext] Error crítico cargando perfiles:", error);
+      console.error("[ProfileContext] Error en carga:", error);
     } finally {
-      // Obligatorio: la app debe continuar aunque falten datos secundarios
+      // El apagado del loading es obligatorio aquí
       setLoading(false);
     }
   };
