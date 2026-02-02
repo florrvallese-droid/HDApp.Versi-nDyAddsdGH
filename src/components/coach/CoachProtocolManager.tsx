@@ -10,7 +10,7 @@ import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { 
     Utensils, Pill, Dumbbell, Save, Plus, Trash2, 
-    Loader2, Zap, Syringe, ClipboardList, Target, ShieldAlert, History, Brain, ChevronRight, Sparkles, AlertTriangle
+    Loader2, Zap, Syringe, ClipboardList, Target, ShieldAlert, History, Brain, ChevronRight, Sparkles, AlertTriangle, Library, Check
 } from "lucide-react";
 import { DietVariant, NutritionConfig, PhaseGoal, Supplement, Routine, Compound } from "@/types";
 import { DietStrategy } from "@/components/nutrition/DietStrategy";
@@ -50,16 +50,15 @@ export function CoachProtocolManager({ athleteId, athleteName }: CoachProtocolMa
   const [newCompType, setNewCompType] = useState<'injectable' | 'oral' | 'ancillary'>('injectable');
   const [newCompTiming, setNewCompTiming] = useState<Compound['timing']>('fasted');
 
-  // Rutinas
-  const [routines, setRoutines] = useState<Routine[]>([]);
-
-  // IA Auditoría
-  const [auditResult, setAuditResult] = useState<any>(null);
-  const [showAuditModal, setShowAuditModal] = useState(false);
+  // Plantillas
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
 
   useEffect(() => {
     fetchAthleteSettings();
-    fetchAthleteRoutines();
+    fetchTemplates();
   }, [athleteId]);
 
   const fetchAthleteSettings = async () => {
@@ -84,9 +83,60 @@ export function CoachProtocolManager({ athleteId, athleteName }: CoachProtocolMa
     setLoading(false);
   };
 
-  const fetchAthleteRoutines = async () => {
-    const { data } = await supabase.from('routines').select('*').eq('user_id', athleteId);
-    if (data) setRoutines(data);
+  const fetchTemplates = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data } = await supabase.from('protocol_templates').select('*').eq('coach_id', user?.id);
+    if (data) setTemplates(data);
+  };
+
+  const saveAsTemplate = async () => {
+    if (!templateName) return;
+    setSaving(true);
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const type = activeTab === 'bio' ? 'nutrition' : 'pharmacology';
+        const data = type === 'nutrition' ? {
+            phase_goal: phaseGoal,
+            strategy_type: strategyType,
+            diet_variants: variants,
+            supplements_stack: supplements,
+            timing_order: visibleTimings
+        } : {
+            compounds: pharmaCompounds,
+            notes: pharmaNotes
+        };
+
+        const { error } = await supabase.from('protocol_templates').insert({
+            coach_id: user?.id,
+            name: templateName,
+            type,
+            data
+        });
+
+        if (error) throw error;
+        toast.success("Plantilla guardada en tu biblioteca");
+        setShowSaveTemplate(false);
+        setTemplateName("");
+        fetchTemplates();
+    } catch (err: any) { toast.error(err.message); } finally { setSaving(false); }
+  };
+
+  const loadTemplate = (template: any) => {
+    if (template.type === 'nutrition') {
+        const d = template.data;
+        setPhaseGoal(d.phase_goal);
+        setStrategyType(d.strategy_type);
+        setVariants(d.diet_variants);
+        setSupplements(d.supplements_stack);
+        if (d.timing_order) setVisibleTimings(d.timing_order);
+        setActiveTab("bio");
+    } else {
+        setPharmaCompounds(template.data.compounds);
+        setPharmaNotes(template.data.notes);
+        setActiveTab("chem");
+    }
+    setShowTemplatePicker(false);
+    toast.info(`Cargada plantilla: ${template.name}`);
   };
 
   const runPreSaveAudit = async () => {
@@ -191,6 +241,10 @@ export function CoachProtocolManager({ athleteId, athleteName }: CoachProtocolMa
     setPharmaCompounds(pharmaCompounds.filter(c => c.id !== id));
   };
 
+  // IA Auditoría State
+  const [auditResult, setAuditResult] = useState<any>(null);
+  const [showAuditModal, setShowAuditModal] = useState(false);
+
   if (loading) return <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-red-600" /></div>;
 
   return (
@@ -205,6 +259,13 @@ export function CoachProtocolManager({ athleteId, athleteName }: CoachProtocolMa
             {auditing ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Brain className="h-4 w-4 mr-2" />}
             Auditar Plan Actual (IA)
          </Button>
+         <Button 
+            variant="outline" 
+            className="bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white font-black uppercase text-[10px] tracking-widest h-12"
+            onClick={() => setShowTemplatePicker(true)}
+         >
+            <Library className="h-4 w-4 mr-2" /> Cargar Plantilla
+         </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -217,27 +278,32 @@ export function CoachProtocolManager({ athleteId, athleteName }: CoachProtocolMa
         </TabsList>
 
         <TabsContent value="bio" className="space-y-6">
-           <div className="space-y-4">
-              <Label className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Fase del Mesociclo</Label>
-              <div className="grid grid-cols-3 gap-2">
-                 {(['volume', 'definition', 'maintenance'] as const).map(goal => (
-                    <Button 
-                        key={goal}
-                        variant="outline" 
-                        onClick={() => setPhaseGoal(goal)}
-                        className={cn("text-[10px] font-bold uppercase h-10 border-zinc-800", phaseGoal === goal ? "bg-green-600 border-green-500 text-white" : "bg-zinc-900 text-zinc-500")}
-                    >
-                        {goal === 'volume' ? 'Volumen' : goal === 'definition' ? 'Definición' : 'Mant.'}
-                    </Button>
-                 ))}
-              </div>
+           <div className="flex justify-between items-center bg-zinc-900/40 p-3 rounded-lg border border-zinc-800">
+                <span className="text-[10px] text-zinc-500 font-black uppercase">Fase del Mesociclo</span>
+                <div className="flex gap-1">
+                    {(['volume', 'definition', 'maintenance'] as const).map(goal => (
+                        <button 
+                            key={goal}
+                            onClick={() => setPhaseGoal(goal)}
+                            className={cn("px-3 py-1.5 rounded text-[8px] font-black uppercase transition-all", phaseGoal === goal ? "bg-green-600 text-white shadow-lg" : "bg-zinc-800 text-zinc-500")}
+                        >
+                            {goal === 'volume' ? 'Vol' : goal === 'definition' ? 'Def' : 'Mnt'}
+                        </button>
+                    ))}
+                </div>
            </div>
            <DietStrategy strategyType={strategyType} setStrategyType={setStrategyType} variants={variants} setVariants={setVariants} />
            <SupplementStack supplements={supplements} setSupplements={setSupplements} visibleTimings={visibleTimings} setVisibleTimings={setVisibleTimings} />
-           <Button onClick={() => saveProtocol('bio')} disabled={saving} className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase italic shadow-lg">
-              {saving ? <Loader2 className="animate-spin h-4 w-4" /> : <Save className="h-4 w-4 mr-2" />}
-              GUARDAR Y ENVIAR DIETA
-           </Button>
+           
+           <div className="flex gap-2">
+                <Button onClick={() => setShowSaveTemplate(true)} variant="outline" className="flex-1 border-zinc-800 bg-zinc-900 text-zinc-400 font-black uppercase text-[10px] h-14 hover:text-white">
+                    <Save className="h-4 w-4 mr-2" /> Guardar Plantilla
+                </Button>
+                <Button onClick={() => saveProtocol('bio')} disabled={saving} className="flex-[2] h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase italic shadow-lg">
+                    {saving ? <Loader2 className="animate-spin h-4 w-4" /> : <Save className="h-4 w-4 mr-2" />}
+                    GUARDAR Y ENVIAR DIETA
+                </Button>
+           </div>
         </TabsContent>
 
         <TabsContent value="chem" className="space-y-6">
@@ -271,14 +337,67 @@ export function CoachProtocolManager({ athleteId, athleteName }: CoachProtocolMa
                 </div>
             </div>
 
-            <Button onClick={() => saveProtocol('chem')} disabled={saving} className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic shadow-lg">
-                {saving ? <Loader2 className="animate-spin h-4 w-4" /> : <Save className="h-4 w-4 mr-2" />}
-                GUARDAR Y ENVIAR QUÍMICA
-            </Button>
+            <div className="flex gap-2">
+                <Button onClick={() => setShowSaveTemplate(true)} variant="outline" className="flex-1 border-zinc-800 bg-zinc-900 text-zinc-400 font-black uppercase text-[10px] h-14 hover:text-white">
+                    <Save className="h-4 w-4 mr-2" /> Guardar Plantilla
+                </Button>
+                <Button onClick={() => saveProtocol('chem')} disabled={saving} className="flex-[2] h-14 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic shadow-lg">
+                    {saving ? <Loader2 className="animate-spin h-4 w-4" /> : <Save className="h-4 w-4 mr-2" />}
+                    GUARDAR Y ENVIAR QUÍMICA
+                </Button>
+           </div>
         </TabsContent>
       </Tabs>
 
-      {/* MODAL AUDITORÍA IA */}
+      {/* --- MODALES --- */}
+
+      {/* Selector de Plantillas */}
+      <Dialog open={showTemplatePicker} onOpenChange={setShowTemplatePicker}>
+        <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle className="font-black uppercase italic text-xl">Mis Plantillas</DialogTitle>
+                <DialogDescription className="text-zinc-500 uppercase text-[10px] font-bold">Selecciona un modelo para cargar</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-4 max-h-[400px] overflow-y-auto">
+                {templates.map(t => (
+                    <button 
+                        key={t.id} 
+                        onClick={() => loadTemplate(t)}
+                        className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-left hover:border-red-600/50 transition-all flex justify-between items-center"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className={cn("p-2 rounded-lg", t.type === 'nutrition' ? "bg-green-600/10" : "bg-red-600/10")}>
+                                {t.type === 'nutrition' ? <Utensils className="h-4 w-4 text-green-500" /> : <Syringe className="h-4 w-4 text-red-500" />}
+                            </div>
+                            <span className="font-bold uppercase text-sm">{t.name}</span>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-zinc-700" />
+                    </button>
+                ))}
+            </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Guardar Plantilla */}
+      <Dialog open={showSaveTemplate} onOpenChange={setShowSaveTemplate}>
+        <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle className="font-black uppercase italic text-xl">Guardar Plantilla</DialogTitle>
+                <DialogDescription className="text-zinc-500 uppercase text-[10px] font-bold">Guarda este esquema para futuros alumnos</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                    <Label className="text-xs uppercase font-bold text-zinc-500">Nombre de la Plantilla</Label>
+                    <Input value={templateName} onChange={e => setTemplateName(e.target.value)} placeholder="Ej: Fase Volumen Principiantes" className="bg-zinc-900 border-zinc-800 h-11" />
+                </div>
+                <Button onClick={saveAsTemplate} disabled={saving || !templateName} className="w-full h-12 bg-white text-black font-black uppercase">
+                    Confirmar Guardado
+                </Button>
+            </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Auditoría IA */}
       <Dialog open={showAuditModal} onOpenChange={setShowAuditModal}>
         <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-lg max-h-[85vh] overflow-hidden flex flex-col p-0">
             <div className="p-6 bg-zinc-900/50 border-b border-zinc-900 flex items-center justify-between">
@@ -290,7 +409,6 @@ export function CoachProtocolManager({ athleteId, athleteName }: CoachProtocolMa
                         Análisis Estratégico Di Iorio
                     </DialogDescription>
                 </div>
-                <Button variant="ghost" onClick={() => setShowAuditModal(false)} className="h-8 w-8 p-0 text-zinc-500"><Plus className="rotate-45" /></Button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-6">

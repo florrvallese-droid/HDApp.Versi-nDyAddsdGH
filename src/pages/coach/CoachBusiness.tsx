@@ -10,12 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
     ChevronLeft, Briefcase, Plus, Trash2, Save, Loader2, 
     Instagram, MessageCircle, Globe, DollarSign, Award, Settings, Info, BookOpen, Brain, TrendingUp,
-    Sparkles, Share2, Image as ImageIcon, Camera
+    Sparkles, Share2, Image as ImageIcon, Camera, Library
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
 import { cn } from "@/lib/utils";
 import { SocialMediaManager } from "@/components/coach/SocialMediaManager";
+import { TemplateLibrary } from "@/components/coach/TemplateLibrary";
 import { uploadBrandLogo } from "@/services/storage";
 
 export default function CoachBusiness() {
@@ -128,6 +129,9 @@ export default function CoachBusiness() {
             <TabsTrigger value="strategy" className="flex-1 font-black uppercase text-[10px] tracking-widest">
                 <Settings className="w-3.5 h-3.5 mr-2" /> Comercial
             </TabsTrigger>
+            <TabsTrigger value="library" className="flex-1 font-black uppercase text-[10px] tracking-widest">
+                <Library className="w-3.5 h-3.5 mr-2" /> Plantillas
+            </TabsTrigger>
             <TabsTrigger value="social" className="flex-1 font-black uppercase text-[10px] tracking-widest">
                 <Share2 className="w-3.5 h-3.5 mr-2 text-red-500" /> Marketing
             </TabsTrigger>
@@ -155,7 +159,6 @@ export default function CoachBusiness() {
                 </CardContent>
             </Card>
 
-            {/* Marca y Redes */}
             <Card className="bg-zinc-950 border-zinc-900">
                 <CardHeader>
                     <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
@@ -163,8 +166,6 @@ export default function CoachBusiness() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    
-                    {/* Logo Upload Section */}
                     <div className="flex flex-col items-center gap-4 py-2">
                         <div className="relative group">
                             <div className="h-32 w-32 rounded-2xl bg-zinc-900 border-2 border-dashed border-zinc-800 flex items-center justify-center overflow-hidden transition-all group-hover:border-red-600/50">
@@ -204,63 +205,17 @@ export default function CoachBusiness() {
                         <Label className="text-[10px] text-zinc-500 uppercase font-bold">Bio Corta</Label>
                         <Textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Tu filosofía de entrenamiento..." className="bg-zinc-900 border-zinc-800 min-h-[100px]" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4 pt-2">
-                        <div className="space-y-2">
-                            <Label className="text-[10px] text-zinc-500 uppercase font-bold flex items-center gap-1"><Instagram className="h-3 w-3" /> Instagram</Label>
-                            <Input value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@usuario" className="bg-zinc-900 border-zinc-800" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-[10px] text-zinc-500 uppercase font-bold flex items-center gap-1"><MessageCircle className="h-3 w-3" /> WhatsApp</Label>
-                            <Input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="Número con código" className="bg-zinc-900 border-zinc-800" />
-                        </div>
-                    </div>
                 </CardContent>
             </Card>
-
-            {/* Oferta de Servicios */}
-            <div className="space-y-4">
-                <div className="flex justify-between items-center px-1">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
-                        <Award className="h-3 w-3 text-yellow-500" /> Mis Planes y Precios
-                    </h3>
-                    <Button variant="ghost" size="sm" onClick={addPlan} className="text-[10px] uppercase font-bold text-red-500"><Plus className="h-3 w-3 mr-1" /> Nuevo Plan</Button>
-                </div>
-
-                <div className="grid gap-4">
-                    {plans.map((plan, idx) => (
-                        <Card key={idx} className="bg-zinc-950 border-zinc-900 overflow-hidden">
-                            <div className="bg-zinc-900/50 p-4 border-b border-zinc-900 flex justify-between items-center">
-                                <Input 
-                                    value={plan.name} 
-                                    onChange={e => updatePlan(idx, 'name', e.target.value)}
-                                    className="bg-transparent border-none p-0 h-auto font-black uppercase italic text-sm text-white focus-visible:ring-0"
-                                />
-                                <Button variant="ghost" size="icon" onClick={() => removePlan(idx)} className="text-zinc-700 hover:text-red-500"><Trash2 className="h-4 w-4" /></Button>
-                            </div>
-                            <CardContent className="p-4 space-y-4">
-                                <div className="flex gap-4">
-                                    <div className="flex-1 space-y-2">
-                                        <Label className="text-[9px] text-zinc-600 uppercase font-bold">Precio Mensual</Label>
-                                        <div className="relative">
-                                            <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-green-500" />
-                                            <Input type="number" value={plan.price} onChange={e => updatePlan(idx, 'price', e.target.value)} className="bg-zinc-900 border-zinc-800 pl-10" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-[9px] text-zinc-600 uppercase font-bold">¿Qué incluye?</Label>
-                                    <Input value={plan.features} onChange={e => updatePlan(idx, 'features', e.target.value)} placeholder="Ej: Dieta, Rutina, Chat 24/7..." className="bg-zinc-900 border-zinc-800" />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </div>
 
             <Button onClick={handleSave} disabled={loading} className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-widest border border-red-500 shadow-xl">
                 {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5 mr-2" />}
                 GUARDAR ESTRATEGIA COMERCIAL
             </Button>
+        </TabsContent>
+
+        <TabsContent value="library" className="animate-in slide-in-from-right-2">
+            <TemplateLibrary />
         </TabsContent>
 
         <TabsContent value="social" className="animate-in slide-in-from-right-2">
