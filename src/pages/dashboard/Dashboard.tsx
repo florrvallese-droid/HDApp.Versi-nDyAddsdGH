@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { useProfile } from "@/hooks/useProfile";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AthleteDashboardView from "@/components/dashboard/AthleteDashboardView";
 import CoachDashboard from "@/pages/coach/CoachDashboard";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -14,6 +15,13 @@ export default function Dashboard() {
       navigate('/onboarding');
     }
   }, [loading, profile, session, navigate]);
+
+  // Si después de cargar no hay sesión, mandamos a Auth (seguridad extra)
+  useEffect(() => {
+    if (!loading && !session) {
+      navigate('/auth');
+    }
+  }, [loading, session, navigate]);
 
   if (loading) {
     return (
@@ -26,6 +34,20 @@ export default function Dashboard() {
             Sincronizando Entorno...
         </p>
       </div>
+    );
+  }
+
+  // Fallback para errores de red o inconsistencias en la base de datos
+  if (!profile && session?.user) {
+    return (
+        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 text-center gap-4">
+            <AlertCircle className="h-10 w-10 text-red-600" />
+            <h2 className="font-black uppercase italic text-white text-xl">Error de Perfil</h2>
+            <p className="text-zinc-500 text-sm">No pudimos vincular tu cuenta con un perfil de atleta.</p>
+            <Button variant="outline" className="mt-4" onClick={() => navigate('/onboarding')}>
+                Completar Onboarding
+            </Button>
+        </div>
     );
   }
 

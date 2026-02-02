@@ -21,71 +21,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
   const [hasProAccess, setHasProAccess] = useState(false);
   const [daysLeftInTrial, setDaysLeftInTrial] = useState(0);
 
-  const loadUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (data) {
-        const userProfile = data as UserProfile;
-        setProfile(userProfile);
-        calculateAccess(userProfile);
-      } else {
-        setProfile(null);
-      }
-    } catch (error) {
-      console.error("[ProfileContext] Critical Error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    let mounted = true;
-
-    // 1. Carga inicial de sesión
-    const initialize = async () => {
-      const { data: { session: initSession } } = await supabase.auth.getSession();
-      if (!mounted) return;
-      
-      setSession(initSession);
-      if (initSession?.user) {
-        await loadUserProfile(initSession.user.id);
-      } else {
-        setLoading(false);
-      }
-    };
-
-    initialize();
-
-    // 2. Escuchar cambios de estado (Login/Logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      if (!mounted) return;
-      
-      setSession(newSession);
-      
-      if (newSession?.user) {
-        // Solo recargamos si es un evento de entrada o no tenemos perfil
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || !profile) {
-           setLoading(true);
-           await loadUserProfile(newSession.user.id);
-        }
-      } else {
-        setProfile(null);
-        setHasProAccess(false);
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
   const calculateAccess = (p: UserProfile) => {
     if (p.is_premium || p.is_admin) {
       setHasProAccess(true);
@@ -111,9 +46,76 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
     }
   };
 
+  const loadUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (data) {
+        const userProfile = data as UserProfile;
+        setProfile(userProfile);
+        calculateAccess(userProfile);
+      } else {
+        setProfile(null);
+      }
+    } catch (error) {
+      console.error("[ProfileContext] Error loading profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+
+    const initialize = async () => {
+      // 1. Obtener sesión inicial
+      const { data: { session: initSession } } = await supabase.auth.getSession();
+      
+      if (!mounted) return;
+      
+      setSession(initSession);
+      
+      if (initSession?.user) {
+        await loadUserProfile(initSession.user.id);
+      } else {
+        setLoading(false);
+      }
+    };
+
+    initialize();
+
+    // 2. Escuchar cambios globales (Login / Logout / Expiry)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (!mounted) return;
+      
+      setSession(newSession);
+      
+      if (newSession?.user) {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+           setLoading(true);
+           await loadUserProfile(newSession.user.id);
+        }
+      } else {
+        setProfile(null);
+        setHasProAccess(false);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const refreshProfile = async () => {
-    if (session?.user) {
-        await loadUserProfile(session.user.id);
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    if (currentSession?.user) {
+        await loadUserProfile(currentSession.user.id);
     }
   };
 
