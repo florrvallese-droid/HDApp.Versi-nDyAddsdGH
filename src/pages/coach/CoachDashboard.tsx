@@ -143,6 +143,9 @@ export default function CoachDashboard() {
     c?.display_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Determinar el nombre del equipo del coach
+  const coachTeamName = profile?.business_info?.brand_name || profile?.display_name || "Preparador";
+
   return (
     <div className="min-h-screen bg-black text-white p-4 pb-32 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-500">
       
@@ -151,7 +154,7 @@ export default function CoachDashboard() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
             <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white leading-none">Business Unit</h1>
-            <p className="text-red-500 text-xs font-bold uppercase tracking-widest mt-1">Gestión de Equipo Di Iorio</p>
+            <p className="text-red-500 text-xs font-bold uppercase tracking-widest mt-1">Gestión de Equipo {coachTeamName}</p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
             <Button 
