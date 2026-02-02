@@ -1,26 +1,24 @@
 import { useEffect } from "react";
-import { useProfile } from "@/hooks/useProfile";
-import { Loader2, AlertCircle } from "lucide-react";
+import { useProfileContext } from "@/contexts/ProfileContext";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AthleteDashboardView from "@/components/dashboard/AthleteDashboardView";
 import CoachDashboard from "@/pages/coach/CoachDashboard";
-import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { profile, loading, session } = useProfile();
+  const { profile, athleteProfile, coachProfile, loading, session } = useProfileContext();
 
-  // Gestión de redirección inicial
   useEffect(() => {
     if (!loading) {
       if (!session) {
         navigate('/auth');
-      } else if (!profile) {
-        // Si hay sesión pero no hay perfil, es un usuario nuevo
+      } else if (!profile && !athleteProfile && !coachProfile) {
+        // Si hay sesión pero no hay ningún perfil, forzar Onboarding
         navigate('/onboarding');
       }
     }
-  }, [loading, profile, session, navigate]);
+  }, [loading, profile, athleteProfile, coachProfile, session, navigate]);
 
   if (loading) {
     return (
@@ -30,18 +28,17 @@ export default function Dashboard() {
            <Loader2 className="animate-spin text-red-600 h-12 w-12 relative z-10" />
         </div>
         <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">
-            Sincronizando Entorno...
+            Sincronizando Identidad...
         </p>
       </div>
     );
   }
 
-  // Si no hay perfil tras cargar y habiendo sesión, evitamos renderizar nada hasta que el useEffect anterior redirija
-  if (!profile && session) return null;
+  // Si no se ha cargado nada tras el loading, evitamos flash de contenido
   if (!session) return null;
 
-  // DIVISIÓN DE INTERFAZ SEGÚN ROL
-  if (profile?.is_coach) {
+  // Renderizar Dashboard según perfil detectado
+  if (coachProfile) {
     return <CoachDashboard />;
   }
 

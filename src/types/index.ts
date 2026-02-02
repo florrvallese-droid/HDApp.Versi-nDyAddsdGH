@@ -3,73 +3,70 @@ export type Discipline = 'bodybuilding' | 'crossfit' | 'powerlifting' | 'general
 export type UnitSystem = 'kg' | 'lb';
 export type Sex = 'male' | 'female' | 'other';
 export type LoggingPreference = 'effective_only' | 'full_routine';
+export type UserRole = 'athlete' | 'coach' | 'admin';
 
 export interface UserProfile {
   user_id: string;
   created_at: string;
   updated_at: string;
   email?: string;
-  
-  // Básico
   display_name?: string;
   sex: Sex;
   units: UnitSystem;
   avatar_url?: string;
   birth_date?: string;
-  is_competitor?: boolean;
-  
-  // Registro
-  logging_preference: LoggingPreference;
-  
-  // Referidos y Negocio
-  referral_code?: string;
-  business_info?: {
-    brand_name?: string;
-    brand_logo_url?: string;
-    bio?: string;
-    instagram?: string;
-    whatsapp?: string;
-    specialty?: string;
-    plan_tier?: 'starter' | 'hub' | 'agency'; // Nivel de suscripción del coach
-    plans?: Array<{
-      name: string;
-      price: string;
-      features: string;
-    }>;
-    collaborations?: Array<{
-      brand: string;
-      code: string;
-      description: string;
-      link?: string;
-    }>;
-    team_invites?: string[];
-  };
-  
-  // Premium
-  is_premium: boolean;
-  is_admin: boolean;
-  is_coach: boolean;
-  premium_expires_at?: string;
-  trial_started_at?: string;
-  
-  // Personalización
+  user_role: UserRole;
   coach_tone: CoachTone;
   discipline: Discipline;
-  
-  // Flexible
-  settings: {
-    notifications_enabled?: boolean;
-    menstrual_cycle_tracking?: boolean;
-    last_cycle_start?: string;
-    language?: 'es' | 'en';
-    theme?: 'dark' | 'light';
-    nutrition?: NutritionConfig;
-    pharmacology_protocol?: any;
-    age?: string;
-    height?: string;
-    current_weight?: string;
-    objectives?: string;
-  };
+  settings: any;
+  // Campos extendidos para la UI
+  is_coach?: boolean;
+  is_admin?: boolean;
+  is_premium?: boolean;
+  is_competitor?: boolean;
+  trial_started_at?: string;
+  premium_expires_at?: string;
+  business_info?: any;
+  logging_preference?: LoggingPreference;
+}
+
+export interface AthleteProfile {
+  user_id: string;
+  tier: 'free' | 'pro';
+  subscription_status: string;
+}
+
+export interface CoachProfile {
+  user_id: string;
+  plan_type: 'starter' | 'hub' | 'agency';
+  business_name?: string;
+  student_limit: number;
+}
+
+export interface SetExtension {
+  type: 'rest_pause' | 'drop_set';
+  rest_time?: number;
+  weight?: number;
+  reps: number;
+}
+
+export interface WorkoutSet {
+  weight: number;
+  reps: number;
+  tempo?: string;
+  is_unilateral?: boolean;
+  is_failure?: boolean;
+  rest_seconds?: number;
+  techniques?: string[];
+  technique_counts?: Record<string, number>;
+  extensions?: SetExtension[];
+}
+
+export interface WorkoutExercise {
+  name: string;
+  sets: WorkoutSet[];
+  is_superset?: boolean;
+  previous?: { weight: number; reps: number };
 }
 
 export interface Competition {
@@ -79,30 +76,16 @@ export interface Competition {
     date: string;
     category?: string;
     location?: string;
-    notes?: string;
-    peak_week_protocol?: {
-        carb_load?: string;
-        water_depletion?: string;
-        sodium_protocol?: string;
-        final_adjustment?: string;
-    };
-    results?: {
-        rank?: string;
-        condition_score?: number; // 1-10
-        strengths?: string;
-        weaknesses?: string;
-        coach_feedback?: string;
-    };
     status: 'scheduled' | 'completed' | 'cancelled';
+    peak_week_protocol?: any;
+    results?: any;
 }
 
 export interface Routine {
   id: string;
   user_id: string;
   name: string;
-  description?: string;
   exercises: { name: string; sets_goal: number }[];
-  created_at: string;
 }
 
 export type PhaseGoal = 'volume' | 'definition' | 'maintenance';
@@ -114,40 +97,12 @@ export interface DietVariant {
   macros: { p: number; c: number; f: number };
 }
 
-export interface Supplement {
-  id: string;
-  name: string;
-  timing: 'fasted' | 'pre' | 'intra' | 'post' | 'night' | 'meal';
-  dosage: string;
-}
-
-export interface NutritionConfig {
-  phase_goal: PhaseGoal;
-  strategy_type?: 'single' | 'cycling';
-  diet_variants: DietVariant[];
-  supplements_stack: Supplement[];
-}
-
-export type LogType = 'preworkout' | 'workout' | 'nutrition' | 'checkin' | 'rest' | 'cardio' | 'pharmacology' | 'globalanalysis';
-
-export interface Log {
-  id: string;
-  user_id: string;
-  type: LogType;
-  created_at: string;
-  muscle_group?: string;
-  workout_date?: string;
-  cycle_day?: number;
-  discipline?: string;
-  data: Record<string, any>;
-}
-
 export interface Compound {
   id: string;
   name: string;
   dosage: string;
   type: 'injectable' | 'oral' | 'ancillary';
-  timing?: 'fasted' | 'pre' | 'intra' | 'post' | 'night' | 'meal';
+  timing: 'fasted' | 'pre' | 'intra' | 'post' | 'night' | 'meal';
 }
 
 export interface PharmaCycle {
@@ -158,55 +113,18 @@ export interface PharmaCycle {
   notes?: string;
 }
 
-export interface PreWorkoutData {
-  inputs: {
-    sleep: number;
-    stress: number;
-    sensation: number | string;
-    pain: boolean;
-    painDescription?: string;
-  };
-  decision: 'TRAIN_HEAVY' | 'TRAIN_LIGHT' | 'REST';
-  rationale: string;
-  rules_triggered?: string[];
-  recommendations: string[];
+export interface NutritionConfig {
+  phase_goal: PhaseGoal;
+  strategy_type?: 'single' | 'cycling';
+  diet_variants: DietVariant[];
+  supplements_stack: Supplement[];
 }
 
-export interface SetExtension {
-  type: 'rest_pause' | 'drop_set';
-  reps: number;
-  weight?: number;
-  rest_time?: number;
-}
-
-export interface WorkoutSet {
-  weight: number;
-  reps: number;
-  tempo?: string;
-  rest_seconds?: number;
-  rpe?: number;
-  is_failure?: boolean; // NEW: Critical for HD System
-  is_unilateral?: boolean; 
-  techniques?: string[];
-  technique_counts?: Record<string, number>;
-  extensions?: SetExtension[];
-  type?: 'warmup' | 'working' | 'failure';
-}
-
-export interface WorkoutExercise {
+export interface Supplement {
+  id: string;
   name: string;
-  sets: WorkoutSet[];
-  previous?: { weight: number; reps: number };
-  progress?: 'PROGRESS' | 'MANTUVO' | 'REGRESSION';
-  notes?: string;
-  is_superset?: boolean;
-}
-
-export interface WorkoutData {
-  exercises: WorkoutExercise[];
-  total_volume: number;
-  duration_minutes: number;
-  logging_mode?: LoggingPreference;
+  timing: 'fasted' | 'pre' | 'intra' | 'post' | 'night' | 'meal';
+  dosage: string;
 }
 
 export interface GlobalAnalysisResponse {
@@ -215,12 +133,5 @@ export interface GlobalAnalysisResponse {
     evidence: string;
     action: string;
   }[];
-  performance_insights: {
-    best_performing_conditions: string;
-    worst_performing_conditions: string;
-    optimal_frequency: string;
-  };
-  next_14_days_plan: string[];
-  red_flags: string[];
   overall_assessment: string;
 }

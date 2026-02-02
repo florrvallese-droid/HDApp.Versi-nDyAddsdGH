@@ -1,8 +1,7 @@
 import { useProfileContext } from "@/contexts/ProfileContext";
 
 /**
- * Hook para acceder al perfil del usuario y estado de sesión.
- * Ahora centralizado a través de ProfileContext.
+ * Hook centralizado para acceder a los perfiles de Atleta, Coach y Admin.
  */
 export function useProfile() {
   return useProfileContext();
