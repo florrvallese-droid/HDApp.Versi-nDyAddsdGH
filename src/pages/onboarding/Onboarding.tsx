@@ -51,14 +51,8 @@ const Onboarding = () => {
   const isProfessional = role === 'coach' || role === 'agency';
 
   const handleNext = () => {
-    if (step === 1 && isProfessional) {
-        setStep(2);
-        return;
-    }
-    if (step === 2 && isProfessional) {
-        setStep(5);
-        return;
-    }
+    // Para profesionales, igual pedimos datos físicos (paso 3) y tono (paso 4) 
+    // porque ellos también usan la bitácora como atletas.
     if (step < STEPS.length) {
       setStep(step + 1);
     } else {
@@ -67,10 +61,6 @@ const Onboarding = () => {
   };
 
   const handleBack = () => {
-    if (step === 5 && isProfessional) {
-      setStep(2);
-      return;
-    }
     if (step > 1) setStep(step - 1);
   };
 
@@ -81,20 +71,15 @@ const Onboarding = () => {
     try {
       const updateData: any = {
         display_name: displayName,
+        sex: sex,
+        birth_date: birthDate || null,
+        units: units,
+        coach_tone: coachTone,
+        discipline: discipline,
+        is_coach: isProfessional,
         updated_at: new Date().toISOString(),
+        settings: { current_weight: weight.toString() }
       };
-
-      if (isProfessional) {
-        updateData.is_coach = true;
-      } else {
-        updateData.sex = sex;
-        updateData.birth_date = birthDate || null;
-        updateData.units = units;
-        updateData.coach_tone = coachTone;
-        updateData.discipline = discipline;
-        updateData.is_coach = false;
-        updateData.settings = { current_weight: weight.toString() }; 
-      }
 
       const { error } = await supabase
         .from("profiles")
@@ -103,14 +88,11 @@ const Onboarding = () => {
 
       if (error) throw error;
 
-      toast.success("¡Perfil configurado!");
+      toast.success("¡Cuenta configurada con éxito!");
       
-      // Redirección definitiva
-      if (isProfessional) {
-          navigate("/coach");
-      } else {
-          navigate("/dashboard");
-      }
+      // Todos van al dashboard principal. 
+      // El menú inferior se encargará de mostrar la pestaña de Coach si corresponde.
+      navigate("/dashboard");
       
     } catch (error: any) {
       toast.error("Error al guardar: " + error.message);
@@ -130,8 +112,7 @@ const Onboarding = () => {
               key={s.id} 
               className={cn(
                 "flex flex-col items-center gap-1 transition-colors",
-                step >= s.id ? "text-red-500" : "text-zinc-700",
-                (s.id === 3 || s.id === 4) && isProfessional && "opacity-20"
+                step >= s.id ? "text-red-500" : "text-zinc-700"
               )}
             >
               <div className={cn("h-2 w-2 rounded-full", step >= s.id ? "bg-red-600" : "bg-zinc-800")} />
@@ -173,7 +154,7 @@ const Onboarding = () => {
                     className={cn("flex items-center gap-4 p-5 rounded-xl border-2 transition-all text-left group", role === 'coach' ? "bg-red-950/20 border-red-600" : "bg-zinc-900 border-zinc-800")}
                   >
                     <div className={cn("p-3 rounded-lg", role === 'coach' ? "bg-red-600 text-white" : "bg-zinc-800 text-zinc-500")}><Users className="w-6 h-6" /></div>
-                    <div><h4 className={cn("font-black uppercase italic", role === 'coach' ? "text-white" : "text-zinc-400")}>Soy Coach Independiente</h4><p className="text-xs text-zinc-500">Gestiono mis alumnos y su facturación.</p></div>
+                    <div><h4 className={cn("font-black uppercase italic", role === 'coach' ? "text-white" : "text-zinc-400")}>Soy Coach Independiente</h4><p className="text-xs text-zinc-500">Gestión de alumnos + Mi propia bitácora.</p></div>
                   </button>
 
                   <button 
@@ -195,21 +176,18 @@ const Onboarding = () => {
                 </Label>
                 <Input id="name" placeholder={role === 'agency' ? "Ej: Iron Team Performance" : "Tu nombre"} value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-black border-zinc-800 h-12 text-lg font-bold" />
               </div>
-              
-              {!isProfessional && (
-                  <div className="space-y-2">
-                    <Label className="text-zinc-500 uppercase font-bold text-[10px]">Disciplina Principal</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(["bodybuilding", "powerlifting", "crossfit", "general"] as const).map((d) => (
-                        <Button key={d} type="button" variant={discipline === d ? "default" : "outline"} onClick={() => setDiscipline(d)} className={cn("capitalize font-bold border-zinc-800", discipline === d ? "bg-red-600" : "bg-zinc-900 text-zinc-400")}>{d}</Button>
-                      ))}
-                    </div>
-                  </div>
-              )}
+              <div className="space-y-2">
+                <Label className="text-zinc-500 uppercase font-bold text-[10px]">Disciplina Principal</Label>
+                <div className="grid grid-cols-2 gap-2">
+                    {(["bodybuilding", "powerlifting", "crossfit", "general"] as const).map((d) => (
+                    <Button key={d} type="button" variant={discipline === d ? "default" : "outline"} onClick={() => setDiscipline(d)} className={cn("capitalize font-bold border-zinc-800", discipline === d ? "bg-red-600" : "bg-zinc-900 text-zinc-400")}>{d}</Button>
+                    ))}
+                </div>
+              </div>
             </div>
           )}
 
-          {step === 3 && !isProfessional && (
+          {step === 3 && (
             <div className="space-y-6">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -241,7 +219,7 @@ const Onboarding = () => {
 
                 <div className="space-y-3 pt-2">
                   <div className="flex justify-between items-baseline">
-                    <Label className="text-zinc-500 uppercase font-bold text-[10px]">Peso Corporal</Label>
+                    <Label className="text-zinc-500 uppercase font-bold text-[10px]">Mi Peso Corporal</Label>
                     <span className="font-black text-3xl italic text-red-500">{weight} <span className="text-sm font-bold text-zinc-600 uppercase">{units}</span></span>
                   </div>
                   <Slider value={[weight]} min={30} max={200} step={0.5} onValueChange={(vals) => setWeight(vals[0])} className="py-4" />
@@ -250,14 +228,14 @@ const Onboarding = () => {
             </div>
           )}
 
-          {step === 4 && !isProfessional && (
+          {step === 4 && (
             <div className="space-y-4">
               <Label className="text-zinc-400 font-bold uppercase tracking-wider text-xs block text-center mb-2">Elige la personalidad de tu IA</Label>
               <RadioGroup value={coachTone} onValueChange={(v) => setCoachTone(v as CoachTone)} className="space-y-3">
                 <div className={cn("flex items-start space-x-3 border-2 rounded-xl p-4 cursor-pointer transition-all", coachTone === 'strict' ? 'border-red-600 bg-red-950/10' : 'border-zinc-900')}>
                   <RadioGroupItem value="strict" id="strict" className="mt-1 border-zinc-700" />
                   <div className="grid gap-1.5 leading-none">
-                    <Label htmlFor="strict" className="font-black uppercase italic cursor-pointer text-white">Strict (Mike Mentzer Style)</Label>
+                    <Label htmlFor="strict" className="font-black uppercase italic cursor-pointer text-white">Strict (Mentzer Style)</Label>
                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">Sin excusas. Fallo absoluto. Disciplina férrea.</p>
                   </div>
                 </div>
@@ -284,19 +262,20 @@ const Onboarding = () => {
               <div className="space-y-2">
                 <h3 className="text-xl font-black italic uppercase text-white">¡Todo listo, {displayName}!</h3>
                 <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
-                    Haz click abajo para entrar a tu panel de control.
+                    Accederás a todas tus herramientas con este perfil.
                 </p>
               </div>
               <div className="bg-zinc-900 p-6 rounded-2xl text-left space-y-4 border border-zinc-800 text-xs">
                 <div className="flex justify-between border-b border-zinc-800 pb-2">
-                    <span className="text-zinc-500 font-bold uppercase">Perfil:</span>
+                    <span className="text-zinc-500 font-bold uppercase">Rol Principal:</span>
                     <span className="font-black uppercase italic text-red-500">{role === 'agency' ? 'Agencia' : role === 'coach' ? 'Coach' : 'Atleta'}</span>
                 </div>
-                {!isProfessional && (
-                    <div className="flex justify-between"><span className="text-zinc-500 font-bold uppercase">Peso:</span><span className="font-black text-white">{weight} {units}</span></div>
-                )}
+                <div className="flex justify-between"><span className="text-zinc-500 font-bold uppercase">Peso:</span><span className="font-black text-white">{weight} {units}</span></div>
                 {isProfessional && (
-                    <div className="flex justify-between"><span className="text-zinc-500 font-bold uppercase">Panel:</span><span className="font-black text-white">Coach Hub Habilitado</span></div>
+                    <div className="flex justify-between pt-2 text-blue-400 font-bold uppercase tracking-tighter">
+                        <span>+ Capacidades:</span>
+                        <span>Mando de Equipo Habilitado</span>
+                    </div>
                 )}
               </div>
             </div>

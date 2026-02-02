@@ -12,11 +12,8 @@ export default function Dashboard() {
     if (!loading && !profile && session?.user) {
       navigate('/onboarding');
     }
-    
-    // REDIRECCIÓN ESTRICTA: Un coach nunca debe ver la vista de atleta.
-    if (!loading && profile?.is_coach) {
-      navigate('/coach');
-    }
+    // Ya no redirigimos al coach fuera de aquí. 
+    // Un coach es también un atleta y debe poder usar su bitácora.
   }, [loading, profile, session, navigate]);
 
   if (loading) {
@@ -27,7 +24,7 @@ export default function Dashboard() {
            <Loader2 className="animate-spin text-red-600 h-12 w-12 relative z-10" />
         </div>
         <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">
-            Sincronizando Atleta...
+            Sincronizando Perfil...
         </p>
       </div>
     );

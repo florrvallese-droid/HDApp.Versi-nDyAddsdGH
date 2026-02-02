@@ -1,7 +1,7 @@
 "use client";
 
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Home, Dumbbell, Utensils, User, TrendingUp, Users, Briefcase } from "lucide-react";
+import { Home, Dumbbell, Utensils, User, TrendingUp, Users, Briefcase, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -10,13 +10,14 @@ export default function AppLayout() {
   const location = useLocation();
   const { profile } = useProfile();
 
-  // La navegación depende del prefijo de la URL o del tipo de perfil
-  const isCoachPath = location.pathname.startsWith('/coach');
-  
-  const navItems = isCoachPath
+  // Definición de navegación dinámica
+  // Si es coach, le damos acceso al "Team Hub" en el centro
+  const navItems = profile?.is_coach 
     ? [
-        { label: "Equipo", icon: Users, path: "/coach" }, 
-        { label: "Negocio", icon: Briefcase, path: "/coach/business" },
+        { label: "Home", icon: Home, path: "/dashboard" },
+        { label: "Train", icon: Dumbbell, path: "/workout" },
+        { label: "Equipo", icon: Users, path: "/coach", highlight: true }, // Acceso Coach
+        { label: "Nutri", icon: Utensils, path: "/nutrition" },
         { label: "Perfil", icon: User, path: "/settings" },
       ]
     : [
@@ -34,7 +35,7 @@ export default function AppLayout() {
       </main>
 
       {/* Bottom Nav Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border z-50 h-16 safe-area-bottom">
+      <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-zinc-900 z-50 h-16 safe-area-bottom">
         <div className="max-w-md mx-auto h-full flex items-center justify-around px-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
@@ -44,19 +45,20 @@ export default function AppLayout() {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  "flex flex-col items-center justify-center w-full h-full gap-1 transition-colors",
+                  "flex flex-col items-center justify-center w-full h-full gap-1 transition-all duration-300",
                   isActive 
-                    ? "text-primary font-medium" 
+                    ? item.highlight ? "text-red-500 scale-110" : "text-primary font-medium" 
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <div className={cn(
                   "p-1.5 rounded-xl transition-all",
-                  isActive && "bg-primary/10"
+                  isActive && !item.highlight && "bg-primary/10",
+                  item.highlight && "bg-red-600/10 border border-red-600/20"
                 )}>
                   <item.icon className={cn("h-5 w-5", isActive && "fill-current")} />
                 </div>
-                <span className="text-[10px]">{item.label}</span>
+                <span className="text-[9px] font-bold uppercase tracking-tighter">{item.label}</span>
               </button>
             );
           })}
