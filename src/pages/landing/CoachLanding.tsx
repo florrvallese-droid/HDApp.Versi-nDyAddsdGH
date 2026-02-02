@@ -11,7 +11,8 @@ import {
 import { 
     Brain, Briefcase, Zap, 
     ArrowRight, MessageSquare, TrendingUp, Sparkles, 
-    Star, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, Lock, MessageCircle, DollarSign, Calculator, Users, Trophy, BarChart3, Image as ImageIcon
+    Star, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, Lock, MessageCircle, DollarSign, Calculator, Users, Trophy, BarChart3, Image as ImageIcon,
+    Clock, AlertTriangle, UserCheck
 } from "lucide-react";
 import { CoachApplicationForm } from "@/components/landing/CoachApplicationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
@@ -98,15 +99,36 @@ export default function CoachLanding() {
                         <FeatureItem text="Biblioteca de plantillas de protocolos (HIT/Heavy Duty)." />
                     </ul>
                 </div>
-                <div className="bg-zinc-900 rounded-3xl border border-zinc-800 p-8 shadow-2xl relative">
-                    <Briefcase className="w-full h-auto text-zinc-800 opacity-20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" size={200} />
-                    <div className="relative z-10 space-y-6">
-                        <div className="h-12 w-48 bg-zinc-800 rounded-lg animate-pulse" />
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="h-24 bg-zinc-950 rounded-xl border border-zinc-800" />
-                            <div className="h-24 bg-zinc-950 rounded-xl border border-zinc-800" />
+                {/* Visual Mockup Dashboard */}
+                <div className="bg-zinc-900 rounded-3xl border border-zinc-800 p-6 shadow-2xl relative overflow-hidden">
+                    <div className="flex justify-between items-center mb-6">
+                        <div className="h-8 w-32 bg-zinc-800 rounded-md" />
+                        <div className="h-8 w-8 bg-red-600 rounded-full" />
+                    </div>
+                    <div className="space-y-3">
+                        {[
+                            { name: "MARCOS G.", status: "AL DÍA", color: "bg-green-500", fee: "$25.000" },
+                            { name: "JULIETA R.", status: "DEUDA", color: "bg-red-500", fee: "$25.000" },
+                            { name: "PABLO S.", status: "CORTESÍA", color: "bg-blue-500", fee: "$0" }
+                        ].map((student, i) => (
+                            <div key={i} className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 bg-zinc-900 rounded-full border border-zinc-800" />
+                                    <span className="text-xs font-black text-white">{student.name}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[9px] font-mono text-zinc-500">{student.fee}</span>
+                                    <div className={cn("px-2 py-0.5 rounded text-[8px] font-black text-white", student.color)}>{student.status}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-6 p-4 bg-red-600/10 border border-red-600/20 rounded-xl">
+                        <p className="text-[10px] font-black uppercase text-red-500">Métricas de Equipo</p>
+                        <div className="flex gap-6 mt-2">
+                             <div><p className="text-lg font-black">42</p><p className="text-[8px] text-zinc-500">ALUMNOS</p></div>
+                             <div><p className="text-lg font-black text-green-500">$940K</p><p className="text-[8px] text-zinc-500">REVENUE</p></div>
                         </div>
-                        <div className="h-32 bg-red-600/10 rounded-xl border border-red-600/20" />
                     </div>
                 </div>
             </div>
@@ -123,16 +145,24 @@ export default function CoachLanding() {
                         <FeatureItem text="Briefing técnico: Resumen de carga del equipo." />
                     </ul>
                 </div>
-                <div className="md:order-1 bg-black rounded-3xl border-2 border-red-600/30 p-8 shadow-[0_0_50px_rgba(220,38,38,0.1)]">
-                    <Brain className="w-12 h-12 text-red-600 mb-6" />
+                {/* IA Alerts Mockup */}
+                <div className="md:order-1 bg-black rounded-3xl border-2 border-red-600/30 p-8 shadow-[0_0_50px_rgba(220,38,38,0.1)] space-y-6">
+                    <div className="flex items-center gap-3">
+                         <div className="p-2 bg-red-600 rounded-lg"><Brain className="w-6 h-6 text-white" /></div>
+                         <h4 className="text-lg font-black uppercase italic">Daily Briefing IA</h4>
+                    </div>
                     <div className="space-y-4">
-                        <div className="p-4 bg-zinc-900/50 rounded-xl border border-zinc-800 border-l-4 border-l-red-500">
-                            <p className="text-[10px] font-black uppercase text-zinc-500">Alerta de Salud</p>
-                            <p className="text-sm font-bold text-white mt-1">Juan Perez reportó dolor lumbar agudo en Sentadilla.</p>
+                        <div className="p-4 bg-zinc-900/50 rounded-xl border border-zinc-800 border-l-4 border-l-red-600 animate-pulse">
+                            <p className="text-[10px] font-black uppercase text-red-500 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Alerta SNC</p>
+                            <p className="text-sm font-bold text-white mt-1">Marcos reportó dolor lumbar agudo post-sesión.</p>
                         </div>
-                        <div className="p-4 bg-zinc-900/50 rounded-xl border border-zinc-800 border-l-4 border-l-green-500">
-                            <p className="text-[10px] font-black uppercase text-zinc-500">Hito de Progreso</p>
-                            <p className="text-sm font-bold text-white mt-1">Maria Lopez superó su 1RM en Prensa x 12%.</p>
+                        <div className="p-4 bg-zinc-900/50 rounded-xl border border-zinc-800 border-l-4 border-l-green-600">
+                            <p className="text-[10px] font-black uppercase text-green-500 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> Hito Marketing</p>
+                            <p className="text-sm font-bold text-white mt-1">Julieta superó su 1RM en Prensa un 12% hoy.</p>
+                        </div>
+                        <div className="p-4 bg-zinc-900/50 rounded-xl border border-zinc-800 border-l-4 border-l-yellow-600">
+                            <p className="text-[10px] font-black uppercase text-yellow-500 flex items-center gap-1"><DollarSign className="w-3 h-3" /> Admin</p>
+                            <p className="text-sm font-bold text-white mt-1">Tenés 4 vencimientos de cuota pendientes hoy.</p>
                         </div>
                     </div>
                 </div>
@@ -150,15 +180,33 @@ export default function CoachLanding() {
                         <FeatureItem text="Posicionamiento como autoridad técnica." />
                     </ul>
                 </div>
-                <div className="bg-zinc-900 rounded-3xl border border-zinc-800 p-8 flex flex-col items-center justify-center gap-6">
-                    <ImageIcon className="w-12 h-12 text-zinc-700" />
-                    <div className="w-48 aspect-[9/16] bg-black border-2 border-red-600 rounded-2xl p-4 flex flex-col justify-between">
-                         <div className="h-4 w-12 bg-red-600 rounded" />
-                         <div className="h-2 w-full bg-zinc-800 rounded" />
-                         <div className="h-2 w-2/3 bg-zinc-800 rounded" />
-                         <div className="h-10 w-full bg-red-600/20 rounded-lg" />
+                {/* Story Mockup */}
+                <div className="bg-zinc-900 rounded-3xl border border-zinc-800 p-8 flex flex-col items-center justify-center gap-6 group">
+                    <div className="w-56 aspect-[9/16] bg-black border-4 border-zinc-800 rounded-[2.5rem] p-6 flex flex-col relative overflow-hidden shadow-2xl transition-transform group-hover:scale-105 duration-500">
+                         <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/20 blur-[50px]" />
+                         <div className="flex justify-between items-start z-10">
+                             <div className="h-8 w-8 bg-zinc-800 rounded-full border border-zinc-700" />
+                             <div className="h-6 w-6 bg-red-600 rounded-full p-1"><Trophy className="text-white w-full h-full" /></div>
+                         </div>
+                         <div className="flex-1 flex flex-col justify-center gap-4 z-10">
+                              <div className="space-y-1">
+                                <p className="text-[6px] font-black text-red-500 uppercase tracking-widest">TEAM DI IORIO</p>
+                                <h5 className="text-3xl font-black uppercase italic leading-none">RECORD<br/>ROTO</h5>
+                              </div>
+                              <div className="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                  <p className="text-[10px] font-black text-white">MARCOS G.</p>
+                                  <p className="text-[14px] font-black text-red-500">+15 KG</p>
+                                  <p className="text-[8px] text-zinc-500 uppercase font-bold">EN PRESS BANCA</p>
+                              </div>
+                         </div>
+                         <div className="mt-auto pt-4 border-t border-white/10 z-10 flex justify-between items-end">
+                              <div className="h-2 w-16 bg-zinc-800 rounded" />
+                              <div className="h-4 w-4 bg-zinc-800 rounded" />
+                         </div>
                     </div>
-                    <p className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Contenido generado en 2 segundos</p>
+                    <Button variant="outline" className="bg-zinc-950 border-zinc-800 text-[10px] font-black uppercase h-10 tracking-widest px-6 rounded-full group-hover:border-red-600 transition-colors">
+                        Descargar para Story
+                    </Button>
                 </div>
             </div>
 
