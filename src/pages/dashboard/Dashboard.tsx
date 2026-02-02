@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCcw } from "lucide-react";
 import CoachDashboard from "@/pages/coach/CoachDashboard";
 import AthleteDashboardView from "@/components/dashboard/AthleteDashboardView";
 import { supabase } from "@/services/supabase";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export default function Dashboard() {
@@ -13,42 +14,32 @@ export default function Dashboard() {
   const [recovering, setRecovering] = useState(false);
 
   useEffect(() => {
-    // Self-healing: If loading is done, we have a session, but NO profile -> Create one.
+    // Si terminó de cargar y no hay perfil pero hay sesión, intentamos restaurar
     if (!loading && !profile && session?.user) {
       attemptRecovery(session.user.id, session.user.email);
-    } else if (!loading && !profile && !session) {
-      // No session at all -> Go to onboarding/auth
-      navigate("/onboarding");
     }
-  }, [loading, profile, session, navigate]);
+  }, [loading, profile, session]);
 
   const attemptRecovery = async (userId: string, email?: string) => {
     setRecovering(true);
     try {
-        console.log("Attempting profile recovery for:", userId);
-        // Intentar crear un perfil default
-        const { error } = await supabase.from('profiles').insert({
+        console.log("Iniciando recuperación de perfil para:", userId);
+        const { error } = await supabase.from('profiles').upsert({
             user_id: userId,
             display_name: email?.split('@')[0] || "Usuario",
             email: email,
-            sex: 'other', // Default safe value
+            sex: 'other',
             units: 'kg',
             coach_tone: 'strict',
-            discipline: 'general'
+            discipline: 'general',
+            updated_at: new Date().toISOString()
         });
 
-        if (error) {
-            // Si ya existe (duplicate key), ignoramos el error, significa que hubo un problema de lectura momentáneo
-            console.warn("Recovery insert note:", error);
-        }
-
-        toast.success("Perfil restaurado");
+        if (error) throw error;
         await refreshProfile();
         
     } catch (err) {
-        console.error("Recovery failed", err);
-        // Last resort
-        navigate("/onboarding");
+        console.error("Fallo la recuperación:", err);
     } finally {
         setRecovering(false);
     }
@@ -65,14 +56,32 @@ export default function Dashboard() {
     );
   }
 
-  // Si no hay perfil (y falló la recuperación), no renderizar nada para evitar flashes
-  if (!profile) return null;
+  // SI NO HAY PERFIL: Evitamos pantalla en negro mostrando una alerta y botón de reintento
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-center space-y-6">
+        <div className="bg-red-600/10 p-4 rounded-full">
+            <AlertCircle className="h-12 w-12 text-red-600" />
+        </div>
+        <div className="space-y-2">
+            <h1 className="text-xl font-black uppercase italic text-white">Error de Sincronización</h1>
+            <p className="text-zinc-500 text-sm max-w-xs mx-auto">No logramos conectar con tu perfil de atleta. Esto puede deberse a una conexión inestable.</p>
+        </div>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+            <Button onClick={() => window.location.reload()} className="bg-white text-black font-bold uppercase">
+                <RefreshCcw className="mr-2 h-4 w-4" /> Reintentar Carga
+            </Button>
+            <Button variant="ghost" onClick={() => supabase.auth.signOut()} className="text-zinc-600">
+                Cerrar Sesión
+            </Button>
+        </div>
+      </div>
+    );
+  }
 
-  // Ahora respetamos el activeRole en lugar de solo chequear si es coach
   if (profile.is_coach && activeRole === 'coach') {
     return <CoachDashboard />;
   }
 
-  // Por defecto, o si el rol activo es atleta, mostramos la vista de entrenamiento
   return <AthleteDashboardView />;
 }

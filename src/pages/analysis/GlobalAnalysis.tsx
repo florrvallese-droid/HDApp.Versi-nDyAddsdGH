@@ -8,7 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { aiService } from "@/services/ai";
 import { GlobalAnalysisResponse, NutritionConfig } from "@/types";
-import { ChevronLeft, Brain, TrendingUp, Calendar, Lock, BarChart3, Loader2 } from "lucide-react";
+import { ChevronLeft, Brain, TrendingUp, Calendar, Lock, BarChart3, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -38,10 +38,11 @@ export default function GlobalAnalysis() {
   }, [profile, profileLoading]);
 
   const checkLastRun = async () => {
+    if (!profile) return;
     const { data } = await supabase
       .from('ai_logs')
       .select('created_at')
-      .eq('user_id', profile!.user_id)
+      .eq('user_id', profile.user_id)
       .eq('action', 'globalanalysis')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -56,6 +57,8 @@ export default function GlobalAnalysis() {
       return;
     }
 
+    if (!profile) return;
+
     setLoading(true);
     try {
       const thirtyDaysAgo = new Date();
@@ -64,22 +67,22 @@ export default function GlobalAnalysis() {
       const { data: logs } = await supabase
         .from('logs')
         .select('*')
-        .eq('user_id', profile!.user_id)
+        .eq('user_id', profile.user_id)
         .gte('created_at', thirtyDaysAgo.toISOString())
         .order('created_at', { ascending: true });
 
       const summary = {
         userProfile: { 
-          discipline: profile!.discipline, 
-          tone: profile!.coach_tone, 
-          units: profile!.units,
-          dietStrategy: profile!.settings?.nutrition 
+          discipline: profile.discipline, 
+          tone: profile.coach_tone, 
+          units: profile.units,
+          dietStrategy: profile.settings?.nutrition 
         },
         logsCount: logs?.length,
         logs: logs?.map(l => ({ type: l.type, date: l.created_at, muscle: l.muscle_group, data: l.data }))
       };
 
-      const result = await aiService.getGlobalAnalysis(profile!.coach_tone, summary);
+      const result = await aiService.getGlobalAnalysis(profile.coach_tone, summary);
       setAnalysis(result);
       setActiveTab("ai");
     } catch (error) {
@@ -90,7 +93,24 @@ export default function GlobalAnalysis() {
     }
   };
 
-  if (profileLoading) return <div className="p-8"><Skeleton className="h-40 w-full" /></div>;
+  if (profileLoading || (!profile && loading)) {
+    return (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+            <Loader2 className="animate-spin text-red-600 h-8 w-8" />
+        </div>
+    );
+  }
+
+  // Si después de cargar el perfil sigue siendo null, mostramos error
+  if (!profile) {
+    return (
+        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 text-center space-y-4">
+            <AlertCircle className="text-red-600 h-10 w-10" />
+            <p className="text-white font-bold">No se encontró el perfil de usuario.</p>
+            <Button onClick={() => navigate('/dashboard')}>Volver</Button>
+        </div>
+    );
+  }
 
   if (!hasProAccess && activeTab === 'ai') {
       return (
@@ -116,9 +136,9 @@ export default function GlobalAnalysis() {
       <div className="flex items-center justify-between gap-2 border-b border-zinc-900 pb-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-zinc-500">
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-6 w-6" />
           </Button>
-          <h1 className="text-xl font-black italic uppercase tracking-tighter">Auditoría</h1>
+          <h1 className="text-xl font-black uppercase italic tracking-tighter">Auditoría</h1>
         </div>
         {!hasProAccess && <Badge variant="outline" className="border-yellow-500 text-yellow-600 gap-1 bg-yellow-950/10"><Lock className="w-3 h-3" /> PRO</Badge>}
       </div>
@@ -130,9 +150,9 @@ export default function GlobalAnalysis() {
         </TabsList>
 
         <TabsContent value="visual" className="space-y-8 animate-in fade-in slide-in-from-left-2">
-           <ProgressCharts userId={profile!.user_id} dietVariants={dietVariants} />
+           <ProgressCharts userId={profile.user_id} dietVariants={dietVariants} />
            
-           <ExerciseProgressChart userId={profile!.user_id} />
+           <ExerciseProgressChart userId={profile.user_id} />
 
            <div className="pt-4">
               <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-widest border border-red-500/20 shadow-lg shadow-red-900/20" onClick={runAudit} disabled={loading}>
