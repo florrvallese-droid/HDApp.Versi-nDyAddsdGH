@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
     // 1. Fetch Prompt (Personality)
     let systemInstruction = `Sos un analista experto en Heavy Duty.`;
-    let promptVersion = "v2.2-business-hybrid";
+    let promptVersion = "v3.0-deep-report";
 
     try {
       const { data: promptData } = await supabase
@@ -68,103 +68,94 @@ Deno.serve(async (req) => {
       console.error("[ai-coach] DB Knowledge Error:", kbErr);
     }
 
-    // REGLAS GLOBALES DE COMPORTAMIENTO (Fase 3: El Juicio)
-    const globalConstrains = `
-      ### REGLAS DE ORO DEL SISTEMA (ESTRICTAS) ###
-      1. IDIOMA: Responde EXCLUSIVAMENTE en ESPAÑOL.
-      2. ROL: Sos un ANALISTA DE DATOS y un ESTRATEGA DE NEGOCIO fitness.
-      3. PERSONALIDAD: Debes mantener el tono "${tone}". 
-      4. SI EL TONO ES "business_analytical": Tu prioridad es detectar patrones que afecten la rentabilidad (ej: falta de progreso del alumno = riesgo de abandono) y oportunidades de marca (ej: hitos para redes sociales).
-      5. OBJETIVO: Da un análisis crítico basado en la evidencia de los logs. 
+    // REGLA DE FORMATO OBLIGATORIA (ACTUALIZADA)
+    const formatRule = `
+      ### REGLA DE FORMATO DE SALIDA OBLIGATORIA ###
+      Debes responder SIEMPRE en formato JSON válido.
+      El JSON debe contener exactamente dos partes:
+      
+      1. "card_data": Datos breves y estructurados para la interfaz visual.
+      2. "detailed_report": Un texto extenso en formato Markdown. Aquí es donde te explayas como coach.
+         - Usa títulos (##) para secciones.
+         - Usa negritas (**texto**) para resaltar datos clave.
+         - Usa listas (- item) para enumerar hallazgos.
+         - Explica el POR QUÉ fisiológico o estratégico de tu análisis.
     `;
 
     const schemas = {
       preworkout: `{
-        "decision": "TRAIN_HEAVY" | "TRAIN_LIGHT" | "REST",
-        "rationale": "Análisis en ESPAÑOL del estado sistémico...",
-        "recommendations": ["Observación 1", "Observación 2"]
+        "card_data": {
+          "status": "GO" | "CAUTION" | "STOP",
+          "ui_title": "string",
+          "ui_color": "green" | "yellow" | "red"
+        },
+        "detailed_report": "## Informe de Recuperación SNC\\n\\n..."
       }`,
       postworkout: `{
-        "verdict": "PROGRESS" | "STAGNATION" | "REGRESSION",
-        "highlights": ["Hito detectado"],
-        "corrections": ["Falla técnica"],
-        "coach_quote": "Frase de cierre según tu personalidad",
-        "judgment": "Análisis profundo en Markdown sobre el rendimiento."
+        "card_data": {
+          "verdict": "PROGRESS" | "STAGNATION" | "REGRESSION",
+          "score": 1-10,
+          "ui_title": "string"
+        },
+        "detailed_report": "## Auditoría de Sesión\\n\\n..."
       }`,
       globalanalysis: `{
-        "top_patterns": [{"pattern": "Descripción", "evidence": "Dato", "action": "Observación estratégica"}],
-        "performance_insights": {"best_performing_conditions": "...", "worst_performing_conditions": "...", "optimal_frequency": "..."},
-        "red_flags": ["Alertas"],
-        "next_14_days_plan": ["Tendencias detectadas"],
-        "overall_assessment": "Análisis macroscópico del progreso mensual o del negocio."
+        "card_data": {
+          "status": "string",
+          "main_insight": "string"
+        },
+        "detailed_report": "## Documento Oficial de Auditoría\\n\\n..."
       }`,
       marketing_generation: `{
-        "top_patterns": [{"pattern": "Hito viral", "evidence": "Dato real", "action": "Hook para copy"}],
-        "overall_assessment": "Copy de Instagram completo con emojis y estructura de storytelling."
+        "card_data": {
+          "hook": "string"
+        },
+        "detailed_report": "## Copy Estratégico para Instagram\\n\\n..."
       }`
     };
 
     const finalPrompt = `
-      ${globalConstrains}
+      ${formatRule}
 
       ### PERSONALIDAD Y CONTEXTO ###
       ${systemInstruction}
 
-      ### FUENTE DE VERDAD (CONOCIMIENTO TÉCNICO) ###
+      ### CONOCIMIENTO TÉCNICO (NÚCLEO) ###
       ${knowledgeContext}
 
-      ### INSTRUCCIONES DE SALIDA ###
-      Analiza los datos y genera un informe en ESPAÑOL.
-      Responde SOLO en formato JSON:
+      ### TAREA ESPECÍFICA ###
+      Analiza los siguientes datos y genera el informe estructurado solicitado. 
+      Responde SOLO en el siguiente esquema JSON:
       ${schemas[action] || "{}"}
 
       ### DATOS DE ENTRADA ###
       ${JSON.stringify(data)}
     `;
 
-    const callGemini = async (modelName: string) => {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: finalPrompt }] }],
-          generationConfig: { 
-            response_mime_type: "application/json",
-            temperature: tone === 'business_analytical' ? 0.5 : 0.2
-          }
-        })
-      });
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: finalPrompt }] }],
+        generationConfig: { response_mime_type: "application/json", temperature: tone.includes('business') ? 0.5 : 0.2 }
+      })
+    });
 
-      if (!response.ok) throw new Error(`Model ${modelName} failed`);
-      return response.json();
-    };
+    const aiData = await res.json();
+    if (!aiData.candidates) throw new Error("IA fail: " + JSON.stringify(aiData));
 
-    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-pro'];
-    let aiResult = null;
-    let usedModel = "";
+    const generatedText = aiData.candidates[0].content.parts[0].text;
+    const parsedOutput = JSON.parse(generatedText);
 
-    for (const model of modelsToTry) {
-        try {
-            aiResult = await callGemini(model);
-            usedModel = model;
-            break; 
-        } catch (err) { console.warn(`[ai-coach] ${model} fail`); }
-    }
-
-    if (!aiResult) throw new Error("IA failure");
-    
-    const generatedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
-    const cleanedText = generatedText.replace(/```json\n?|\n?```/g, "").trim();
-    const parsedOutput = JSON.parse(cleanedText);
-
+    // Logging técnico
     supabase.from('ai_logs').insert({
       user_id: userId || null, 
       action,
       coach_tone: tone,
-      model: usedModel,
+      model: 'gemini-1.5-flash',
       input_data: data,
       output_data: parsedOutput,
-      tokens_used: aiResult.usageMetadata?.totalTokenCount || 0,
+      tokens_used: aiData.usageMetadata?.totalTokenCount || 0,
       prompt_version: promptVersion
     }).then(({ error }) => { if(error) console.error("Log error:", error) });
 

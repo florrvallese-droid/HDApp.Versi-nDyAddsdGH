@@ -1,30 +1,26 @@
 import { supabase } from "./supabase";
 
 export interface BioStopResponse {
-  status: 'GO' | 'CAUTION' | 'STOP';
-  ui_color: 'green' | 'yellow' | 'red';
-  short_message: string;
-  rationale: string;
-  modification: string | null;
-}
-
-export interface PostWorkoutJudgeResponse {
-  verdict: 'PROGRESS' | 'STAGNATION' | 'REGRESSION';
-  intensity_score: number;
-  feedback_card: {
-    title: string;
-    body: string;
-    action_item: string;
+  card_data: {
+    status: 'GO' | 'CAUTION' | 'STOP';
+    ui_title: string;
+    ui_color: 'green' | 'yellow' | 'red';
   };
-  coach_alert: boolean;
-  coach_quote?: string;
-  highlights: string[];
-  corrections: string[];
-  judgment?: string;
+  detailed_report: string;
 }
 
-// Alias para compatibilidad con páginas de resultados
-export type PostWorkoutAIResponse = PostWorkoutJudgeResponse;
+export interface PostWorkoutAIResponse {
+  card_data: {
+    verdict: 'PROGRESS' | 'STAGNATION' | 'REGRESSION';
+    score: number;
+    ui_title: string;
+  };
+  detailed_report: string;
+  // Mantenemos campos legacy por compatibilidad de tipos en componentes antiguos si hiciera falta
+  coach_quote?: string;
+  highlights?: string[];
+  corrections?: string[];
+}
 
 export const aiService = {
   // Módulo A: Bio-Stop Pre-Entreno
@@ -34,9 +30,9 @@ export const aiService = {
     cycle_day?: number;
     pain_level: number;
     pain_location: string;
-  }): Promise<BioStopResponse> {
-    const { data: response, error } = await supabase.functions.invoke('ai-pre-workout', {
-      body: data
+  }, tone: string = 'strict'): Promise<BioStopResponse> {
+    const { data: response, error } = await supabase.functions.invoke('ai-coach', {
+      body: { action: 'preworkout', tone, data }
     });
     if (error) throw error;
     return response;
@@ -44,18 +40,8 @@ export const aiService = {
 
   // Módulo B: Juez Post-Entreno
   async getPostWorkoutAnalysis(tone: string, data: any): Promise<PostWorkoutAIResponse> {
-    // Redirigimos a la función específica de post-workout siguiendo el nuevo modelo
     const { data: response, error } = await supabase.functions.invoke('ai-coach', {
       body: { action: 'postworkout', tone, data }
-    });
-    if (error) throw error;
-    return response;
-  },
-
-  // Módulo C: Auditoría de Protocolos (Solo Coach)
-  async auditPharmaProtocol(draftText: string) {
-    const { data: response, error } = await supabase.functions.invoke('ai-audit-protocol', {
-      body: { protocol_text_draft: draftText }
     });
     if (error) throw error;
     return response;
