@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save, Calendar, Star, TrendingUp, Target, Brain } from "lucide-react";
+import { User, Camera, Loader2, Save, Calendar, Star, TrendingUp, Target, Brain, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LoggingPreference, CoachTone } from "@/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -201,22 +201,14 @@ export function ProfileForm() {
             </div>
             <RadioGroup value={coachTone} onValueChange={(v) => setCoachTone(v as CoachTone)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {profile?.is_coach ? (
-                    <>
-                        <PersonalityCard 
-                          id="business_analytical" 
-                          label="Business Analytical" 
-                          desc="Socio estratega. Foco en Retención (LTV), Churn y Marketing." 
-                          current={coachTone} 
-                          icon={<TrendingUp className="h-4 w-4 text-blue-500"/>} 
-                        />
-                        <PersonalityCard 
-                          id="strict" 
-                          label="Pure Technical" 
-                          desc="Mike Mentzer Style. Crudo, directo y basado en HIT." 
-                          current={coachTone} 
-                          icon={<Target className="h-4 w-4 text-red-500"/>} 
-                        />
-                    </>
+                    <PersonalityCard 
+                      id="business_analytical" 
+                      label="High Performance Strategy" 
+                      desc="Socio Estratégico. Combina Auditoría Técnica HIT con Visión de Negocio (LTV/Churn)." 
+                      current={coachTone} 
+                      icon={<ShieldCheck className="h-4 w-4 text-red-500"/>} 
+                      className="md:col-span-2"
+                    />
                 ) : (
                     <>
                         <PersonalityCard id="strict" label="Strict" desc="Mike Mentzer Style. Sin excusas." current={coachTone} />
@@ -240,12 +232,13 @@ export function ProfileForm() {
   );
 }
 
-function PersonalityCard({ id, label, desc, current, icon }: { id: string, label: string, desc: string, current: string, icon?: React.ReactNode }) {
+function PersonalityCard({ id, label, desc, current, icon, className }: { id: string, label: string, desc: string, current: string, icon?: React.ReactNode, className?: string }) {
     const isSelected = id === current;
     return (
         <Label htmlFor={id} className={cn(
             "flex items-start space-x-3 border-2 rounded-xl p-4 cursor-pointer transition-all hover:bg-zinc-900/50",
-            isSelected ? 'border-red-600 bg-red-950/10' : 'border-zinc-800 bg-black/40'
+            isSelected ? 'border-red-600 bg-red-950/10' : 'border-zinc-800 bg-black/40',
+            className
         )}>
             <RadioGroupItem value={id} id={id} className="mt-1 border-zinc-700" />
             <div className="grid gap-1 leading-none">
