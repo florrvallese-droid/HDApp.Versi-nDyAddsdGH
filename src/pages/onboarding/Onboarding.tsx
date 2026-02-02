@@ -8,7 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/services/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { User, Scale, Brain, CheckCircle, ChevronRight, ChevronLeft, Users, Dumbbell, Calendar } from "lucide-react";
+import { User, Scale, Brain, CheckCircle, ChevronRight, ChevronLeft, Users, Dumbbell, Calendar, Building2, Loader2 } from "lucide-react";
 import { CoachTone, Discipline, Sex, UnitSystem } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ const Onboarding = () => {
   const [userId, setUserId] = useState<string | null>(null);
 
   // Form State
-  const [isCoach, setIsCoach] = useState(false);
+  const [role, setRole] = useState<'athlete' | 'coach' | 'agency'>('athlete');
   const [displayName, setDisplayName] = useState("");
   const [sex, setSex] = useState<Sex>("male");
   const [birthDate, setBirthDate] = useState("");
@@ -37,20 +37,28 @@ const Onboarding = () => {
   const [discipline, setDiscipline] = useState<Discipline>("bodybuilding"); 
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setUserId(data.user.id);
-      } else {
-        navigate("/auth");
-      }
-    });
+    const fetchUser = async () => {
+        const { data } = await supabase.auth.getUser();
+        if (data.user) {
+            setUserId(data.user.id);
+        } else {
+            navigate("/auth");
+        }
+    };
+    fetchUser();
   }, [navigate]);
 
+  const isProfessional = role === 'coach' || role === 'agency';
+
   const handleNext = () => {
-    // Skip Coach AI step if user is a coach
-    if (step === 3 && isCoach) {
-      setStep(5);
-      return;
+    // SKIP LOGIC: If professional, skip Step 3 (Physical) and Step 4 (AI Coach for self)
+    // We might want to keep Step 4 to set the *Default* tone for their students, but usually they config that later.
+    // For now, let's keep it simple: Professionals skip physical stats.
+    
+    if (step === 2 && isProfessional) {
+        // Skip physical stats -> Go to Confirmation
+        setStep(5);
+        return;
     }
     
     if (step < STEPS.length) {
@@ -61,38 +69,61 @@ const Onboarding = () => {
   };
 
   const handleBack = () => {
-    if (step === 5 && isCoach) {
-      setStep(3);
+    if (step === 5 && isProfessional) {
+      setStep(2); // Go back to Name
       return;
     }
     if (step > 1) setStep(step - 1);
   };
 
   const handleSubmit = async () => {
-    if (!userId) return;
+    if (!userId) {
+        toast.error("Error de sesión. Por favor recarga la página.");
+        return;
+    }
     setLoading(true);
 
     try {
+      // Prepare update object based on role
+      const updateData: any = {
+        display_name: displayName,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (isProfessional) {
+        updateData.is_coach = true;
+        updateData.coach_tone = 'analytical'; // Default for professionals
+        // If agency, we might want to store that in business_info later, but for now is_coach=true gives access
+        // We set dummy values for required fields if any constraint exists, or rely on defaults
+        updateData.sex = 'other'; 
+        updateData.units = 'kg';
+      } else {
+        // Athlete Data
+        updateData.sex = sex;
+        updateData.birth_date = birthDate || null;
+        updateData.units = units;
+        updateData.coach_tone = coachTone;
+        updateData.discipline = discipline;
+        updateData.is_coach = false;
+        // Save weight in settings as it's not a main column usually, or if you have a column for initial weight
+        updateData.settings = { current_weight: weight.toString() }; 
+      }
+
       const { error } = await supabase
         .from("profiles")
-        .update({
-          display_name: displayName,
-          sex,
-          birth_date: birthDate || null,
-          units,
-          coach_tone: isCoach ? 'analytical' : coachTone,
-          discipline,
-          is_coach: isCoach,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("user_id", userId);
 
       if (error) throw error;
 
       toast.success("Perfil configurado correctamente");
-      if (isCoach) navigate("/coach");
+      
+      // Force reload or explicit navigation to ensure Auth.tsx check passes now
+      if (isProfessional) navigate("/coach");
       else navigate("/dashboard");
+      
     } catch (error: any) {
+      console.error("Onboarding error:", error);
       toast.error("Error al guardar perfil: " + error.message);
     } finally {
       setLoading(false);
@@ -111,7 +142,7 @@ const Onboarding = () => {
               className={cn(
                 "flex flex-col items-center gap-1 transition-colors",
                 step >= s.id ? "text-red-500" : "text-zinc-700",
-                (s.id === 4 && isCoach) && "opacity-20"
+                (s.id === 3 || s.id === 4) && isProfessional && "opacity-20" // Visual clue that steps are skipped
               )}
             >
               <div className={cn("h-2 w-2 rounded-full", step >= s.id ? "bg-red-600" : "bg-zinc-800")} />
@@ -142,18 +173,27 @@ const Onboarding = () => {
                <Label className="text-zinc-400 font-bold uppercase tracking-wider text-xs block text-center mb-4">¿Cuál es tu función principal?</Label>
                <div className="grid grid-cols-1 gap-3">
                   <button 
-                    onClick={() => setIsCoach(false)}
-                    className={cn("flex items-center gap-4 p-5 rounded-xl border-2 transition-all text-left group", !isCoach ? "bg-red-950/20 border-red-600" : "bg-zinc-900 border-zinc-800")}
+                    onClick={() => setRole('athlete')}
+                    className={cn("flex items-center gap-4 p-5 rounded-xl border-2 transition-all text-left group", role === 'athlete' ? "bg-red-950/20 border-red-600" : "bg-zinc-900 border-zinc-800")}
                   >
-                    <div className={cn("p-3 rounded-lg", !isCoach ? "bg-red-600 text-white" : "bg-zinc-800 text-zinc-500")}><Dumbbell className="w-6 h-6" /></div>
-                    <div><h4 className={cn("font-black uppercase italic", !isCoach ? "text-white" : "text-zinc-400")}>Soy Atleta</h4><p className="text-xs text-zinc-500">Quiero registrar mis entrenos y usar el Coach IA.</p></div>
+                    <div className={cn("p-3 rounded-lg", role === 'athlete' ? "bg-red-600 text-white" : "bg-zinc-800 text-zinc-500")}><Dumbbell className="w-6 h-6" /></div>
+                    <div><h4 className={cn("font-black uppercase italic", role === 'athlete' ? "text-white" : "text-zinc-400")}>Soy Atleta</h4><p className="text-xs text-zinc-500">Quiero registrar mis entrenos y usar el Coach IA.</p></div>
                   </button>
+                  
                   <button 
-                    onClick={() => setIsCoach(true)}
-                    className={cn("flex items-center gap-4 p-5 rounded-xl border-2 transition-all text-left group", isCoach ? "bg-red-950/20 border-red-600" : "bg-zinc-900 border-zinc-800")}
+                    onClick={() => setRole('coach')}
+                    className={cn("flex items-center gap-4 p-5 rounded-xl border-2 transition-all text-left group", role === 'coach' ? "bg-red-950/20 border-red-600" : "bg-zinc-900 border-zinc-800")}
                   >
-                    <div className={cn("p-3 rounded-lg", isCoach ? "bg-red-600 text-white" : "bg-zinc-800 text-zinc-500")}><Users className="w-6 h-6" /></div>
-                    <div><h4 className={cn("font-black uppercase italic", isCoach ? "text-white" : "text-zinc-400")}>Soy Coach / Preparador</h4><p className="text-xs text-zinc-500">Quiero gestionar y supervisar a mis alumnos.</p></div>
+                    <div className={cn("p-3 rounded-lg", role === 'coach' ? "bg-red-600 text-white" : "bg-zinc-800 text-zinc-500")}><Users className="w-6 h-6" /></div>
+                    <div><h4 className={cn("font-black uppercase italic", role === 'coach' ? "text-white" : "text-zinc-400")}>Soy Coach Independiente</h4><p className="text-xs text-zinc-500">Gestiono mis alumnos y su facturación.</p></div>
+                  </button>
+
+                  <button 
+                    onClick={() => setRole('agency')}
+                    className={cn("flex items-center gap-4 p-5 rounded-xl border-2 transition-all text-left group", role === 'agency' ? "bg-red-950/20 border-red-600" : "bg-zinc-900 border-zinc-800")}
+                  >
+                    <div className={cn("p-3 rounded-lg", role === 'agency' ? "bg-red-600 text-white" : "bg-zinc-800 text-zinc-500")}><Building2 className="w-6 h-6" /></div>
+                    <div><h4 className={cn("font-black uppercase italic", role === 'agency' ? "text-white" : "text-zinc-400")}>Soy Agencia / Team</h4><p className="text-xs text-zinc-500">Coordino un equipo de coaches y atletas.</p></div>
                   </button>
                </div>
             </div>
@@ -162,21 +202,26 @@ const Onboarding = () => {
           {step === 2 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-zinc-500 uppercase font-bold text-[10px]">¿Cómo te llamamos?</Label>
-                <Input id="name" placeholder="Tu nombre o apodo profesional" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-black border-zinc-800 h-12 text-lg font-bold" />
+                <Label htmlFor="name" className="text-zinc-500 uppercase font-bold text-[10px]">
+                    {role === 'agency' ? "Nombre de la Agencia / Team" : "¿Cómo te llamamos?"}
+                </Label>
+                <Input id="name" placeholder={role === 'agency' ? "Ej: Iron Team Performance" : "Tu nombre"} value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-black border-zinc-800 h-12 text-lg font-bold" />
               </div>
-              <div className="space-y-2">
-                <Label className="text-zinc-500 uppercase font-bold text-[10px]">Disciplina Principal</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(["bodybuilding", "powerlifting", "crossfit", "general"] as const).map((d) => (
-                    <Button key={d} type="button" variant={discipline === d ? "default" : "outline"} onClick={() => setDiscipline(d)} className={cn("capitalize font-bold border-zinc-800", discipline === d ? "bg-red-600" : "bg-zinc-900 text-zinc-400")}>{d}</Button>
-                  ))}
-                </div>
-              </div>
+              
+              {!isProfessional && (
+                  <div className="space-y-2">
+                    <Label className="text-zinc-500 uppercase font-bold text-[10px]">Disciplina Principal</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["bodybuilding", "powerlifting", "crossfit", "general"] as const).map((d) => (
+                        <Button key={d} type="button" variant={discipline === d ? "default" : "outline"} onClick={() => setDiscipline(d)} className={cn("capitalize font-bold border-zinc-800", discipline === d ? "bg-red-600" : "bg-zinc-900 text-zinc-400")}>{d}</Button>
+                      ))}
+                    </div>
+                  </div>
+              )}
             </div>
           )}
 
-          {step === 3 && (
+          {step === 3 && !isProfessional && (
             <div className="space-y-6">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -217,7 +262,7 @@ const Onboarding = () => {
             </div>
           )}
 
-          {step === 4 && (
+          {step === 4 && !isProfessional && (
             <div className="space-y-4">
               <Label className="text-zinc-400 font-bold uppercase tracking-wider text-xs block text-center mb-2">Elige la personalidad de tu IA</Label>
               <RadioGroup value={coachTone} onValueChange={(v) => setCoachTone(v as CoachTone)} className="space-y-3">
@@ -250,12 +295,24 @@ const Onboarding = () => {
             <div className="space-y-6 text-center">
               <div className="space-y-2">
                 <h3 className="text-xl font-black italic uppercase text-white">¡Todo listo, {displayName}!</h3>
-                <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Estás configurado como {isCoach ? "COACH" : "ATLETA"}.</p>
+                <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
+                    Estás configurado como {role === 'agency' ? 'AGENCIA' : role === 'coach' ? 'COACH' : 'ATLETA'}.
+                </p>
               </div>
               <div className="bg-zinc-900 p-6 rounded-2xl text-left space-y-4 border border-zinc-800 text-xs">
-                <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 font-bold uppercase">Perfil:</span><span className="font-black uppercase italic text-red-500">{isCoach ? 'Coach' : 'Atleta'}</span></div>
-                {birthDate && <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 font-bold uppercase">Nacimiento:</span><span className="font-black text-white">{birthDate}</span></div>}
-                <div className="flex justify-between"><span className="text-zinc-500 font-bold uppercase">Peso:</span><span className="font-black text-white">{weight} {units}</span></div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2">
+                    <span className="text-zinc-500 font-bold uppercase">Perfil:</span>
+                    <span className="font-black uppercase italic text-red-500">{role === 'agency' ? 'Agencia' : role === 'coach' ? 'Coach' : 'Atleta'}</span>
+                </div>
+                {!isProfessional && birthDate && (
+                    <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 font-bold uppercase">Nacimiento:</span><span className="font-black text-white">{birthDate}</span></div>
+                )}
+                {!isProfessional && (
+                    <div className="flex justify-between"><span className="text-zinc-500 font-bold uppercase">Peso:</span><span className="font-black text-white">{weight} {units}</span></div>
+                )}
+                {isProfessional && (
+                    <div className="flex justify-between"><span className="text-zinc-500 font-bold uppercase">Panel:</span><span className="font-black text-white">Business Hub Habilitado</span></div>
+                )}
               </div>
             </div>
           )}
@@ -263,7 +320,10 @@ const Onboarding = () => {
         </CardContent>
         <CardFooter className="flex justify-between gap-3 pt-4 border-t border-zinc-900">
           <Button variant="ghost" onClick={handleBack} disabled={step === 1 || loading} className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest"><ChevronLeft className="mr-2 h-4 w-4" /> Volver</Button>
-          <Button onClick={handleNext} disabled={loading || (step === 2 && !displayName)} className="bg-red-600 hover:bg-red-700 text-white font-black uppercase italic h-12 px-8">{loading ? "..." : step === 5 ? "Entrar" : "Continuar"} {!loading && step !== 5 && <ChevronRight className="ml-2 h-4 w-4" />}</Button>
+          <Button onClick={handleNext} disabled={loading || (step === 2 && !displayName)} className="bg-red-600 hover:bg-red-700 text-white font-black uppercase italic h-12 px-8">
+            {loading ? <Loader2 className="animate-spin h-5 w-5"/> : step === 5 ? "Entrar" : "Continuar"} 
+            {!loading && step !== 5 && <ChevronRight className="ml-2 h-4 w-4" />}
+          </Button>
         </CardFooter>
       </Card>
     </div>

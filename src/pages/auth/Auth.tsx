@@ -26,11 +26,14 @@ const Auth = () => {
   const initialTab = searchParams.get("tab") || "login";
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    // Verificar sesión existente al cargar
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
         checkProfileAndRedirect(session.user.id);
       }
-    });
+    };
+    checkSession();
   }, []);
 
   const checkProfileAndRedirect = async (userId: string) => {
@@ -41,26 +44,35 @@ const Auth = () => {
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (profileError || !profile) {
+      if (profileError) {
+        console.error("Profile check error:", profileError);
+        // Si hay error de conexión, intentamos dejar pasar al dashboard para que maneje el error ahí
+        navigate('/dashboard');
+        return;
+      }
+
+      // 1. Si no existe perfil, al onboarding directo
+      if (!profile) {
         navigate('/onboarding');
         return;
       }
 
-      // Si es Coach o Admin, salteamos el onboarding de atleta para no trabar el acceso
-      // El usuario podrá completar sus datos de atleta después desde Ajustes si lo desea
+      // 2. Si es Coach o Admin, PASE VIP (Evita el bucle de "perfil incompleto")
       if (profile.is_coach || profile.is_admin) {
         navigate('/dashboard');
         return;
       }
 
-      // Solo los atletas puros con perfil vacío van al onboarding
-      if (!profile.display_name || profile.sex === 'other') {
+      // 3. Si es Atleta, verificamos campos mínimos
+      if (!profile.display_name || profile.sex === 'other' || !profile.sex) {
+        // Solo si falta nombre o sexo, enviamos a completar perfil
         navigate('/onboarding');
       } else {
         navigate('/dashboard');
       }
     } catch (err) {
-      navigate('/onboarding');
+      console.error("Auth redirect logic failed:", err);
+      navigate('/dashboard'); // Fallback seguro
     }
   };
 

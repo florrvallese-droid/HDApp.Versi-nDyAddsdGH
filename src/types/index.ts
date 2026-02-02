@@ -41,6 +41,7 @@ export interface UserProfile {
       description: string;
       link?: string;
     }>;
+    team_invites?: string[];
   };
   
   // Premium
