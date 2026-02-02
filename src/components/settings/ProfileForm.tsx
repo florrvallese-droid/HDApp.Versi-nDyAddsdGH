@@ -5,14 +5,16 @@ import { Label } from "@/components/ui/label";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save, Calendar, Star, TrendingUp, Target, Brain, ShieldCheck } from "lucide-react";
+import { User, Camera, Loader2, Save, Calendar, Star, TrendingUp, Target, Brain, ShieldCheck, ShieldAlert, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LoggingPreference, CoachTone } from "@/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useNavigate } from "react-router-dom";
 
 export function ProfileForm() {
   const { profile, loading: profileLoading } = useProfile();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Form State
   const [displayName, setDisplayName] = useState("");
@@ -157,6 +159,18 @@ export function ProfileForm() {
           <div className={cn("text-white text-[10px] font-black uppercase py-2 px-6 rounded-full tracking-[0.2em] border shadow-lg", profile?.is_coach ? "bg-blue-600 border-blue-400" : "bg-red-600 border-red-400")}>
             {profile?.is_coach ? "PREPARADOR OFICIAL" : "MIEMBRO HEAVY DUTY"}
           </div>
+
+          {/* ADMIN ACCESS BUTTON */}
+          {profile?.is_admin && (
+            <Button 
+                variant="outline"
+                className="mt-4 w-full border-red-600/30 bg-red-600/5 text-red-500 font-black uppercase text-[10px] tracking-widest h-12 hover:bg-red-600 hover:text-white"
+                onClick={() => navigate('/admin')}
+            >
+                <ShieldAlert className="w-4 h-4 mr-2" /> Panel de Control
+                <ChevronRight className="ml-auto w-3 h-3" />
+            </Button>
+          )}
         </div>
 
         <div className="space-y-10 w-full">
