@@ -10,7 +10,7 @@ import {
 import { 
     Brain, Briefcase, Zap, 
     ArrowRight, MessageSquare, TrendingUp, Sparkles, 
-    Star, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, Lock, MessageCircle, DollarSign, Calculator
+    Star, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, Lock, MessageCircle, DollarSign, Calculator, XCircle
 } from "lucide-react";
 import { CoachApplicationForm } from "@/components/landing/CoachApplicationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
@@ -190,7 +190,7 @@ export default function CoachLanding() {
       <footer className="p-12 text-center border-t border-zinc-900 bg-black">
         <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-20 mx-auto mb-8" alt="Logo" />
         <p className="text-zinc-800 text-[10px] font-mono tracking-[0.4em] uppercase">
-          HEAVY DUTY SYSTEM — ENTERPRISE EDITION v1.1
+          &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — Enterprise Edition v1.1
         </p>
       </footer>
     </div>
@@ -205,7 +205,7 @@ const PricingFeature = ({ text, active = true, highlight = false, color = "text-
 );
 
 const FAQItem = ({ value, question, answer }: any) => (
-    <AccordionItem value={value} className="border-zinc-800 bg-zinc-900/40 rounded-3xl px-10 border transition-all hover:border-zinc-600">
+    <AccordionItem value={value} className="border-zinc-800 bg-zinc-900/40 rounded-3xl px-10 border transition-all hover:border-zinc-700">
         <AccordionTrigger className="text-left font-black uppercase tracking-widest text-zinc-100 hover:text-white hover:no-underline py-8 text-sm">
             {question}
         </AccordionTrigger>
@@ -214,14 +214,3 @@ const FAQItem = ({ value, question, answer }: any) => (
         </AccordionContent>
     </AccordionItem>
 );
-
-const VsItem = ({ icon, text }: any) => (
-    <li className="flex items-center gap-4">
-        <div className="shrink-0">{icon}</div>
-        <span className="text-zinc-300 font-bold uppercase text-xs tracking-wide">{text}</span>
-    </li>
-);
-
-function XCircle({ className }: { className?: string }) {
-    return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>;
-}
