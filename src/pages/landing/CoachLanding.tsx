@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { 
     Accordion,
     AccordionContent,
@@ -10,10 +10,11 @@ import {
 import { 
     Brain, Briefcase, Zap, 
     ArrowRight, MessageSquare, TrendingUp, Sparkles, 
-    Star, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, Lock, MessageCircle
+    Star, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, Lock, MessageCircle, DollarSign, Calculator
 } from "lucide-react";
 import { CoachApplicationForm } from "@/components/landing/CoachApplicationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 export default function CoachLanding() {
   const navigate = useNavigate();
@@ -23,16 +24,16 @@ export default function CoachLanding() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-yellow-500/30 relative">
+    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-yellow-500/30 relative overflow-x-hidden">
       
-      {/* 1. HERO SECTION */}
-      <section className="relative h-[90vh] flex flex-col items-center justify-center overflow-hidden px-6">
+      {/* 1. HERO SECTION - BUSINESS FOCUS */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6">
         <div className="absolute inset-0 z-0">
-           <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black z-10" />
+           <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/40 to-black z-10" />
            <img 
              src="/coach-hero.jpg" 
-             className="w-full h-full object-cover grayscale contrast-125 opacity-50 scale-105 transition-transform duration-[10s] hover:scale-110"
-             alt="Coach Command Center"
+             className="w-full h-full object-cover grayscale contrast-150 opacity-40 scale-105 transition-transform duration-[10s] hover:scale-110"
+             alt="Coach Premium Management"
            />
         </div>
 
@@ -49,30 +50,27 @@ export default function CoachLanding() {
             </div>
         </nav>
 
-        <div className="relative z-20 max-w-5xl text-center space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/5 text-yellow-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2">
-              <Star className="w-3 h-3 fill-current" /> Coach Command Center
+        <div className="relative z-20 max-w-5xl text-center space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 text-yellow-500 text-[10px] font-black uppercase tracking-[0.4em] mb-4 shadow-[0_0_20px_rgba(245,158,11,0.1)]">
+              <Star className="w-3.5 h-3.5 fill-current" /> SOFTWARE DE GESTIÓN EMPRESARIAL HIGH-TICKET
            </div>
 
            <div className="space-y-6">
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase italic leading-[0.85] text-white">
-                DEJÁ DE SER UN<br/>
-                <span className="text-zinc-600">SECRETARIO DE EXCEL</span>
+              <h1 className="text-5xl md:text-8xl lg:text-9xl font-black tracking-tighter uppercase italic leading-[0.85] text-white">
+                SI COBRÁS COMO UN <span className="text-yellow-600">PRO</span>,<br/>
+                <span className="text-zinc-700">GESTIONÁ COMO UN PRO.</span>
               </h1>
-              <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white uppercase">
-                EMPEZÁ A SER EL <span className="text-red-500">CEO</span> DE TU NEGOCIO.
-              </h2>
            </div>
 
-           <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto font-medium">
-             La primera plataforma de Gestión High-Performance con Inteligencia Artificial. Auditá entrenamientos, detectá fugas de clientes y generá tu marketing.
+           <p className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto font-bold uppercase italic leading-tight">
+             Tus alumnos pagan $150.000 por un servicio Premium. No podés seguir mandando un Excel. Dales App propia, Inteligencia Artificial y justificá tu tarifa.
            </p>
 
-           <div className="pt-6">
+           <div className="pt-8">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="h-20 px-10 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-black font-black uppercase italic text-xl shadow-[0_0_50px_rgba(245,158,11,0.2)] border-2 border-yellow-400/20 rounded-xl">
-                     SOLICITÁ ACCESO FUNDADOR
+                  <Button className="h-24 px-12 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-black font-black uppercase italic text-2xl shadow-[0_0_60px_rgba(245,158,11,0.3)] border-2 border-yellow-400/20 rounded-2xl transition-all">
+                     APLICAR AL FOUNDERS CLUB
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-md">
@@ -83,265 +81,147 @@ export default function CoachLanding() {
                    <CoachApplicationForm />
                 </DialogContent>
               </Dialog>
-              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest mt-4">Cupo limitado a los primeros 50 Coaches</p>
+              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest mt-6">Posicionate en la cima del mercado de asesorías</p>
            </div>
         </div>
       </section>
 
-      {/* 2. EL PROBLEMA */}
-      <section className="bg-zinc-100 py-24 md:py-32 px-6">
-        <div className="max-w-5xl mx-auto space-y-16">
-          <div className="text-center space-y-2">
-            <h2 className="text-4xl md:text-6xl font-black text-black uppercase italic tracking-tighter leading-none">¿TE SUENA ESTA HISTORIA?</h2>
-            <div className="h-1.5 w-24 bg-red-600 mx-auto" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <PainPoint 
-              title="La Planilla Infinita"
-              desc="Llega el domingo a la noche y tenés que actualizar 30 excels diferentes. Copiar, pegar, revisar fórmulas rotas. Te sentís un administrativo, no un entrenador."
-              icon={<TrendingUp className="h-10 w-10 text-red-600" />}
-            />
-            <PainPoint 
-              title="El Caos de WhatsApp"
-              desc="Tu celular explota. Consultas de técnica, audios de 2 minutos, fotos de comprobantes... Tu vida personal desapareció entre audios."
-              icon={<MessageSquare className="h-10 w-10 text-red-600" />}
-            />
-            <PainPoint 
-              title="La Fuga Silenciosa"
-              desc="Alumnos que dejan de pagar y ni te enterás por qué. Te das cuenta tarde, cuando ya se fueron con otro que les presta más atención."
-              icon={<Briefcase className="h-10 w-10 text-red-600" />}
-            />
-          </div>
+      {/* 2. BUSINESS CASE - ROI CALCULATOR BLOCK */}
+      <section className="py-24 md:py-32 px-6 bg-zinc-950 border-y border-zinc-900">
+        <div className="max-w-4xl mx-auto bg-black border-2 border-yellow-600/30 rounded-[3rem] p-10 md:p-16 text-center space-y-10 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5"><Calculator className="w-40 h-40 text-yellow-500" /></div>
+            <h2 className="text-4xl font-black uppercase italic tracking-tighter text-white">LA MATEMÁTICA ES SIMPLE</h2>
+            <div className="space-y-6 max-w-2xl mx-auto">
+                <p className="text-lg md:text-xl text-zinc-400 font-bold leading-relaxed uppercase">
+                    Si nuestra IA recupera a <span className="text-white">UN SOLO ALUMNO</span> que se iba a dar de baja, o el Generador de Marketing te consigue <span className="text-white">UN CLIENTE NUEVO</span>...
+                </p>
+                <div className="py-6 bg-yellow-600/10 rounded-2xl border border-yellow-600/20">
+                    <p className="text-3xl md:text-4xl font-black uppercase italic text-yellow-500 tracking-tighter">
+                        LA SUSCRIPCIÓN ANUAL YA SE PAGÓ SOLA.
+                    </p>
+                </div>
+                <p className="text-zinc-500 font-bold uppercase text-sm italic">
+                    El resto de tus alumnos son ganancia limpia.
+                </p>
+            </div>
         </div>
       </section>
 
-      {/* 3. LA SOLUCIÓN (REESTRUCTURADA SIN IMAGEN) */}
-      <section className="py-24 md:py-32 px-6 relative overflow-hidden text-center">
-         <div className="max-w-4xl mx-auto space-y-12">
-            <div className="space-y-4">
-               <h3 className="text-red-500 font-black uppercase tracking-widest text-sm">TU CENTRO DE COMANDO</h3>
-               <h2 className="text-5xl md:text-8xl font-black uppercase italic leading-[0.9] tracking-tighter">NO ES OTRA "APP DE RUTINAS".</h2>
-               <p className="text-2xl md:text-4xl text-zinc-500 font-bold uppercase italic">ES TU SOCIO DE NEGOCIOS INTELIGENTE.</p>
+      {/* 3. PRICING TABLE - INVESTMENT LOGIC */}
+      <section className="py-24 md:py-32 px-6 bg-black">
+        <div className="max-w-5xl mx-auto space-y-16">
+            <div className="text-center space-y-2">
+                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter">PLANES DE INVERSIÓN EMPRESARIAL</h2>
+                <p className="text-zinc-500 font-bold uppercase text-xs tracking-[0.3em]">ESCALÁ TU MARCA PERSONAL</p>
             </div>
             
-            <div className="space-y-10 max-w-2xl mx-auto">
-               <p className="text-zinc-400 text-lg md:text-xl leading-relaxed">Imaginate empezá el día y que la IA ya haya trabajado por vos:</p>
-               <ul className="space-y-6 text-left inline-block">
-                  <CheckItem text="Ya revisó las 200 series que hicieron tus alumnos ayer." />
-                  <CheckItem text="Ya detectó quién rompió un récord y quién se lesionó." />
-                  <CheckItem text="Ya te armó la lista de a quién cobrarle hoy." />
-               </ul>
-               <div className="pt-8">
-                  <p className="text-white font-black uppercase tracking-[0.2em] italic border-y border-zinc-900 py-6">
-                    VOS SOLO TOMÁS DECISIONES. LA APP HACE EL TRABAJO SUCIO.
-                  </p>
-               </div>
-            </div>
-         </div>
-      </section>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+                {/* STARTER */}
+                <Card className="bg-zinc-950 border border-zinc-900 flex flex-col overflow-hidden opacity-80">
+                    <CardHeader className="text-center pb-8 border-b border-zinc-900 bg-zinc-900/20">
+                        <CardTitle className="text-sm font-black uppercase tracking-[0.3em] text-zinc-500">COACH STARTER</CardTitle>
+                        <div className="pt-4 flex flex-col gap-1">
+                            <span className="text-5xl font-black text-white">$95.000</span>
+                            <span className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-2">Costo de {"<"} 1 Alumno</span>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="flex-1 space-y-6 py-10 px-10">
+                        <PricingFeature text="Hasta 15 Alumnos" active />
+                        <PricingFeature text="IA Auditoría Estándar" active />
+                        <PricingFeature text="Bitácora Atleta Incluida" active />
+                        <PricingFeature text="Generador de Marketing" active={false} />
+                        <PricingFeature text="Radar de Churn" active={false} />
+                    </CardContent>
+                    <CardFooter className="p-10 pt-0">
+                        <Button variant="outline" className="w-full h-16 border-zinc-800 text-zinc-500 hover:text-white font-black uppercase tracking-widest text-xs" onClick={() => navigate('/auth')}>ELEGIR STARTER</Button>
+                    </CardFooter>
+                </Card>
 
-      {/* 4. FEATURES */}
-      <section className="bg-zinc-900/30 py-24 md:py-32 px-6 border-y border-zinc-900">
-        <div className="max-w-6xl mx-auto space-y-16">
-            <div className="text-center">
-                <h2 className="text-4xl font-black uppercase italic tracking-tighter">LOS SUPERPODERES DEL COACH</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <FeatureCard 
-                    icon={<Brain className="text-red-500" />}
-                    title="El Juez de IA"
-                    desc="Auditoría técnica de cada sesión. Si el alumno no entrena intenso, la IA se lo dice. Vos solo intervenís en los casos graves."
-                />
-                <FeatureCard 
-                    icon={<Zap className="text-yellow-500" />}
-                    title="Radar de Retención"
-                    desc="Detectá patrones de abandono antes de que sucedan. Salvá al cliente antes de que deje de pagar."
-                />
-                <FeatureCard 
-                    icon={<Sparkles className="text-blue-500" />}
-                    title="Marketing Viral"
-                    desc="Generá automáticamente posteos basados en los récords reales de tus alumnos. Convertí resultados en ventas."
-                />
-                <FeatureCard 
-                    icon={<Lock className="text-green-500" />}
-                    title="Bóveda de Protocolos"
-                    desc="Guardá tus esquemas maestros. La IA auditá los borradores para evitar errores de seguridad o dosis ilógicas."
-                />
+                {/* ELITE */}
+                <Card className="bg-black border-2 border-yellow-600 flex flex-col overflow-hidden relative shadow-[0_0_80px_rgba(202,138,4,0.2)]">
+                    <div className="absolute top-0 right-0 bg-yellow-600 text-black text-[9px] font-black uppercase px-6 py-2 rounded-bl-xl tracking-[0.2em] z-10 shadow-xl">RECOMENDADO</div>
+                    <CardHeader className="text-center pb-8 border-b border-yellow-900/20 bg-yellow-600/5">
+                        <CardTitle className="text-sm font-black uppercase tracking-[0.3em] text-yellow-600">COACH ELITE</CardTitle>
+                        <div className="pt-4 flex flex-col gap-1">
+                            <span className="text-5xl font-black text-white">$180.000</span>
+                            <span className="text-yellow-600/60 text-[10px] font-black uppercase tracking-widest mt-2">Costo de ~1 Alumno High-Ticket</span>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="flex-1 space-y-6 py-10 px-10">
+                        <PricingFeature text="Hasta 60 Alumnos" active highlight color="text-yellow-500" />
+                        <PricingFeature text="IA Auditoría Prioridad Alta" active highlight color="text-yellow-500" />
+                        <PricingFeature text="Generador de Marketing Viral" active highlight color="text-yellow-500" />
+                        <PricingFeature text="Radar de Churn (Anti-Fuga)" active highlight color="text-yellow-500" />
+                        <PricingFeature text="Migración Asistida (VIP)" active highlight color="text-yellow-500" />
+                    </CardContent>
+                    <CardFooter className="p-10 pt-0">
+                        <Button className="w-full h-16 bg-yellow-600 hover:bg-yellow-700 text-black font-black uppercase italic tracking-widest text-sm shadow-2xl" onClick={() => navigate('/auth')}>ELEGIR ELITE</Button>
+                    </CardFooter>
+                </Card>
             </div>
         </div>
       </section>
 
-      {/* 5. FAQ (OBJETION HANDLING) */}
-      <section className="py-24 md:py-32 px-6 bg-black border-b border-zinc-900">
+      {/* 4. FAQ - COACH BUSINESS QUESTIONS */}
+      <section className="py-24 md:py-32 px-6 bg-zinc-950 border-t border-zinc-900">
         <div className="max-w-3xl mx-auto space-y-12">
             <div className="flex items-center gap-4">
-                <div className="p-2 bg-yellow-500/10 rounded-lg">
-                    <HelpCircle className="w-6 h-6 text-yellow-500" />
+                <div className="p-2 bg-yellow-600/10 rounded-lg">
+                    <DollarSign className="w-8 h-8 text-yellow-600" />
                 </div>
-                <h2 className="text-3xl font-black uppercase italic tracking-tighter">PREGUNTAS FRECUENTES (SIN VUELTAS)</h2>
+                <h2 className="text-3xl font-black uppercase italic tracking-tighter">FINANZAS & NEGOCIO</h2>
             </div>
 
             <Accordion type="single" collapsible className="w-full space-y-4">
                 <FAQItem 
-                    value="item-1"
-                    question="¿La IA va a reemplazar mi trabajo o 'robarme' alumnos?"
-                    answer="Absolutamente no. La IA es tu Secretario, no el Jefe. El sistema se encarga de lo operativo: contar repeticiones, detectar estancamientos y avisarte si alguien no pagó. La Estrategia y la Relación Humana siguen siendo 100% tuyas. La app hace que tu servicio se vea más Premium, lo que fideliza al alumno con tu marca, no con la app."
+                    value="item-price"
+                    question="¿Es caro?"
+                    answer="Representa un costo operativo aproximado del 4%. Si facturás 2 Millones de pesos (20 alumnos x $100k), pagar $95k por la herramienta que sostiene todo el negocio, audita a tus alumnos por vos y te consigue nuevos clientes con marketing IA, es la inversión más barata que vas a hacer en el año."
                 />
                 <FAQItem 
-                    value="item-2"
-                    question="Tengo 30 alumnos en Excel y WhatsApp. ¿Es muy difícil pasarlos?"
-                    answer="Sabemos que migrar da pereza, por eso lo resolvemos nosotros. Si entrás al 'Founders Club' (cupo limitado), tenés incluido el servicio de Migración Asistida. Nos pasás tus planillas y nosotros te entregamos la cuenta con todos tus alumnos cargados y listos para empezar. Vos no perdés tiempo cargando datos."
-                />
-                <FAQItem 
-                    value="item-3"
-                    question="No uso 'Heavy Duty' estricto con todos. ¿Me sirve igual?"
-                    answer="Sí. Aunque la app prioriza la Alta Intensidad, la base es la Sobrecarga Progresiva, que aplica a cualquier sistema (PPL, Upper/Lower, Frecuencia 2). Lo que la IA va a auditar es que el alumno mejore (suba peso, reps o mejore técnica). Si tus alumnos progresan, la app te va a servir para demostrarlo con datos."
-                />
-                <FAQItem 
-                    value="item-4"
-                    question="¿La IA habla con mis alumnos? ¿Qué tono usa?"
-                    answer="La IA no chatea libremente (no es un ChatGPT suelto). Emite dictámenes técnicos post-entreno. Y lo mejor: Vos elegís la personalidad. Desde tu panel, configurás si querés que la IA sea un 'Sargento Estricto', un 'Motivador Eufórico' o un 'Analista Frío'. El alumno siente que sos vos quien le está hablando."
-                />
-                <FAQItem 
-                    value="item-5"
-                    question="¿Cómo se manejan los pagos? ¿Dólares o Pesos?"
-                    answer="Estamos en Argentina y entendemos el contexto. La suscripción del Coach se cobra en Pesos Argentinos vía Mercado Pago (Débito Automático). El precio se ajusta trimestralmente por índice oficial para que no pierdas previsibilidad. Nada de gastos sorpresa en dólares en la tarjeta."
-                />
-                <FAQItem 
-                    value="item-6"
-                    question="¿Puedo cargar mis propios planes de Farmacología y Nutrición?"
-                    answer="Sí. Tenés una Bóveda Privada. Podés cargar tus protocolos y asignarlos. Nuestra IA actúa como un 'Auditor de Seguridad': antes de enviar un plan, el sistema revisa (si se lo pedís) que no haya errores de tipeo o inconsistencias graves. Es un seguro de calidad para tu trabajo."
-                />
-                <FAQItem 
-                    value="item-7"
-                    question="¿Qué pasa si un alumno deja de pagar?"
-                    answer="El sistema tiene un Radar de Retención. Si detectamos que un alumno dejó de cargar datos o se le venció el plan, te aparece una 'Alerta Roja' en tu Dashboard de inmediato. La idea es que te enteres antes de que el alumno se enfríe y se vaya, para que puedas reactivarlo a tiempo."
+                    value="item-migration"
+                    question="¿Qué es la Migración Asistida VIP?"
+                    answer="Si elegís el Plan Elite, no tenés que cargar un solo dato. Nos pasás tus Excels o notas actuales y nuestro equipo técnico migra todo tu historial de alumnos a la app en menos de 48hs. Empezás a usar el sistema llave en mano."
                 />
             </Accordion>
-
-            <div className="mt-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest mb-4 italic">¿Tenés una duda más específica sobre tu negocio?</p>
-                <Button 
-                    onClick={openWhatsApp}
-                    className="bg-green-600 hover:bg-green-700 text-white font-black uppercase italic tracking-widest h-14 px-8 rounded-xl shadow-lg shadow-green-900/20 group"
-                >
-                    <MessageCircle className="mr-2 h-5 w-5 fill-current" /> HABLEMOS POR WHATSAPP
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Button>
-            </div>
         </div>
       </section>
 
-      {/* 6. LA OFERTA */}
-      <section className="py-24 md:py-32 px-6">
-        <Card className="max-w-4xl mx-auto bg-gradient-to-br from-zinc-900 to-black border-2 border-yellow-500/20 overflow-hidden rounded-[3rem] shadow-[0_0_100px_rgba(245,158,11,0.1)]">
-            <CardContent className="p-8 md:p-16 flex flex-col md:flex-row items-center gap-12">
-                <div className="flex-1 space-y-8 text-center md:text-left">
-                    <div className="space-y-2">
-                        <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-yellow-500">OPERACIÓN: 50 FUNDADORES</h2>
-                        <p className="text-zinc-400 font-bold">Buscamos a los 50 entrenadores más serios para moldear el futuro de esta herramienta.</p>
-                    </div>
-
-                    <div className="grid gap-4">
-                        <Benefit text="Precio Congelado de por Vida" sub="Blindate contra la inflación de la app." />
-                        <Benefit text="Migración Asistida" sub="Nos das tus Excels, nosotros cargamos a tus alumnos." />
-                        <Benefit text="Insignia 'Coach Verificado'" sub="Distintivo exclusivo de autoridad." />
-                    </div>
-
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button className="w-full md:w-fit h-16 px-12 bg-white text-black font-black uppercase italic tracking-widest text-lg hover:bg-zinc-200">
-                                QUIERO APLICAR AHORA
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-md">
-                            <DialogHeader>
-                                <DialogTitle className="text-2xl font-black uppercase italic text-yellow-500">Formulario de Aplicación</DialogTitle>
-                                <DialogDescription className="text-zinc-500 uppercase text-[10px] font-bold tracking-widest mt-1">Founders Club: Solo 50 Vacantes</DialogDescription>
-                            </DialogHeader>
-                            <CoachApplicationForm />
-                        </DialogContent>
-                    </Dialog>
-                </div>
-
-                <div className="flex flex-col items-center gap-4">
-                    <div className="text-7xl font-black italic text-zinc-800">50</div>
-                    <div className="text-zinc-600 font-bold uppercase tracking-widest text-[10px]">Vacantes Beta</div>
-                </div>
-            </CardContent>
-        </Card>
-      </section>
-
-      {/* 7. FOOTER */}
-      <footer className="p-12 text-center border-t border-zinc-900">
-         <p className="text-xl font-bold uppercase italic text-zinc-400 max-w-xl mx-auto mb-10 leading-snug">
-            ESCALAR TU NEGOCIO NO SIGNIFICA TRABAJAR MÁS HORAS. SIGNIFICA TENER MEJORES HERRAMIENTAS.
-         </p>
-         <div className="flex flex-col items-center gap-4">
-            <img src="/logo.png" className="h-8 w-auto brightness-0 invert opacity-50" alt="Logo" />
-            <p className="text-[10px] text-zinc-700 font-mono tracking-widest">
-                POTENCIADO POR GOOGLE GEMINI AI • HEAVY DUTY DI IORIO 
-            </p>
-         </div>
+      <footer className="p-12 text-center border-t border-zinc-900 bg-black">
+        <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-20 mx-auto mb-8" alt="Logo" />
+        <p className="text-zinc-800 text-[10px] font-mono tracking-[0.4em] uppercase">
+          HEAVY DUTY SYSTEM — ENTERPRISE EDITION v1.1
+        </p>
       </footer>
-
-      {/* FLOATING WHATSAPP BUTTON */}
-      <div className="fixed bottom-6 right-6 z-[100] animate-bounce-slow">
-         <Button 
-            onClick={openWhatsApp}
-            className="h-16 w-16 rounded-full bg-green-600 hover:bg-green-700 text-white shadow-2xl shadow-green-900/40 p-0 border-4 border-black group"
-         >
-            <MessageCircle className="h-8 w-8 fill-current group-hover:scale-110 transition-transform" />
-         </Button>
-      </div>
-
     </div>
   );
 }
 
-const PainPoint = ({ icon, title, desc }: any) => (
-    <div className="space-y-4 group text-center md:text-left">
-        <div className="bg-white shadow-xl p-4 rounded-2xl w-fit mx-auto md:mx-0 group-hover:scale-110 transition-transform">{icon}</div>
-        <h4 className="text-xl font-black text-black uppercase italic leading-none">{title}</h4>
-        <p className="text-zinc-600 text-sm leading-relaxed">{desc}</p>
+const PricingFeature = ({ text, active = true, highlight = false, color = "text-zinc-500" }: any) => (
+    <div className={cn("flex items-center gap-4", !active && "opacity-20")}>
+        {active ? <CheckCircle2 className={cn("h-4 w-4", highlight ? color : "text-zinc-600")} /> : <XCircle className="h-4 w-4 text-zinc-800" />}
+        <span className={cn("text-[11px] font-black uppercase tracking-widest", active ? "text-zinc-300" : "text-zinc-800", highlight && color)}>{text}</span>
     </div>
 );
 
-const FeatureCard = ({ icon, title, desc }: any) => (
-    <Card className="bg-zinc-950 border-zinc-900 p-6 space-y-4 hover:border-zinc-800 transition-all group">
-        <CardContent className="p-0 space-y-4">
-          <div className="p-2 bg-zinc-900 rounded-lg w-fit group-hover:scale-110 transition-transform">{icon}</div>
-          <h4 className="text-sm font-black uppercase tracking-widest text-white italic">{title}</h4>
-          <p className="text-[10px] text-zinc-500 font-bold uppercase leading-relaxed">{desc}</p>
-        </CardContent>
-    </Card>
-);
-
 const FAQItem = ({ value, question, answer }: any) => (
-    <AccordionItem value={value} className="border-zinc-800 bg-zinc-950/50 rounded-xl px-6 border">
-        <AccordionTrigger className="text-left font-bold uppercase tracking-wide text-zinc-200 hover:text-white hover:no-underline py-4 text-xs md:text-sm">
+    <AccordionItem value={value} className="border-zinc-800 bg-zinc-900/40 rounded-3xl px-10 border transition-all hover:border-zinc-600">
+        <AccordionTrigger className="text-left font-black uppercase tracking-widest text-zinc-100 hover:text-white hover:no-underline py-8 text-sm">
             {question}
         </AccordionTrigger>
-        <AccordionContent className="text-zinc-500 text-xs md:text-sm leading-relaxed pb-4">
+        <AccordionContent className="text-zinc-400 text-sm leading-relaxed pb-8 italic font-medium">
             {answer}
         </AccordionContent>
     </AccordionItem>
 );
 
-const CheckItem = ({ text }: { text: string }) => (
-    <li className="flex items-start gap-3">
-        <div className="h-2 w-2 rounded-full bg-red-600 mt-1.5 shrink-0" />
-        <span className="text-lg font-bold text-zinc-300 uppercase italic tracking-wide">{text}</span>
+const VsItem = ({ icon, text }: any) => (
+    <li className="flex items-center gap-4">
+        <div className="shrink-0">{icon}</div>
+        <span className="text-zinc-300 font-bold uppercase text-xs tracking-wide">{text}</span>
     </li>
 );
 
-const Benefit = ({ text, sub }: any) => (
-    <div className="flex items-start gap-3">
-        <CheckCircle2 className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
-        <div className="text-left">
-            <p className="text-sm font-black uppercase text-white italic">{text}</p>
-            <p className="text-[10px] text-zinc-500 font-bold uppercase">{sub}</p>
-        </div>
-    </div>
-);
+function XCircle({ className }: { className?: string }) {
+    return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>;
+}

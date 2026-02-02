@@ -12,7 +12,7 @@ import {
 import { supabase } from "@/services/supabase";
 import { 
     Brain, TrendingUp, Star, Users, Activity, 
-    Gavel, Zap, BarChart3, ChevronRight, CheckCircle2, XCircle, AlertTriangle, ArrowRight, HelpCircle
+    Gavel, Zap, BarChart3, ChevronRight, CheckCircle2, XCircle, AlertTriangle, ArrowRight, HelpCircle, ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,20 +28,18 @@ const Index = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col relative selection:bg-red-600/30 font-sans">
+    <div className="min-h-screen bg-black text-white flex flex-col relative selection:bg-green-500/30 font-sans overflow-x-hidden">
       
-      {/* 1. HERO SECTION */}
+      {/* 1. HERO SECTION - HIGH TICKET ANCHOR */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
-        {/* Background Gradients */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-600/10 blur-[120px] rounded-full animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-green-500/5 blur-[120px] rounded-full" />
+        <div className="absolute inset-0 z-0">
+            <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-green-500/10 blur-[150px] rounded-full animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-red-600/5 blur-[150px] rounded-full" />
         </div>
 
         <nav className="absolute top-0 w-full max-w-7xl mx-auto flex justify-between items-center p-6 z-50">
             <img src="/logo.png" className="h-8 md:h-10 w-auto brightness-0 invert" alt="Heavy Duty" />
-            
-            <div className="flex gap-4 md:gap-8 items-center">
+            <div className="flex gap-4 items-center">
                 <button 
                     onClick={() => navigate("/coach-landing")}
                     className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
@@ -53,277 +51,202 @@ const Index = () => {
                     className="text-zinc-300 hover:text-white font-bold uppercase text-[10px] tracking-widest border border-zinc-800 h-9"
                     onClick={() => navigate("/auth")}
                 >
-                    Iniciar Sesión
+                    Entrar
                 </Button>
             </div>
         </nav>
 
-        <div className="relative z-10 max-w-4xl text-center space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-900/50 bg-red-900/10 text-red-500 text-[10px] font-black uppercase tracking-widest mb-2">
-              <Star className="w-3 h-3 fill-current" /> EL SISTEMA DEFINITIVO PARA CAMBIAR TU CUERPO
+        <div className="relative z-10 max-w-5xl text-center space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-green-500/30 bg-green-500/5 text-green-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4">
+              <ShieldCheck className="w-3.5 h-3.5" /> INGENIERÍA BIOMÉTRICA DE ALTA PRECISIÓN
            </div>
 
            <div className="space-y-6">
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase italic leading-[0.9] text-white">
-                LA ÚNICA APP QUE TE ENSEÑA <br/>
-                <span className="text-zinc-700">A ENTRENAR DE VERDAD</span>
+              <h1 className="text-5xl md:text-8xl lg:text-9xl font-black tracking-tighter uppercase italic leading-[0.85] text-white">
+                ¿SEGUÍS PAGANDO <span className="text-zinc-800">$150.000</span> <br/>
+                <span className="text-green-500">POR UN PDF?</span>
               </h1>
-              <div className="flex flex-col items-center gap-2">
-                <h2 className="text-xs md:text-sm font-black tracking-[0.4em] text-red-600 uppercase">
-                    {" >> "} VERSIÓN 17.09 INTEGRADA CON IA
-                </h2>
-              </div>
            </div>
 
-           <div className="space-y-3">
-              <p className="text-lg md:text-xl text-zinc-200 font-bold uppercase italic tracking-tight">
-                Hoy vas a dejar de perder tiempo en el gimnasio.
-              </p>
-              <p className="text-sm md:text-base text-zinc-500 font-medium italic">
-                "Bienvenido a la era de la verdad fisiológica."
+           <div className="space-y-4 max-w-2xl mx-auto">
+              <p className="text-xl md:text-2xl text-zinc-200 font-bold uppercase italic tracking-tight">
+                Tené un auditor técnico en tiempo real en cada serie. La misma ciencia, pero sin pagar la burocracia humana.
               </p>
            </div>
 
-           <div className="pt-6 flex flex-col items-center gap-4">
+           <div className="pt-8 flex flex-col items-center gap-4">
               <Button 
                 size="lg" 
-                className="h-16 md:h-20 px-8 md:px-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic text-xl md:text-2xl shadow-[0_0_50px_rgba(220,38,38,0.3)] border-2 border-red-500/20 rounded-xl group transition-all"
+                className="h-20 px-12 bg-green-600 hover:bg-green-700 text-black font-black uppercase italic text-2xl shadow-[0_0_50px_rgba(34,197,94,0.3)] border-2 border-green-400/20 rounded-xl group transition-all"
                 onClick={() => navigate("/auth")}
               >
-                EMPEZÁ TU TRANSFORMACIÓN
+                PROBAR PRO (7 DÍAS GRATIS)
                 <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest italic">Probá Gratis — Sin Tarjeta de Crédito</p>
+              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest italic">Inversión inteligente en rendimiento real</p>
            </div>
         </div>
-
-        {/* Visual Mockup - Judgment Card Concept */}
-        <div className="mt-16 md:mt-20 relative animate-in fade-in slide-in-from-bottom-20 duration-1000 delay-500">
-            <div className="bg-zinc-950 border-4 border-green-500/30 rounded-[2.5rem] p-6 md:p-8 w-64 md:w-80 shadow-[0_0_80px_rgba(34,197,94,0.15)] relative group overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10"><TrendingUp className="w-16 h-16 text-green-500" /></div>
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center"><div className="h-2 w-12 bg-zinc-800 rounded-full" /><Badge className="bg-green-600 text-[10px] font-black italic">PROGRESS</Badge></div>
-                    <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter uppercase leading-none text-white">SOBRECARGA<br/>CONFIRMADA</h3>
-                    <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className="h-full w-4/5 bg-green-500" /></div>
-                </div>
-            </div>
-        </div>
       </section>
 
-      {/* 2. EL PROBLEMA */}
-      <section className="bg-zinc-900 py-24 md:py-32 px-6 border-y border-zinc-800">
+      {/* 2. VERSUS SECTION - VISUAL COMPARISON */}
+      <section className="bg-zinc-950 py-24 md:py-32 px-6 border-y border-zinc-900">
         <div className="max-w-5xl mx-auto space-y-20">
           <div className="text-center space-y-4">
-            <h2 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter leading-none">EL 90% DE LA GENTE EN EL GIMNASIO<br/><span className="text-red-600">ESTÁ PERDIENDO EL TIEMPO.</span></h2>
-            <div className="h-1.5 w-24 bg-red-600 mx-auto" />
+            <h2 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter leading-none">LA DIFERENCIA TECNOLÓGICA</h2>
+            <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">EL JUICIO: HUMANO VS HEAVY DUTY IA</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <PainPoint 
-              title="El Ojímetro"
-              desc="Anotás en las notas del celular o en un cuaderno transpirado. Nunca sabés si realmente superaste la sesión anterior o si solo te bombeaste."
-              icon={<XCircle className="h-10 w-10 text-red-600" />}
-            />
-            <PainPoint 
-              title="El Ego-Lifting"
-              desc="Subís el peso pero bajás la técnica. Te mentís a vos mismo. Creés que progresás, pero solo estás comprando una lesión."
-              icon={<AlertTriangle className="h-10 w-10 text-red-600" />}
-            />
-            <PainPoint 
-              title="Miedo al Descanso"
-              desc="Entrenás 6 días porque 'más es mejor'. Tu SNC está frito y tus músculos no crecen porque no los dejás recuperarse."
-              icon={<Users className="h-10 w-10 text-red-600" />}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Traditional Coach */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 space-y-8 opacity-60">
+                <div className="flex justify-between items-start">
+                    <h3 className="text-2xl font-black uppercase italic text-zinc-500">COACH TRADICIONAL</h3>
+                    <span className="text-xl font-mono text-zinc-600">$150.000/mes</span>
+                </div>
+                <ul className="space-y-6">
+                    <VsItem icon={<XCircle className="text-red-600" />} text="Te corrige 1 vez por semana (con suerte)." />
+                    <VsItem icon={<XCircle className="text-red-600" />} text="Se olvida de tus lesiones y fatiga." />
+                    <VsItem icon={<XCircle className="text-red-600" />} text="Te manda excels incómodos por WhatsApp." />
+                    <VsItem icon={<XCircle className="text-red-600" />} text="Cero análisis de datos real." />
+                </ul>
+            </div>
+
+            {/* Heavy Duty App */}
+            <div className="bg-black border-2 border-green-500/50 rounded-3xl p-8 space-y-8 shadow-[0_0_60px_rgba(34,197,94,0.1)] relative overflow-hidden">
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-green-500/20 blur-3xl rounded-full" />
+                <div className="flex justify-between items-start relative z-10">
+                    <h3 className="text-2xl font-black uppercase italic text-green-500">HEAVY DUTY APP</h3>
+                    <span className="text-xl font-mono text-white">$28.500/mes</span>
+                </div>
+                <ul className="space-y-6 relative z-10">
+                    <VsItem icon={<CheckCircle2 className="text-green-500" />} text="Auditoría técnica EN TIEMPO REAL." />
+                    <VsItem icon={<CheckCircle2 className="text-green-500" />} text="Bloquea el entreno si el SNC está frito." />
+                    <VsItem icon={<CheckCircle2 className="text-green-500" />} text="Informes detallados cada sesión." />
+                    <VsItem icon={<CheckCircle2 className="text-green-500" />} text="Justicia absoluta basada en datos." />
+                </ul>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 3. LA SOLUCIÓN - ARMAS */}
-      <section className="py-24 md:py-32 px-6 bg-black relative">
-         <div className="max-w-5xl mx-auto space-y-32">
-            
-            <WeaponSection 
-                number="01"
-                title="EL JUEZ"
-                subtitle="AI SESSION AUDITOR"
-                desc="Tu compañero de entreno que no te miente. Apenas terminás la serie, la IA compara tus cargas, reps y técnica con tu historial."
-                points={[
-                    { text: "LUZ VERDE: Sobrecarga real. Aprobado.", color: "text-green-500" },
-                    { text: "LUZ ROJA: Estancamiento o Regresión.", color: "text-red-600" },
-                    { text: "Sin aplausos falsos. Solo la verdad cruda.", color: "text-zinc-500" }
-                ]}
-                icon={<Gavel className="w-8 h-8 text-red-600" />}
-            />
-
-            <WeaponSection 
-                number="02"
-                title="BIO-STOP"
-                subtitle="SNC PRE-FLIGHT FILTER"
-                desc="Entrenar cansado es cavar tu propia tumba. Antes de pisar el gimnasio, la IA analiza tu sueño y nivel de estrés."
-                points={[
-                    { text: "Si tu SNC no está al 100%, la App bloquea el entreno pesado.", color: "text-yellow-500" },
-                    { text: "Aprendé a descansar para crecer.", color: "text-white" },
-                    { text: "Evitá lesiones por fatiga acumulada.", color: "text-zinc-500" }
-                ]}
-                icon={<Activity className="w-8 h-8 text-blue-500" />}
-            />
-
-            <WeaponSection 
-                number="03"
-                title="EL INFORME"
-                subtitle="DATA SCIENCE APLICADA"
-                desc="Dejá de adivinar. Empezá a saber. Recibí informes detallados de tu progreso real y patrones ocultos."
-                points={[
-                    { text: "Gráficos de Fuerza vs. Peso Corporal.", color: "text-red-500" },
-                    { text: "Detección de patrones de estancamiento.", color: "text-white" },
-                    { text: "Auditoría Global cada 30 días.", color: "text-zinc-500" }
-                ]}
-                icon={<BarChart3 className="w-8 h-8 text-green-500" />}
-            />
-         </div>
-      </section>
-
-      {/* 4. CONEXIÓN COACH */}
-      <section className="bg-red-600 py-24 md:py-32 px-6 text-white text-center overflow-hidden relative">
-         <div className="absolute inset-0 opacity-10 pointer-events-none flex items-center justify-center">
-            <Users className="w-[800px] h-[800px] -rotate-12" />
-         </div>
-         <div className="max-w-5xl mx-auto space-y-8 relative z-10">
-            <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">¿TENÉS COACH?<br/>POTENCIALO.</h2>
-            <p className="text-lg md:text-2xl font-bold uppercase italic max-w-2xl mx-auto leading-relaxed">
-                Heavy Duty App no reemplaza a tu entrenador, lo hace más letal. Si tu coach usa nuestra plataforma, él ve tus datos en tiempo real.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left pt-8">
-                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20"><CheckCircle2 className="w-6 h-6 mb-3" /><p className="font-bold uppercase text-sm">Chau a mandar Excels por mail.</p></div>
-                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20"><CheckCircle2 className="w-6 h-6 mb-3" /><p className="font-bold uppercase text-sm">Tu coach recibe alertas si te estancás.</p></div>
-            </div>
-         </div>
-      </section>
-
-      {/* 5. PRICING */}
-      <section className="py-24 md:py-32 px-6 bg-zinc-950">
-        <div className="max-w-5xl mx-auto space-y-16">
-            <div className="text-center">
-                <h2 className="text-4xl font-black uppercase italic tracking-tighter">ELEGÍ TU NIVEL DE COMPROMISO</h2>
+      {/* 3. PRICING TABLE - LUXURY STYLE */}
+      <section className="py-24 md:py-32 px-6 bg-black">
+        <div className="max-w-4xl mx-auto space-y-16">
+            <div className="text-center space-y-2">
+                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter">ELEGÍ TU NIVEL DE COMPROMISO</h2>
+                <div className="h-1 w-24 bg-green-500 mx-auto" />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Card className="bg-zinc-900 border-zinc-800 flex flex-col p-2">
-                    <CardHeader className="text-center">
-                        <CardTitle className="text-xl font-black uppercase italic text-zinc-500">ATLETA FREE</CardTitle>
-                        <div className="py-4">
-                            <span className="text-4xl font-black">$0</span>
-                            <span className="text-zinc-600 text-xs font-bold ml-1">/ MES</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+                {/* BASIC */}
+                <Card className="bg-zinc-950 border border-zinc-900 flex flex-col overflow-hidden">
+                    <CardHeader className="text-center pb-8 border-b border-zinc-900 bg-zinc-900/20">
+                        <CardTitle className="text-sm font-black uppercase tracking-[0.3em] text-zinc-500">BASIC</CardTitle>
+                        <div className="pt-4">
+                            <span className="text-5xl font-black text-white">$0</span>
                         </div>
+                        <p className="text-[10px] font-bold text-zinc-600 uppercase mt-2">Bitácora Pasiva</p>
                     </CardHeader>
-                    <CardContent className="flex-1 space-y-4 py-6 px-8 border-t border-zinc-800/50">
-                        <PricingItem text="Bitácora Digital Básica" />
-                        <PricingItem text="Historial de Pesos" />
-                        <PricingItem text="Sin Análisis de IA" disabled />
-                        <PricingItem text="Sin Bio-Stop" disabled />
+                    <CardContent className="flex-1 space-y-6 py-10 px-8">
+                        <PricingFeature text="Anotador Digital" active />
+                        <PricingFeature text="Historial de Pesos" active />
+                        <PricingFeature text="Auditoría IA Real-time" active={false} />
+                        <PricingFeature text="Análisis Bio-Stop (SNC)" active={false} />
+                        <PricingFeature text="Informes de Tendencias" active={false} />
                     </CardContent>
-                    <CardFooter className="pt-6">
-                        <Button variant="outline" className="w-full h-14 border-zinc-800 text-zinc-400 hover:text-white uppercase font-black tracking-widest" onClick={() => navigate('/auth')}>EMPEZÁ GRATIS</Button>
+                    <CardFooter className="p-8 pt-0">
+                        <Button variant="outline" className="w-full h-14 border-zinc-800 text-zinc-500 hover:text-white font-black uppercase tracking-widest" onClick={() => navigate('/auth')}>DESCARGAR</Button>
                     </CardFooter>
                 </Card>
 
-                <Card className="bg-black border-red-600/50 flex flex-col p-2 relative overflow-hidden shadow-[0_0_40px_rgba(220,38,38,0.15)]">
-                    <div className="absolute top-0 right-0 bg-red-600 text-white text-[9px] font-black uppercase px-4 py-1.5 rounded-bl-lg tracking-widest z-10">RECOMENDADO</div>
-                    <CardHeader className="text-center">
-                        <CardTitle className="text-xl font-black uppercase italic text-white">ATLETA PRO</CardTitle>
-                        <div className="py-4">
-                            <span className="text-4xl font-black text-red-500">$6.800</span>
-                            <span className="text-zinc-600 text-xs font-bold ml-1">ARS / MES</span>
+                {/* PRO */}
+                <Card className="bg-black border-2 border-yellow-600 flex flex-col overflow-hidden relative shadow-[0_0_80px_rgba(202,138,4,0.15)]">
+                    <div className="absolute top-0 right-0 bg-yellow-600 text-black text-[9px] font-black uppercase px-6 py-2 rounded-bl-xl tracking-[0.2em] z-10 shadow-xl">ESTRELLA</div>
+                    <CardHeader className="text-center pb-8 border-b border-yellow-900/20 bg-yellow-600/5">
+                        <CardTitle className="text-sm font-black uppercase tracking-[0.3em] text-yellow-600">HEAVY DUTY PRO</CardTitle>
+                        <div className="pt-4 flex flex-col gap-1">
+                            <span className="text-5xl font-black text-white">$28.500</span>
+                            <span className="text-yellow-600/60 text-[10px] font-black uppercase">vs. $150.000 (Humano)</span>
                         </div>
+                        <p className="text-[10px] font-bold text-yellow-600 uppercase mt-2 italic">Ingeniería Biométrica Aplicada</p>
                     </CardHeader>
-                    <CardContent className="flex-1 space-y-4 py-6 px-8 border-t border-red-900/20">
-                        <PricingItem text="IA Ilimitada (The Judge)" highlight />
-                        <PricingItem text="Bio-Stop (Análisis de SNC)" highlight />
-                        <PricingItem text="Informes de Tendencias 📊" highlight />
-                        <PricingItem text="Modo Competidor Activado" highlight />
+                    <CardContent className="flex-1 space-y-6 py-10 px-8">
+                        <PricingFeature text="The Judge: Auditoría IA" active highlight color="text-yellow-500" />
+                        <PricingFeature text="Bio-Stop: SNC Pre-flight" active highlight color="text-yellow-500" />
+                        <PricingFeature text="Informes Markdown Detallados" active highlight color="text-yellow-500" />
+                        <PricingFeature text="Modo Competidor Activado" active highlight color="text-yellow-500" />
+                        <PricingFeature text="Soporte Técnico Prioritario" active highlight color="text-yellow-500" />
                     </CardContent>
-                    <CardFooter className="pt-6">
-                        <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white uppercase font-black tracking-widest italic shadow-xl shadow-red-900/20 border border-red-500/20" onClick={() => navigate('/auth')}>PROBÁ PRO GRATIS 7 DÍAS</Button>
+                    <CardFooter className="p-8 pt-0">
+                        <Button className="w-full h-16 bg-yellow-600 hover:bg-yellow-700 text-black font-black uppercase italic tracking-widest shadow-2xl" onClick={() => navigate('/auth')}>EMPEZÁ TRANSFORMACIÓN</Button>
                     </CardFooter>
                 </Card>
             </div>
         </div>
       </section>
 
-      {/* 6. FAQ SECTION (Acordeones) */}
-      <section className="py-24 px-6 bg-zinc-900/30 border-y border-zinc-800">
+      {/* 4. FAQ - HIGH TICKET QUESTIONS */}
+      <section className="py-24 md:py-32 px-6 bg-zinc-950 border-t border-zinc-900">
         <div className="max-w-3xl mx-auto space-y-12">
             <div className="flex items-center gap-4">
-                <div className="p-2 bg-red-600/10 rounded-lg">
-                    <HelpCircle className="w-6 h-6 text-red-600" />
-                </div>
-                <h2 className="text-3xl font-black uppercase italic tracking-tighter">PREGUNTAS FRECUENTES</h2>
+                <HelpCircle className="w-8 h-8 text-green-500" />
+                <h2 className="text-3xl font-black uppercase italic tracking-tighter">PREGUNTAS CLAVE</h2>
             </div>
 
             <Accordion type="single" collapsible className="w-full space-y-4">
                 <FAQItem 
+                    value="item-price"
+                    question="¿Por qué cuesta $28.500?"
+                    answer="Porque es un sistema de ingeniería biométrica, no un simple anotador. Reemplaza gran parte del trabajo técnico de un preparador humano que te cobraría 5 o 6 veces más. Estás pagando por tecnología que analiza cada kilo y cada segundo de tu entrenamiento para garantizar que no pierdas el tiempo."
+                />
+                <FAQItem 
                     value="item-1"
-                    question="Entreno solo/a y no tengo Coach. ¿Me sirve la App?"
-                    answer="¡Por supuesto! De hecho, está diseñada para vos. Si no tenés un humano que te corrija, la IA ocupa ese lugar. El sistema actúa como tu auditor personal: analiza tu progreso, te frena si estás sobreentrenando y te felicita cuando rompés un récord. Vos ponés el cuerpo, la App pone la inteligencia."
+                    question="¿La IA realmente sabe si estoy entrenando intenso?"
+                    answer="Sí. El sistema analiza la relación entre el peso utilizado, las repeticiones logradas y el historial previo. Si tus números se estancan o bajan, la IA lo detecta al instante y te emite un veredicto de 'REGRESIÓN', obligándote a ajustar la intensidad o el descanso."
                 />
                 <FAQItem 
                     value="item-2"
-                    question="¿Es obligatorio entrenar con el sistema Heavy Duty?"
-                    answer="La App respira la filosofía de Alta Intensidad, pero la física es universal. Si hacés PPL, Upper/Lower o Frecuencia 2, te va a servir igual para medir la Sobrecarga Progresiva. La IA siempre te va a empujar a que no desperdicies energía en 'series basura'."
-                />
-                <FAQItem 
-                    value="item-3"
-                    question="¿La IA es un chat tipo ChatGPT?"
-                    answer="No. No venís a charlar, venís a entrenar. La IA es un Auditor Silencioso. Analiza tus datos automáticamente y te muestra 'Tarjetas de Juicio' (Verde/Rojo) al terminar cada ejercicio. Es mucho más rápido y directo que un chat."
-                />
-                <FAQItem 
-                    value="item-4"
-                    question="¿Qué pasa si el día de mañana contrato a un Coach?"
-                    answer="Es lo ideal. Con un solo clic, vinculás tu cuenta a la de tu Coach. Él va a recibir acceso inmediato a todo tu historial, gráficos y métricas. Se terminaron los mails con Excels adjuntos o las fotos de cuadernos borrosos."
-                />
-                <FAQItem 
-                    value="item-5"
-                    question="¿El precio es en dólares o en pesos?"
-                    answer="Estamos en Argentina. Cobramos en Pesos Argentinos a través de Mercado Pago. El precio que ves es final. Sin impuestos sorpresa en la tarjeta ni conversiones raras. Invertí en comida y suplementos, no en impuestos."
-                />
-                <FAQItem 
-                    value="item-6"
-                    question="Soy principiante, ¿esto es muy avanzado para mí?"
-                    answer="Al contrario. El mejor momento para usar esto es ahora. La mayoría de los principiantes pierden sus primeros 2 años haciendo las cosas mal. Con Bio-Stop, la App te enseña a cuidar tu cuerpo desde el día 1, evitando que te quemes."
+                    question="¿Puedo usar la app si ya tengo un preparador?"
+                    answer="Es lo ideal. La app te sirve para darle a tu preparador datos reales y precisos. En lugar de decirle 'sentí que entrené bien', le podés mostrar el informe técnico de la IA. Tu preparador podrá tomar mejores decisiones basadas en ciencia, no en sensaciones."
                 />
             </Accordion>
         </div>
       </section>
 
-      {/* 8. FINAL CTA */}
-      <section className="py-32 md:py-40 px-6 text-center space-y-12">
-          <div className="space-y-4">
-            <h2 className="text-5xl md:text-8xl font-black uppercase italic tracking-tighter leading-none">EL DOLOR DE LA DISCIPLINA<br/><span className="text-zinc-800">O EL DOLOR DEL ARREPENTIMIENTO.</span></h2>
-            <p className="text-xl md:text-2xl font-bold uppercase text-red-500 italic">VOS ELEGÍS.</p>
-          </div>
-          <Button 
-            size="lg" 
-            className="h-20 md:h-24 px-12 md:px-16 bg-white text-black hover:bg-zinc-200 font-black uppercase italic text-2xl md:text-3xl shadow-2xl rounded-2xl"
-            onClick={() => navigate("/auth")}
-          >
-            DESCARGÁ LA APP
-          </Button>
-      </section>
-
-      <footer className="p-8 text-center border-t border-zinc-900 relative z-10 bg-black/80 backdrop-blur-sm mt-20">
-        <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-50 mx-auto mb-6" alt="Logo" />
-        <p className="text-zinc-600 text-[10px] font-mono mb-4 tracking-[0.2em] uppercase">
-          &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — Powered by Gemini AI
+      <footer className="p-12 text-center border-t border-zinc-900 bg-black">
+        <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-30 mx-auto mb-8" alt="Logo" />
+        <p className="text-zinc-700 text-[10px] font-mono tracking-[0.3em] uppercase mb-4">
+          &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — High Performance Software
         </p>
-        <div className="flex justify-center gap-6 text-[10px] text-zinc-700 uppercase font-black tracking-widest">
-            <span className="hover:text-white cursor-pointer transition-colors">Privacidad</span>
-            <span className="hover:text-white cursor-pointer transition-colors">Términos</span>
-            <button onClick={() => navigate('/admin/login')} className="hover:text-red-500 transition-colors">Admin</button>
-        </div>
       </footer>
     </div>
   );
 };
+
+const VsItem = ({ icon, text }: any) => (
+    <li className="flex items-center gap-4">
+        <div className="shrink-0">{icon}</div>
+        <span className="text-zinc-300 font-bold uppercase text-xs tracking-wide">{text}</span>
+    </li>
+);
+
+const PricingFeature = ({ text, active = true, highlight = false, color = "text-zinc-500" }: any) => (
+    <div className={cn("flex items-center gap-3", !active && "opacity-20")}>
+        {active ? <CheckCircle2 className={cn("h-4 w-4", highlight ? color : "text-zinc-500")} /> : <XCircle className="h-4 w-4 text-zinc-700" />}
+        <span className={cn("text-xs font-black uppercase tracking-widest", active ? "text-zinc-200" : "text-zinc-700", highlight && color)}>{text}</span>
+    </div>
+);
+
+const FAQItem = ({ value, question, answer }: any) => (
+    <AccordionItem value={value} className="border-zinc-800 bg-zinc-900/30 rounded-2xl px-8 border transition-all hover:border-zinc-700">
+        <AccordionTrigger className="text-left font-black uppercase tracking-wider text-zinc-100 hover:text-white hover:no-underline py-6 text-sm">
+            {question}
+        </AccordionTrigger>
+        <AccordionContent className="text-zinc-500 text-sm leading-relaxed pb-6 italic">
+            {answer}
+        </AccordionContent>
+    </AccordionItem>
+);
 
 const PainPoint = ({ icon, title, desc }: any) => (
     <div className="space-y-4 group text-center md:text-left">
@@ -331,17 +254,6 @@ const PainPoint = ({ icon, title, desc }: any) => (
         <h4 className="text-xl font-black text-white uppercase italic leading-none">{title}</h4>
         <p className="text-zinc-500 text-sm leading-relaxed">{desc}</p>
     </div>
-);
-
-const FAQItem = ({ value, question, answer }: any) => (
-    <AccordionItem value={value} className="border-zinc-800 bg-zinc-950/50 rounded-xl px-6 border">
-        <AccordionTrigger className="text-left font-bold uppercase tracking-wide text-zinc-200 hover:text-white hover:no-underline py-4 text-xs md:text-sm">
-            {question}
-        </AccordionTrigger>
-        <AccordionContent className="text-zinc-500 text-xs md:text-sm leading-relaxed pb-4">
-            {answer}
-        </AccordionContent>
-    </AccordionItem>
 );
 
 const WeaponSection = ({ number, title, subtitle, desc, points, icon }: any) => (
@@ -364,13 +276,6 @@ const WeaponSection = ({ number, title, subtitle, desc, points, icon }: any) => 
                 </li>
             ))}
         </ul>
-    </div>
-);
-
-const PricingItem = ({ text, highlight = false, disabled = false }: any) => (
-    <div className={cn("flex items-center gap-3", disabled ? "opacity-30" : "opacity-100")}>
-        {disabled ? <XCircle className="h-4 w-4 text-zinc-600" /> : <CheckCircle2 className={cn("h-4 w-4", highlight ? "text-red-500" : "text-zinc-500")} />}
-        <span className={cn("text-xs font-bold uppercase tracking-wide", highlight ? "text-white" : "text-zinc-500")}>{text}</span>
     </div>
 );
 
