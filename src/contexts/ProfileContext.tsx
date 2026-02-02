@@ -24,72 +24,70 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
   const [hasProAccess, setHasProAccess] = useState(false);
   const [daysLeftInTrial, setDaysLeftInTrial] = useState(0);
 
+  // 1. Cargar rol guardado
   useEffect(() => {
     const savedRole = localStorage.getItem('hd_active_role');
     if (savedRole === 'coach' || savedRole === 'athlete') {
-      setActiveRole(savedRole);
+      setActiveRole(savedRole as 'athlete' | 'coach');
     }
+  }, []);
 
+  // 2. Lógica de carga de perfil
+  const loadUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (data) {
+        const userProfile = data as UserProfile;
+        setProfile(userProfile);
+        calculateAccess(userProfile);
+        
+        // Si no es coach, forzamos rol atleta
+        if (!userProfile.is_coach && activeRole === 'coach') {
+          setActiveRole('athlete');
+          localStorage.setItem('hd_active_role', 'athlete');
+        }
+      } else {
+        setProfile(null);
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 3. Inicialización de sesión
+  useEffect(() => {
     let mounted = true;
 
-    const loadUserProfile = async (userId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (mounted) {
-          if (data) {
-            const userProfile = data as UserProfile;
-            setProfile(userProfile);
-            calculateAccess(userProfile);
-            
-            if (!userProfile.is_coach) {
-              setActiveRole('athlete');
-              localStorage.setItem('hd_active_role', 'athlete');
-            }
-          } else {
-            setProfile(null);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading profile:", error);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
     const initialize = async () => {
-      try {
-        const { data: { session: initSession } } = await supabase.auth.getSession();
-        
-        if (mounted) {
-          setSession(initSession);
-          if (initSession?.user) {
-            await loadUserProfile(initSession.user.id);
-          } else {
-            setLoading(false);
-          }
+      const { data: { session: initSession } } = await supabase.auth.getSession();
+      if (mounted) {
+        setSession(initSession);
+        if (initSession?.user) {
+          await loadUserProfile(initSession.user.id);
+        } else {
+          setLoading(false);
         }
-      } catch (e) {
-        console.error("Session init error:", e);
-        if (mounted) setLoading(false);
       }
     };
 
     initialize();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
       
       setSession(newSession);
       
       if (newSession?.user) {
-        if (!profile || profile.user_id !== newSession.user.id) {
-            setLoading(true);
-            await loadUserProfile(newSession.user.id);
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || !profile) {
+           setLoading(true);
+           await loadUserProfile(newSession.user.id);
         }
       } else {
         setProfile(null);
@@ -98,23 +96,14 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
       }
     });
 
-    // Safety Timeout: Force loading to end after 6 seconds to unlock UI
-    const safetyTimeout = setTimeout(() => {
-      if (loading && mounted) {
-        console.warn("Safety timeout reached, unlocking UI");
-        setLoading(false);
-      }
-    }, 6000);
-
     return () => {
       mounted = false;
-      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, []);
 
   const calculateAccess = (p: UserProfile) => {
-    if (p.is_premium) {
+    if (p.is_premium || p.is_admin) {
       setHasProAccess(true);
       setDaysLeftInTrial(0);
       return;
@@ -148,11 +137,7 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
   const refreshProfile = async () => {
     if (session?.user) {
-        const { data } = await supabase.from("profiles").select("*").eq("user_id", session.user.id).single();
-        if (data) {
-            setProfile(data as UserProfile);
-            calculateAccess(data as UserProfile);
-        }
+        await loadUserProfile(session.user.id);
     }
   };
 

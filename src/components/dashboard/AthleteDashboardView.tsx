@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { 
-  Zap, Moon, Camera, FlaskConical, Settings, LogOut, Share2, Loader2, Bell, ClipboardCheck,
-  Target, ShieldCheck, ChevronRight, Briefcase, Users
+  Zap, Moon, Camera, FlaskConical, Settings, Bell, ClipboardCheck,
+  ShieldCheck, Target, Briefcase, Users, Loader2
 } from "lucide-react";
 import { PreWorkoutModal } from "@/components/dashboard/PreWorkoutModal";
 import { CardioModal } from "@/components/dashboard/CardioModal";
@@ -33,18 +33,19 @@ export default function AthleteDashboardView() {
   const [coachBrand, setCoachBrand] = useState<any>(null);
 
   useEffect(() => {
-    if (profile) {
+    if (profile?.user_id) {
       checkCheckin();
       fetchNotifications();
       fetchCoachBrand();
     }
-  }, [profile]);
+  }, [profile?.user_id]);
 
   const fetchCoachBrand = async () => {
+    if (!profile?.user_id) return;
     const { data } = await supabase
         .from('coach_assignments')
         .select('coach:coach_id(business_info, avatar_url, display_name)')
-        .eq('athlete_id', profile!.user_id)
+        .eq('athlete_id', profile.user_id)
         .eq('status', 'active')
         .maybeSingle();
     
@@ -52,10 +53,11 @@ export default function AthleteDashboardView() {
   };
 
   const fetchNotifications = async () => {
+    if (!profile?.user_id) return;
     const { data } = await supabase
       .from('notifications')
       .select('*')
-      .eq('user_id', profile!.user_id)
+      .eq('user_id', profile.user_id)
       .eq('is_read', false)
       .order('created_at', { ascending: false });
     if (data) setNotifications(data);
@@ -67,13 +69,14 @@ export default function AthleteDashboardView() {
   };
 
   const checkCheckin = async () => {
+    if (!profile?.user_id) return;
     const snoozeUntil = localStorage.getItem('next_checkin_reminder');
     if (snoozeUntil && isAfter(new Date(snoozeUntil), new Date())) return;
 
     const { data } = await supabase
       .from('logs')
       .select('created_at')
-      .eq('user_id', profile!.user_id)
+      .eq('user_id', profile.user_id)
       .eq('type', 'checkin')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -89,21 +92,28 @@ export default function AthleteDashboardView() {
     }
   };
 
-  const currentPhase = profile?.settings?.nutrition?.phase_goal;
+  // Safe Guard: Si por alguna razón el perfil es null aquí, mostramos un loading
+  if (!profile) return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="animate-spin text-red-600 h-8 w-8" />
+    </div>
+  );
+
+  const currentPhase = profile.settings?.nutrition?.phase_goal;
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pb-24 space-y-6 relative overflow-x-hidden">
       
-      {/* HEADER: Relative instead of Absolute for better flow */}
+      {/* HEADER */}
       <div className="flex justify-between items-center py-2">
         <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full border border-zinc-800 overflow-hidden bg-zinc-900 flex items-center justify-center">
-                {profile?.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" /> : <Users className="h-4 w-4 text-zinc-700" />}
+                {profile.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" /> : <Users className="h-4 w-4 text-zinc-700" />}
             </div>
-            <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest truncate max-w-[100px]">{profile?.display_name}</span>
+            <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest truncate max-w-[100px]">{profile.display_name}</span>
         </div>
         <div className="flex gap-2">
-            {profile?.is_coach && (
+            {profile.is_coach && (
                 <Button 
                     variant="outline" 
                     size="sm" 
@@ -119,7 +129,7 @@ export default function AthleteDashboardView() {
 
       <div className="w-full max-w-md mx-auto space-y-6">
         
-        {/* COACH UPDATES */}
+        {/* NOTIFICATIONS */}
         {notifications.map(n => (
            <div key={n.id} className="bg-red-600/10 border border-red-600/30 p-4 rounded-xl animate-in slide-in-from-top-2">
               <div className="flex justify-between items-start mb-1">
@@ -129,11 +139,10 @@ export default function AthleteDashboardView() {
                  <button onClick={() => markAsRead(n.id)} className="text-[9px] text-zinc-500 uppercase font-bold hover:text-white">Cerrar</button>
               </div>
               <p className="text-sm font-bold text-white leading-tight">{n.message}</p>
-              <p className="text-[9px] text-zinc-500 mt-2 font-mono">{format(new Date(n.created_at), "d MMM, HH:mm", { locale: es })}</p>
            </div>
         ))}
 
-        {!profile?.is_coach && profile?.user_id && <CoachInvitationAlert userId={profile.user_id} />}
+        {!profile.is_coach && <CoachInvitationAlert userId={profile.user_id} />}
 
         {/* PLAN ACTUAL / COACH SECTION */}
         {coachBrand && (
@@ -218,18 +227,16 @@ export default function AthleteDashboardView() {
         </div>
       </div>
 
-      <PreWorkoutModal open={showPreWorkout} onOpenChange={setShowPreWorkout} coachTone={profile?.coach_tone || 'strict'} hasProAccess={hasProAccess} />
+      <PreWorkoutModal open={showPreWorkout} onOpenChange={setShowPreWorkout} coachTone={profile.coach_tone || 'strict'} hasProAccess={hasProAccess} />
       <CardioModal open={showCardio} onOpenChange={setShowCardio} />
       <RestDayModal open={showRest} onOpenChange={setShowRest} />
       <CheckinReminderDialog open={showCheckinReminder} onOpenChange={setShowCheckinReminder} daysSince={daysSinceCheckin} />
-      {profile?.user_id && (
-        <WeeklyCheckinModal 
-            open={showCheckinModal} 
-            onOpenChange={setShowCheckinModal} 
-            userId={profile.user_id} 
-            athleteName={profile.display_name || "Atleta"} 
-        />
-      )}
+      <WeeklyCheckinModal 
+          open={showCheckinModal} 
+          onOpenChange={setShowCheckinModal} 
+          userId={profile.user_id} 
+          athleteName={profile.display_name || "Atleta"} 
+      />
     </div>
   );
 }
