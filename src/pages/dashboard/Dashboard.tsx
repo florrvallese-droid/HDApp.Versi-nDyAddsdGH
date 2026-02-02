@@ -3,6 +3,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AthleteDashboardView from "@/components/dashboard/AthleteDashboardView";
+import CoachDashboard from "@/pages/coach/CoachDashboard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -12,8 +13,6 @@ export default function Dashboard() {
     if (!loading && !profile && session?.user) {
       navigate('/onboarding');
     }
-    // Ya no redirigimos al coach fuera de aquí. 
-    // Un coach es también un atleta y debe poder usar su bitácora.
   }, [loading, profile, session, navigate]);
 
   if (loading) {
@@ -24,13 +23,18 @@ export default function Dashboard() {
            <Loader2 className="animate-spin text-red-600 h-12 w-12 relative z-10" />
         </div>
         <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">
-            Sincronizando Perfil...
+            Sincronizando Entorno...
         </p>
       </div>
     );
   }
 
   if (!profile) return null;
+
+  // DIVISIÓN DEFINITIVA DE INTERFAZ
+  if (profile.is_coach) {
+    return <CoachDashboard />;
+  }
 
   return <AthleteDashboardView />;
 }
