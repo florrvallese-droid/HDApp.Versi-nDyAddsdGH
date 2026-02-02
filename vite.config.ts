@@ -51,14 +51,23 @@ export default defineConfig(() => ({
     },
   },
   build: {
-    chunkSizeWarningLimit: 2000,
+    // Desactivamos source maps para reducir el peso total del deploy
+    sourcemap: false,
+    // Reducimos el límite para forzar una mejor fragmentación
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-tabs', '@radix-ui/react-select', 'lucide-react'],
-          'vendor-utils': ['date-fns', 'recharts', 'html2canvas'],
-          'vendor-supabase': ['@supabase/supabase-js'],
+        // Estrategia de fragmentación manual agresiva
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('pdfjs-dist')) return 'vendor-pdf';
+            if (id.includes('html2canvas')) return 'vendor-canvas';
+            if (id.includes('recharts')) return 'vendor-charts';
+            if (id.includes('lucide-react')) return 'vendor-icons';
+            if (id.includes('@radix-ui')) return 'vendor-ui';
+            if (id.includes('@supabase')) return 'vendor-supabase';
+            return 'vendor-core';
+          }
         }
       }
     }
