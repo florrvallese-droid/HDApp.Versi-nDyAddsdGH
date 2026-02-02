@@ -59,6 +59,7 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
         setProfile(userProfile);
         calculateAccess(userProfile);
       } else {
+        // Si no hay perfil pero hay sesión, es un usuario nuevo en onboarding
         setProfile(null);
       }
     } catch (error) {
@@ -72,7 +73,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
     let mounted = true;
 
     const initialize = async () => {
-      // 1. Obtener sesión inicial
       const { data: { session: initSession } } = await supabase.auth.getSession();
       
       if (!mounted) return;
@@ -88,14 +88,14 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
     initialize();
 
-    // 2. Escuchar cambios globales (Login / Logout / Expiry)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
       
       setSession(newSession);
       
       if (newSession?.user) {
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // Cargamos perfil en login, refresh o cuando se confirma el registro
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
            setLoading(true);
            await loadUserProfile(newSession.user.id);
         }

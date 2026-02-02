@@ -9,7 +9,7 @@ import { supabase } from "@/services/supabase";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { ChevronLeft, Loader2, MailCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Auth = () => {
@@ -18,12 +18,20 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isVerifyStep, setIsVerifyStep] = useState(false);
   
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
   const isCoachIntent = searchParams.get("role") === "coach";
   const initialTab = searchParams.get("tab") || "login";
+
+  // Redirigir si ya hay sesión
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) navigate('/dashboard');
+    });
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,9 +45,6 @@ const Auth = () => {
       });
 
       if (loginError) throw loginError;
-
-      // Al loguear con éxito, simplemente vamos al dashboard. 
-      // El ProfileContext detectará el cambio y el Dashboard hará la distribución.
       navigate('/dashboard');
       
     } catch (err: any) {
@@ -60,15 +65,18 @@ const Auth = () => {
     setError(null);
 
     try {
-      const { error: signupError } = await supabase.auth.signUp({
+      const { data, error: signupError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/onboarding`,
+        }
       });
 
       if (signupError) throw signupError;
       
-      toast.success("Cuenta creada. Verifica tu email.");
-      setError("Te hemos enviado un link de confirmación a tu correo.");
+      setIsVerifyStep(true);
+      toast.success("Cuenta creada con éxito");
     } catch (err: any) {
       setError(err.message);
       toast.error(err.message);
@@ -76,6 +84,33 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  if (isVerifyStep) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black p-4">
+        <Card className="w-full max-w-md bg-zinc-950 border-zinc-900 shadow-2xl text-center">
+          <CardHeader>
+            <div className="mx-auto bg-blue-600/10 p-4 rounded-full w-fit mb-4">
+              <MailCheck className="h-10 w-10 text-blue-500" />
+            </div>
+            <CardTitle className="text-2xl font-black uppercase italic text-white">¡CASI LISTO!</CardTitle>
+            <CardDescription className="text-zinc-400">
+              Te enviamos un enlace de confirmación a <br/>
+              <strong className="text-white">{email}</strong>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              Debes validar tu correo para poder acceder a la bitácora y configurar tu perfil de atleta. Si no lo ves, revisa la carpeta de Spam.
+            </p>
+            <Button variant="outline" className="w-full border-zinc-800 text-zinc-400" onClick={() => setIsVerifyStep(false)}>
+              Volver al inicio
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black p-4 relative overflow-hidden">
