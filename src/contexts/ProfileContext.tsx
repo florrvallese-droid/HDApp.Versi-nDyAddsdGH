@@ -25,28 +25,79 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
   const [daysLeftInTrial, setDaysLeftInTrial] = useState(0);
 
   useEffect(() => {
-    // Persistencia del rol
+    // 1. Recuperar rol guardado
     const savedRole = localStorage.getItem('hd_active_role');
     if (savedRole === 'coach' || savedRole === 'athlete') {
       setActiveRole(savedRole);
     }
 
-    const initSession = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      setSession(initialSession);
-      if (initialSession?.user) {
-        await fetchProfile(initialSession.user.id);
-      } else {
-        setLoading(false);
+    let mounted = true;
+
+    // 2. Función de carga de perfil robusta
+    const loadUserProfile = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle(); // Usamos maybeSingle para no lanzar error si no existe
+
+        if (mounted) {
+          if (data) {
+            const userProfile = data as UserProfile;
+            setProfile(userProfile);
+            calculateAccess(userProfile);
+            
+            // Forzar modo atleta si no es coach
+            if (!userProfile.is_coach) {
+              setActiveRole('athlete');
+              localStorage.setItem('hd_active_role', 'athlete');
+            }
+          } else {
+            // Usuario autenticado pero sin perfil (raro, pero posible)
+            setProfile(null);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+      } finally {
+        if (mounted) setLoading(false);
       }
     };
 
-    initSession();
+    // 3. Inicialización de sesión
+    const initialize = async () => {
+      try {
+        const { data: { session: initSession } } = await supabase.auth.getSession();
+        
+        if (mounted) {
+          setSession(initSession);
+          if (initSession?.user) {
+            await loadUserProfile(initSession.user.id);
+          } else {
+            setLoading(false);
+          }
+        }
+      } catch (e) {
+        console.error("Session init error:", e);
+        if (mounted) setLoading(false);
+      }
+    };
 
+    initialize();
+
+    // 4. Listener de cambios de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      if (!mounted) return;
+      
       setSession(newSession);
+      
       if (newSession?.user) {
-        await fetchProfile(newSession.user.id);
+        // Solo recargar si el usuario cambió o si no tenemos perfil cargado
+        if (!profile || profile.user_id !== newSession.user.id) {
+            setLoading(true);
+            await loadUserProfile(newSession.user.id);
+        }
       } else {
         setProfile(null);
         setHasProAccess(false);
@@ -54,34 +105,21 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-
-      if (!error && data) {
-        const userProfile = data as UserProfile;
-        setProfile(userProfile);
-        calculateAccess(userProfile);
-        
-        // Si no es coach, forzar siempre modo atleta
-        if (!userProfile.is_coach) {
-          setActiveRole('athlete');
-          localStorage.setItem('hd_active_role', 'athlete');
-        }
+    // 5. Timeout de seguridad (Escape Hatch)
+    // Si por alguna razón supabase cuelga, liberamos la UI en 5 segundos
+    const safetyTimeout = setTimeout(() => {
+      if (loading && mounted) {
+        console.warn("Profile loading timed out, forcing UI render");
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    }, 5000);
+
+    return () => {
+      mounted = false;
+      clearTimeout(safetyTimeout);
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const calculateAccess = (p: UserProfile) => {
     if (p.is_premium) {
@@ -117,7 +155,13 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
   };
 
   const refreshProfile = async () => {
-    if (session?.user) await fetchProfile(session.user.id);
+    if (session?.user) {
+        const { data } = await supabase.from("profiles").select("*").eq("user_id", session.user.id).single();
+        if (data) {
+            setProfile(data as UserProfile);
+            calculateAccess(data as UserProfile);
+        }
+    }
   };
 
   return (
