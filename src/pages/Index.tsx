@@ -100,7 +100,6 @@ const Index = () => {
                     <div className="flex justify-between items-center"><div className="h-2 w-12 bg-zinc-800 rounded-full" /><Badge className="bg-green-600 text-[10px] font-black italic">PROGRESS</Badge></div>
                     <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter uppercase leading-none text-white">SOBRECARGA<br/>CONFIRMADA</h3>
                     <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden"><div className="h-full w-4/5 bg-green-500" /></div>
-                    <div className="flex gap-2"><div className="h-8 w-8 bg-zinc-900 rounded flex items-center justify-center"><Zap className="w-4 h-4 text-yellow-500" /></div><div className="h-8 w-8 bg-zinc-900 rounded flex items-center justify-center"><Brain className="w-4 h-4 text-blue-500" /></div></div>
                 </div>
             </div>
         </div>
@@ -136,7 +135,7 @@ const Index = () => {
 
       {/* 3. LA SOLUCIÓN - ARMAS */}
       <section className="py-24 md:py-32 px-6 bg-black relative">
-         <div className="max-w-6xl mx-auto space-y-32">
+         <div className="max-w-3xl mx-auto space-y-32">
             
             <WeaponSection 
                 number="01"
@@ -149,7 +148,6 @@ const Index = () => {
                     { text: "Sin aplausos falsos. Solo la verdad cruda.", color: "text-zinc-500" }
                 ]}
                 icon={<Gavel className="w-8 h-8 text-red-600" />}
-                visual={<div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 aspect-video flex items-center justify-center"><Gavel className="w-16 h-16 text-zinc-800" /></div>}
             />
 
             <WeaponSection 
@@ -163,8 +161,6 @@ const Index = () => {
                     { text: "Evitá lesiones por fatiga acumulada.", color: "text-zinc-500" }
                 ]}
                 icon={<Activity className="w-8 h-8 text-blue-500" />}
-                visual={<div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 aspect-video flex items-center justify-center"><Activity className="w-16 h-16 text-zinc-800" /></div>}
-                reverse
             />
 
             <WeaponSection 
@@ -178,7 +174,6 @@ const Index = () => {
                     { text: "Auditoría Global cada 30 días.", color: "text-zinc-500" }
                 ]}
                 icon={<BarChart3 className="w-8 h-8 text-green-500" />}
-                visual={<div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 aspect-video flex items-center justify-center"><BarChart3 className="w-16 h-16 text-zinc-800" /></div>}
             />
          </div>
       </section>
@@ -295,22 +290,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* 7. TESTIMONIALS */}
-      <section className="py-24 md:py-32 px-6 bg-black">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-            <TestimonialCard 
-                text="Pensé que entrenaba duro hasta que la IA me empezó a marcar 'Estancado' tres veces seguidas. Tuve que dejar el ego y empezar a entrenar de verdad. Subí 8kg en sentadilla en un mes."
-                author="Julián, 28 años"
-                role="Bodybuilder Amateur"
-            />
-            <TestimonialCard 
-                text="Lo que más me gusta es que si duermo mal, la app me manda a descansar. Antes iba igual y me terminaba lesionando. Es como tener a Mike Mentzer cuidándote."
-                author="Carla, Atleta Wellness"
-                role="Competidora IFBB"
-            />
-        </div>
-      </section>
-
       {/* 8. FINAL CTA */}
       <section className="py-32 md:py-40 px-6 text-center space-y-12">
           <div className="space-y-4">
@@ -363,32 +342,26 @@ const FAQItem = ({ value, question, answer }: any) => (
     </AccordionItem>
 );
 
-const WeaponSection = ({ number, title, subtitle, desc, points, icon, visual, reverse = false }: any) => (
-    <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-16 items-center", reverse ? "lg:flex-row-reverse" : "")}>
-        <div className={cn("space-y-8", reverse ? "lg:order-2" : "")}>
-            <div className="space-y-2">
-                <span className="text-red-600 font-black italic text-5xl opacity-20">{number}</span>
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-zinc-900 rounded-xl border border-zinc-800 shadow-lg">{icon}</div>
-                    <div>
-                        <h3 className="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight">{title}</h3>
-                        <p className="text-[10px] font-black text-zinc-500 tracking-[0.2em] uppercase">{subtitle}</p>
-                    </div>
+const WeaponSection = ({ number, title, subtitle, desc, points, icon }: any) => (
+    <div className="space-y-8 max-w-2xl mx-auto">
+        <div className="space-y-2">
+            <span className="text-red-600 font-black italic text-5xl opacity-20">{number}</span>
+            <div className="flex items-center gap-4">
+                <div className="p-3 bg-zinc-900 rounded-xl border border-zinc-800 shadow-lg">{icon}</div>
+                <div>
+                    <h3 className="text-5xl font-black uppercase italic tracking-tighter text-white leading-tight">{title}</h3>
+                    <p className="text-[10px] font-black text-zinc-500 tracking-[0.2em] uppercase">{subtitle}</p>
                 </div>
             </div>
-            <p className="text-xl text-zinc-400 font-medium leading-relaxed italic">{desc}</p>
-            <ul className="space-y-3">
-                {points.map((p: any, i: number) => (
-                    <li key={i} className={cn("flex items-center gap-3 font-bold uppercase text-xs tracking-wide", p.color)}>
-                        <ChevronRight className="h-4 w-4" /> {p.text}
-                    </li>
-                ))}
-            </ul>
         </div>
-        <div className={cn("relative group", reverse ? "lg:order-1" : "")}>
-            <div className="absolute -inset-4 bg-zinc-800 blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity" />
-            <div className="relative z-10">{visual}</div>
-        </div>
+        <p className="text-xl text-zinc-400 font-medium leading-relaxed italic">{desc}</p>
+        <ul className="space-y-3">
+            {points.map((p: any, i: number) => (
+                <li key={i} className={cn("flex items-center gap-3 font-bold uppercase text-xs tracking-wide", p.color)}>
+                    <ChevronRight className="h-4 w-4" /> {p.text}
+                </li>
+            ))}
+        </ul>
     </div>
 );
 
@@ -396,21 +369,6 @@ const PricingItem = ({ text, highlight = false, disabled = false }: any) => (
     <div className={cn("flex items-center gap-3", disabled ? "opacity-30" : "opacity-100")}>
         {disabled ? <XCircle className="h-4 w-4 text-zinc-600" /> : <CheckCircle2 className={cn("h-4 w-4", highlight ? "text-red-500" : "text-zinc-500")} />}
         <span className={cn("text-xs font-bold uppercase tracking-wide", highlight ? "text-white" : "text-zinc-500")}>{text}</span>
-    </div>
-);
-
-const TestimonialCard = ({ text, author, role }: any) => (
-    <div className="bg-zinc-900/50 border border-zinc-800 p-10 rounded-3xl space-y-6 hover:border-zinc-700 transition-all group">
-        <p className="text-lg md:text-xl font-bold text-zinc-300 italic leading-relaxed">
-            "{text}"
-        </p>
-        <div className="flex items-center gap-4">
-            <div className="h-10 w-10 rounded-full bg-zinc-800 border border-zinc-700 group-hover:border-red-600 transition-colors" />
-            <div>
-                <p className="text-sm font-black uppercase italic text-white leading-none">{author}</p>
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">{role}</p>
-            </div>
-        </div>
     </div>
 );
 
