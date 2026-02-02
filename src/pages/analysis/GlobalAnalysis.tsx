@@ -17,6 +17,7 @@ import { MarkdownRenderer } from "@/components/shared/MarkdownRenderer";
 import { ProgressCharts } from "@/components/analysis/ProgressCharts";
 import { ExerciseProgressChart } from "@/components/analysis/ExerciseProgressChart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LockedFeature } from "@/components/shared/LockedFeature";
 
 export default function GlobalAnalysis() {
   const navigate = useNavigate();
@@ -90,6 +91,23 @@ export default function GlobalAnalysis() {
   };
 
   if (profileLoading) return <div className="p-8"><Skeleton className="h-40 w-full" /></div>;
+
+  if (!hasProAccess && activeTab === 'ai') {
+      return (
+        <div className="min-h-screen bg-black p-4">
+            <div className="flex items-center gap-2 mb-8">
+                <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-zinc-500">
+                    <ChevronLeft className="h-6 w-6" />
+                </Button>
+                <h1 className="text-xl font-black uppercase italic tracking-tighter text-white">Auditoría IA</h1>
+            </div>
+            <LockedFeature 
+                title="Cerebro Analítico Bloqueado" 
+                description="La auditoría de patrones requiere el procesamiento avanzado del motor PRO." 
+            />
+        </div>
+      );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pb-24 max-w-md mx-auto space-y-6">

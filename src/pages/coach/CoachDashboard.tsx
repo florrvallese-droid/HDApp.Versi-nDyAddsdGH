@@ -7,7 +7,7 @@ import { supabase } from "@/services/supabase";
 import { aiService } from "@/services/ai";
 import { 
   Users, Activity, ChevronRight, Search, Loader2, UserPlus, 
-  Settings, Briefcase, TrendingUp, Dumbbell, ClipboardCheck, AlertCircle, Cake
+  Settings, Briefcase, TrendingUp, Dumbbell, ClipboardCheck, AlertCircle, Cake, Lock
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,10 +17,11 @@ import { SmartBriefing } from "@/components/coach/SmartBriefing";
 import { cn } from "@/lib/utils";
 import { format, differenceInDays } from "date-fns";
 import { useProfile } from "@/hooks/useProfile";
+import { LockedFeature } from "@/components/shared/LockedFeature";
 
 export default function CoachDashboard() {
   const navigate = useNavigate();
-  const { profile, toggleRole } = useProfile();
+  const { profile, toggleRole, hasProAccess } = useProfile();
   
   const [data, setData] = useState<any>({
     clients: [],
@@ -34,8 +35,12 @@ export default function CoachDashboard() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
-    fetchCoachData();
-  }, []);
+    if (hasProAccess) {
+        fetchCoachData();
+    } else {
+        setLoading(false);
+    }
+  }, [hasProAccess]);
 
   const fetchCoachData = async () => {
     setLoading(true);
@@ -124,6 +129,23 @@ export default function CoachDashboard() {
         setLoadingBrief(false);
     }
   };
+
+  if (!hasProAccess) {
+      return (
+        <div className="min-h-screen bg-black flex flex-col p-4">
+            <div className="flex justify-between items-center mb-10">
+                <h1 className="text-xl font-black uppercase italic text-white">Coach Hub</h1>
+                <Button variant="outline" size="sm" onClick={toggleRole} className="bg-blue-600/10 border-blue-600/30 text-blue-500 font-black uppercase text-[10px] tracking-widest hover:bg-blue-600 hover:text-white">
+                    <Dumbbell className="w-4 h-4 mr-2" /> Modo Atleta
+                </Button>
+            </div>
+            <LockedFeature 
+                title="Centro de Mando Bloqueado" 
+                description="La gestión de equipo requiere una suscripción Coach Hub activa." 
+            />
+        </div>
+      );
+  }
 
   const filteredClients = data.clients.filter((c: any) => 
     c?.display_name?.toLowerCase().includes(searchTerm.toLowerCase())

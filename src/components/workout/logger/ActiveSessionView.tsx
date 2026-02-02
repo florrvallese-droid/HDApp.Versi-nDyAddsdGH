@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Plus, ChevronLeft, Loader2, CheckCircle2, Target, BookOpen } from "lucide-react";
+import { Plus, ChevronLeft, Loader2, CheckCircle2, Target, BookOpen, Lock } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { WorkoutExercise, UserProfile, LoggingPreference } from "@/types";
@@ -12,6 +12,8 @@ import { ExerciseSelector } from "@/components/workout/ExerciseSelector";
 import { ExerciseCard } from "./ExerciseCard";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { useProfile } from "@/hooks/useProfile";
+import { UpgradeModal } from "@/components/shared/UpgradeModal";
 
 interface ActiveSessionViewProps {
   muscleGroup: string;
@@ -23,14 +25,17 @@ interface ActiveSessionViewProps {
 
 export function ActiveSessionView({ muscleGroup, profile, loggingMode, preloadedExercises = [], onCancel }: ActiveSessionViewProps) {
   const navigate = useNavigate();
+  const { hasProAccess } = useProfile();
   const [exercises, setExercises] = useState<WorkoutExercise[]>(preloadedExercises);
   const [newExerciseName, setNewExerciseName] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingPrevious, setLoadingPrevious] = useState(false);
   
   const [showFinishModal, setShowFinishModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  // Fetch previous stats for preloaded exercises on mount
+  const EXERCISE_LIMIT = 3;
+
   useEffect(() => {
     if (preloadedExercises.length > 0) {
         loadPreviousDataForPreloaded();
@@ -71,6 +76,13 @@ export function ActiveSessionView({ muscleGroup, profile, loggingMode, preloaded
 
   const addExercise = async () => {
     if (!newExerciseName) return;
+
+    // Límite para usuarios FREE
+    if (!hasProAccess && exercises.length >= EXERCISE_LIMIT) {
+        setShowUpgradeModal(true);
+        return;
+    }
+
     setLoadingPrevious(true);
     const prevStats = await findPreviousExerciseStats(newExerciseName);
     const newEx: WorkoutExercise = {
@@ -137,6 +149,7 @@ export function ActiveSessionView({ muscleGroup, profile, loggingMode, preloaded
 
   return (
     <div className="p-4 pb-40 max-w-md mx-auto min-h-screen bg-black text-white space-y-8 relative animate-in fade-in duration-500">
+      <UpgradeModal open={showUpgradeModal} onOpenChange={setShowUpgradeModal} featureName="Ejercicios Ilimitados" />
       <RestTimer />
 
       <div className="flex items-center gap-3 border-b border-zinc-900 pb-4 sticky top-0 bg-black/80 backdrop-blur-md z-50 -mx-4 px-4 pt-2">
@@ -209,7 +222,14 @@ export function ActiveSessionView({ muscleGroup, profile, loggingMode, preloaded
           />
         ))}
 
-        <div className="pt-8 border-t border-zinc-900 bg-zinc-950/30 p-4 rounded-2xl">
+        <div className="pt-8 border-t border-zinc-900 bg-zinc-950/30 p-4 rounded-2xl relative overflow-hidden">
+          {!hasProAccess && exercises.length >= EXERCISE_LIMIT && (
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center gap-2">
+                <Lock className="h-6 w-6 text-yellow-500" />
+                <p className="text-xs font-black uppercase text-white tracking-widest">Límite alcanzado (Plan Free)</p>
+                <Button size="sm" onClick={() => setShowUpgradeModal(true)} className="bg-yellow-600 hover:bg-yellow-700 h-8 text-[10px] font-bold">DESBLOQUEAR ILIMITADO</Button>
+            </div>
+          )}
           <Label className="text-red-600 font-black uppercase text-[10px] tracking-widest mb-3 block">Próximo Ejercicio</Label>
           <div className="flex gap-2 w-full">
             <div className="flex-1">
