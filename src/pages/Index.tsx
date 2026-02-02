@@ -30,39 +30,42 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col relative selection:bg-red-500/30 font-sans overflow-x-hidden">
       
-      {/* HERO SECTION */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-            <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-red-600/10 blur-[150px] rounded-full animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-zinc-800/10 blur-[150px] rounded-full" />
-        </div>
-
-        <nav className="absolute top-0 w-full max-w-7xl mx-auto flex justify-between items-center p-6 z-50">
-            <img src="/logo.png" className="h-8 md:h-10 w-auto brightness-0 invert" alt="Heavy Duty" />
-            <div className="flex gap-4 items-center">
+      {/* NAV FIX: Sticky or absolute with enough padding */}
+      <nav className="fixed top-0 w-full bg-black/80 backdrop-blur-md border-b border-zinc-900 z-[100]">
+          <div className="max-w-7xl mx-auto flex justify-between items-center p-4 md:p-6">
+            <img src="/logo.png" className="h-7 md:h-10 w-auto brightness-0 invert" alt="Heavy Duty" />
+            <div className="flex gap-3 md:gap-4 items-center">
                 <button 
                     onClick={() => navigate("/coach-landing")}
-                    className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
+                    className="hidden sm:block text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
                 >
                     ¿Sos Preparador?
                 </button>
                 <Button 
                     variant="ghost" 
-                    className="text-zinc-300 hover:text-white font-bold uppercase text-[10px] tracking-widest border border-zinc-800 h-9"
+                    className="text-zinc-300 hover:text-white font-bold uppercase text-[9px] md:text-[10px] tracking-widest border border-zinc-800 h-8 md:h-9"
                     onClick={() => navigate("/auth")}
                 >
                     Entrar
                 </Button>
             </div>
-        </nav>
+          </div>
+      </nav>
 
-        <div className="relative z-10 max-w-5xl text-center space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-600/30 bg-red-600/5 text-red-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4">
-              <ShieldCheck className="w-3.5 h-3.5" /> TU CUADERNO DE ENTRENAMIENTO INTEGRADO CON IA
+      {/* HERO SECTION */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden pt-20 md:pt-0">
+        <div className="absolute inset-0 z-0">
+            <div className="absolute top-1/4 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-red-600/10 blur-[150px] rounded-full animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-zinc-800/10 blur-[150px] rounded-full" />
+        </div>
+
+        <div className="relative z-10 max-w-5xl text-center space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-600/30 bg-red-600/5 text-red-500 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-2 md:mb-4">
+              <ShieldCheck className="w-3 md:w-3.5 h-3 md:h-3.5" /> TU CUADERNO DE ENTRENAMIENTO INTEGRADO CON IA
            </div>
 
-           <div className="space-y-6">
-              <h1 className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter uppercase italic leading-[0.85] text-white">
+           <div className="space-y-4 md:space-y-6">
+              <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter uppercase italic leading-[0.9] text-white">
                 MEDÍ TU PROGRESO <br/>
                 <span className="text-red-600">REAL,</span> NO TUS <br/>
                 <span className="text-zinc-800">SENSACIONES.</span>
@@ -70,30 +73,30 @@ const Index = () => {
            </div>
 
            <div className="space-y-4 max-w-2xl mx-auto">
-              <p className="text-lg md:text-xl text-zinc-400 font-bold uppercase italic tracking-tight leading-relaxed">
+              <p className="text-base md:text-xl text-zinc-400 font-bold uppercase italic tracking-tight leading-relaxed px-4">
                 Te matás entrenando, comés bien y descansás... pero el espejo te devuelve la misma imagen hace meses. 
                 <span className="text-white"> Dejá de tirar tu tiempo a la basura persiguiendo sensaciones </span> 
                 y empezá a construir un cuerpo real con la única verdad que no miente: los datos.
               </p>
            </div>
 
-           <div className="pt-8 flex flex-col items-center gap-4">
+           <div className="pt-6 md:pt-8 flex flex-col items-center gap-4">
               <Button 
                 size="lg" 
-                className="h-20 px-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic text-2xl shadow-[0_0_50px_rgba(220,38,38,0.3)] border-2 border-red-400/20 rounded-xl group transition-all"
+                className="h-16 md:h-20 px-8 md:px-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic text-xl md:text-2xl shadow-[0_0_50px_rgba(220,38,38,0.3)] border-2 border-red-400/20 rounded-xl group transition-all"
                 onClick={() => navigate("/auth")}
               >
                 PROBAR PRO (7 DÍAS GRATIS)
-                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-3 h-5 md:h-6 w-5 md:w-6 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest italic">Inversión inteligente. Resultados tangibles.</p>
+              <p className="text-[9px] md:text-[10px] text-zinc-600 uppercase font-black tracking-widest italic text-center">Inversión inteligente. Resultados tangibles.</p>
            </div>
         </div>
       </section>
 
       {/* CORE FEATURES DETAIL */}
-      <section className="py-24 px-6 bg-zinc-950 border-y border-zinc-900">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+      <section className="py-20 md:py-24 px-6 bg-zinc-950 border-y border-zinc-900">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
             <FeatureCard 
                 icon={<Brain className="w-8 h-8 text-red-600" />}
                 title="Bio-Stop SNC"
@@ -113,11 +116,11 @@ const Index = () => {
       </section>
 
       {/* ROI / COMPARISON BLOCK */}
-      <section className="py-24 md:py-32 px-6 bg-black">
-        <div className="max-w-4xl mx-auto space-y-16">
+      <section className="py-20 md:py-32 px-6 bg-black">
+        <div className="max-w-4xl mx-auto space-y-12 md:space-y-16">
             <div className="text-center space-y-4">
-                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter">PONÉ TU DINERO DONDE <br/><span className="text-red-600">QUERÉS VER RESULTADOS</span></h2>
-                <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.3em]">COSTO DE OPORTUNIDAD VS. RESULTADOS REALES</p>
+                <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter">PONÉ TU DINERO DONDE <br/><span className="text-red-600">QUERÉS VER RESULTADOS</span></h2>
+                <p className="text-zinc-500 font-bold uppercase text-[9px] md:text-[10px] tracking-[0.3em]">COSTO DE OPORTUNIDAD VS. RESULTADOS REALES</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -150,14 +153,14 @@ const Index = () => {
       </section>
 
       {/* PRICING TABLE SECTION */}
-      <section id="pricing" className="py-24 md:py-32 px-6 bg-zinc-950 border-y border-zinc-900">
-        <div className="max-w-5xl mx-auto space-y-16">
+      <section id="pricing" className="py-20 md:py-32 px-6 bg-zinc-950 border-y border-zinc-900">
+        <div className="max-w-5xl mx-auto space-y-12 md:space-y-16">
             <div className="text-center space-y-2">
-                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter">ELEGÍ TU NIVEL DE COMPROMISO</h2>
-                <div className="h-1 w-24 bg-red-600 mx-auto" />
+                <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter">ELEGÍ TU NIVEL DE COMPROMISO</h2>
+                <div className="h-1 w-20 md:w-24 bg-red-600 mx-auto" />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch pt-8 md:pt-0">
                 
                 {/* BASIC */}
                 <Card className="bg-zinc-950 border border-zinc-900 flex flex-col overflow-hidden opacity-80">
@@ -181,7 +184,7 @@ const Index = () => {
                 </Card>
 
                 {/* HEAVY DUTY PRO */}
-                <Card className="bg-black border-2 border-red-600 flex flex-col overflow-hidden relative shadow-[0_0_80px_rgba(220,38,38,0.15)] scale-105 z-10">
+                <Card className="bg-black border-2 border-red-600 flex flex-col overflow-hidden relative shadow-[0_0_80px_rgba(220,38,38,0.15)] md:scale-105 z-10">
                     <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black uppercase px-4 py-1.5 rounded-bl-lg tracking-[0.2em] z-20 shadow-xl">RECOMENDADO</div>
                     <CardHeader className="text-center pb-8 border-b border-red-900/20 bg-red-600/5">
                         <CardTitle className="text-xs font-black uppercase tracking-[0.3em] text-red-500">HEAVY DUTY PRO</CardTitle>
@@ -206,7 +209,7 @@ const Index = () => {
                 </Card>
 
                 {/* ANUAL */}
-                <Card className="bg-zinc-950 border border-zinc-900 flex flex-col overflow-hidden">
+                <Card className="bg-zinc-950 border border-zinc-900 flex flex-col overflow-hidden mt-4 md:mt-0">
                     <CardHeader className="text-center pb-8 border-b border-zinc-900 bg-zinc-900/20">
                         <CardTitle className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400">ANUAL</CardTitle>
                         <div className="pt-4 flex flex-col gap-1">
@@ -229,56 +232,56 @@ const Index = () => {
       </section>
 
       {/* FAQ SECTION */}
-      <section className="py-24 md:py-32 px-6 bg-black border-t border-zinc-900">
-        <div className="max-w-4xl mx-auto space-y-16">
+      <section className="py-20 md:py-32 px-6 bg-black border-t border-zinc-900">
+        <div className="max-w-4xl mx-auto space-y-12 md:space-y-16">
             <div className="text-center space-y-2">
-                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">PREGUNTAS <br/><span className="text-red-600">FRECUENTES</span></h2>
-                <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.3em]">DECISIONES BASADAS EN DATOS</p>
+                <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">PREGUNTAS <br/><span className="text-red-600">FRECUENTES</span></h2>
+                <p className="text-zinc-500 font-bold uppercase text-[9px] md:text-[10px] tracking-[0.3em]">DECISIONES BASADAS EN DATOS</p>
             </div>
 
             <Accordion type="single" collapsible className="w-full space-y-4">
                 
-                <AccordionItem value="q1" className="border border-red-600/20 bg-red-600/5 rounded-2xl px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6 text-left leading-snug">
+                <AccordionItem value="q1" className="border border-red-600/20 bg-red-600/5 rounded-2xl px-4 md:px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
                         1. ¿Por qué cuesta $28.500? Me parece caro para una app.
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-xs font-medium border-t border-red-600/10 pt-4">
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-[11px] md:text-xs font-medium border-t border-red-600/10 pt-4">
                         No estás pagando por una "app para anotar pesas". Estás pagando por un Motor de Inteligencia Artificial que hace el trabajo técnico de un entrenador humano. Un buen coach te cobra $150.000 al mes. Nosotros te damos la misma auditoría de sobrecarga y control de fatiga por el 20% de ese valor. Es una decisión de inteligencia financiera.
                     </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="q2" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6 text-left leading-snug">
+                <AccordionItem value="q2" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-4 md:px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
                         2. No tengo Coach y entreno solo. ¿Esto me sirve?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-xs font-medium pt-2">
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-[11px] md:text-xs font-medium pt-2">
                         Es exactamente para vos. El problema de entrenar solo es que nadie te dice "eso fue basura" o "hoy descansá". La IA ocupa ese lugar. Es tu Auditor Silencioso que te dice en tiempo real si tu serie fue efectiva o no.
                     </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="q3" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6 text-left leading-snug">
+                <AccordionItem value="q3" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-4 md:px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
                         3. ¿Es obligatorio entrenar con el sistema Heavy Duty?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-xs font-medium pt-2">
-                        La filosofía es la Alta Intensidad, pero la física es universal. Si hacés PPL, Upper/Lower o Frecuencia 2, la herramienta te sirve igual porque lo que medimos es la Sobrecarga Progresiva. Si no estás subiendo cargas o repeticiones, no estás creciendo.
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-[11px] md:text-xs font-medium pt-2">
+                        La filosofía es la Alta Intensidad, pero la física es universal. Si hacés PPL, Upper/Lower o Frecuencia 2, la herramienta te sirve igual porque lo que medimos es la Sobrecarga Progresiva. Si no estás su biendo cargas o repeticiones, no estás creciendo.
                     </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="q4" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6 text-left leading-snug">
+                <AccordionItem value="q4" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-4 md:px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
                         4. ¿La IA es un chat? ¿Tengo que hablarle?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-xs font-medium pt-2">
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-[11px] md:text-xs font-medium pt-2">
                         No. No venís al gimnasio a chatear. La IA es automática. Vos cargás tus datos y ella te devuelve Dictámenes. Es un semáforo de rendimiento visual y sin vueltas.
                     </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="q5" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm py-6 text-left leading-snug">
+                <AccordionItem value="q5" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-4 md:px-6">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
                         5. ¿Qué es el "Bio-Stop" y por qué no me deja entrenar?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-xs font-medium pt-2">
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-[11px] md:text-xs font-medium pt-2">
                         Es nuestro sistema de seguridad biológica. Si tu Sistema Nervioso Central (SNC) está "frito" por falta de sueño o exceso de estrés, la App te bloquea el entrenamiento pesado para evitar lesiones y sobreentrenamiento. Te enseñamos a descansar para crecer.
                     </AccordionContent>
                 </AccordionItem>
@@ -288,7 +291,7 @@ const Index = () => {
 
       <footer className="p-12 text-center border-t border-zinc-900 bg-black">
         <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-20 mx-auto mb-8" alt="Logo" />
-        <p className="text-zinc-800 text-[10px] font-mono tracking-[0.4em] uppercase">
+        <p className="text-zinc-800 text-[9px] md:text-[10px] font-mono tracking-[0.4em] uppercase">
           &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — High Performance Software v1.1
         </p>
       </footer>
@@ -298,22 +301,22 @@ const Index = () => {
 
 const ComparisonBox = ({ icon, title, price, duration, outcome, highlight = false, negative = false }: any) => (
     <div className={cn(
-        "p-8 rounded-3xl border flex flex-col items-center text-center gap-4 transition-all",
+        "p-6 md:p-8 rounded-3xl border flex flex-col items-center text-center gap-4 transition-all",
         highlight ? "bg-red-600/5 border-red-600/30 shadow-2xl" : "bg-zinc-950 border-zinc-900 opacity-60"
     )}>
         <div className="p-3 bg-zinc-900 rounded-xl mb-2">{icon}</div>
         <div className="space-y-1">
-            <h4 className="text-sm font-black uppercase tracking-widest text-white">{title}</h4>
+            <h4 className="text-xs md:text-sm font-black uppercase tracking-widest text-white">{title}</h4>
             <div className="flex items-center justify-center gap-2">
-                <span className={cn("text-2xl font-black", negative ? "text-zinc-500" : "text-red-600")}>{price}</span>
-                <span className="text-[10px] font-bold text-zinc-600 uppercase">/ {duration}</span>
+                <span className={cn("text-xl md:text-2xl font-black", negative ? "text-zinc-500" : "text-red-600")}>{price}</span>
+                <span className="text-[9px] md:text-[10px] font-bold text-zinc-600 uppercase">/ {duration}</span>
             </div>
         </div>
-        <p className={cn("text-xs font-medium leading-relaxed uppercase tracking-tighter", highlight ? "text-zinc-300" : "text-zinc-600")}>
+        <p className={cn("text-[11px] md:text-xs font-medium leading-relaxed uppercase tracking-tighter", highlight ? "text-zinc-300" : "text-zinc-600")}>
             {outcome}
         </p>
         {highlight && (
-            <div className="mt-2 text-[10px] font-black uppercase text-red-500 tracking-widest animate-pulse">
+            <div className="mt-2 text-[9px] font-black uppercase text-red-500 tracking-widest animate-pulse">
                 DECISIÓN INTELIGENTE
             </div>
         )}
@@ -321,17 +324,17 @@ const ComparisonBox = ({ icon, title, price, duration, outcome, highlight = fals
 );
 
 const FeatureCard = ({ icon, title, desc }: any) => (
-    <div className="space-y-6 p-8 rounded-3xl bg-zinc-900/30 border border-zinc-900 hover:border-red-600/30 transition-all group">
+    <div className="space-y-4 md:space-y-6 p-6 md:p-8 rounded-3xl bg-zinc-900/30 border border-zinc-900 hover:border-red-600/30 transition-all group">
         <div className="p-3 bg-black rounded-xl border border-zinc-800 w-fit group-hover:scale-110 transition-transform">{icon}</div>
-        <h3 className="text-2xl font-black uppercase italic text-white tracking-tighter">{title}</h3>
-        <p className="text-zinc-500 text-sm leading-relaxed">{desc}</p>
+        <h3 className="text-xl md:text-2xl font-black uppercase italic text-white tracking-tighter">{title}</h3>
+        <p className="text-zinc-500 text-xs md:text-sm leading-relaxed">{desc}</p>
     </div>
 );
 
 const PricingFeature = ({ text, active = true, highlight = false, color = "text-zinc-500" }: any) => (
     <div className={cn("flex items-center gap-3", !active && "opacity-20")}>
-        {active ? <CheckCircle2 className={cn("h-4 w-4", highlight ? color : "text-zinc-600")} /> : <XCircle className="h-4 w-4 text-zinc-700" />}
-        <span className={cn("text-[10px] font-black uppercase tracking-widest", active ? "text-zinc-200" : "text-zinc-700", highlight && color)}>{text}</span>
+        {active ? <CheckCircle2 className={cn("h-3.5 md:h-4 w-3.5 md:w-4", highlight ? color : "text-zinc-600")} /> : <XCircle className="h-3.5 md:h-4 w-3.5 md:w-4 text-zinc-700" />}
+        <span className={cn("text-[9px] md:text-[10px] font-black uppercase tracking-widest", active ? "text-zinc-200" : "text-zinc-700", highlight && color)}>{text}</span>
     </div>
 );
 

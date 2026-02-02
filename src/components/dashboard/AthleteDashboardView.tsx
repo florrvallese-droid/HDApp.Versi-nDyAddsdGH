@@ -92,12 +92,15 @@ export default function AthleteDashboardView() {
   const currentPhase = profile?.settings?.nutrition?.phase_goal;
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 pb-24 flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white p-4 pb-24 space-y-6 relative overflow-x-hidden">
       
-      <div className="absolute top-4 left-4 right-4 z-50 flex justify-between items-center">
+      {/* HEADER: Relative instead of Absolute for better flow */}
+      <div className="flex justify-between items-center py-2">
         <div className="flex items-center gap-2">
-            {profile?.avatar_url && <img src={profile.avatar_url} className="w-8 h-8 rounded-full border border-zinc-800" />}
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{profile?.display_name}</span>
+            <div className="h-8 w-8 rounded-full border border-zinc-800 overflow-hidden bg-zinc-900 flex items-center justify-center">
+                {profile?.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" /> : <Users className="h-4 w-4 text-zinc-700" />}
+            </div>
+            <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest truncate max-w-[100px]">{profile?.display_name}</span>
         </div>
         <div className="flex gap-2">
             {profile?.is_coach && (
@@ -105,25 +108,25 @@ export default function AthleteDashboardView() {
                     variant="outline" 
                     size="sm" 
                     onClick={toggleRole}
-                    className="bg-red-600/10 border-red-600/30 text-red-500 font-black uppercase text-[10px] tracking-widest hover:bg-red-600 hover:text-white"
+                    className="bg-red-600/10 border-red-600/30 text-red-500 font-black uppercase text-[10px] tracking-widest hover:bg-red-600 hover:text-white h-9"
                 >
                     <Users className="w-3 h-3 mr-1.5" /> Modo Coach
                 </Button>
             )}
-            <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-zinc-500 bg-black/20 backdrop-blur-sm rounded-full"><Settings className="w-5 h-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-zinc-500 bg-zinc-900/50 backdrop-blur-sm rounded-full border border-zinc-800 h-9 w-9"><Settings className="w-4 h-4" /></Button>
         </div>
       </div>
 
-      <div className="w-full max-w-md space-y-6 relative z-10">
+      <div className="w-full max-w-md mx-auto space-y-6">
         
         {/* COACH UPDATES */}
         {notifications.map(n => (
            <div key={n.id} className="bg-red-600/10 border border-red-600/30 p-4 rounded-xl animate-in slide-in-from-top-2">
               <div className="flex justify-between items-start mb-1">
-                 <p className="text-xs font-black uppercase text-red-500 flex items-center gap-2">
+                 <p className="text-[10px] font-black uppercase text-red-500 flex items-center gap-2">
                     <Bell className="w-3 h-3" /> Alerta de Coach
                  </p>
-                 <button onClick={() => markAsRead(n.id)} className="text-[10px] text-zinc-500 uppercase font-bold hover:text-white">Cerrar</button>
+                 <button onClick={() => markAsRead(n.id)} className="text-[9px] text-zinc-500 uppercase font-bold hover:text-white">Cerrar</button>
               </div>
               <p className="text-sm font-bold text-white leading-tight">{n.message}</p>
               <p className="text-[9px] text-zinc-500 mt-2 font-mono">{format(new Date(n.created_at), "d MMM, HH:mm", { locale: es })}</p>
@@ -134,7 +137,7 @@ export default function AthleteDashboardView() {
 
         {/* PLAN ACTUAL / COACH SECTION */}
         {coachBrand && (
-            <Card className="bg-zinc-950 border-zinc-900 overflow-hidden">
+            <Card className="bg-zinc-950 border-zinc-900 overflow-hidden shadow-2xl">
                 <CardContent className="p-0">
                     <div className="bg-zinc-900/50 p-4 border-b border-zinc-900 flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -183,10 +186,10 @@ export default function AthleteDashboardView() {
             </Card>
         )}
 
-        <div className="bg-black border border-zinc-900 rounded-2xl p-6 md:p-8 shadow-2xl flex flex-col gap-6">
+        <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 md:p-8 shadow-[0_0_50px_rgba(0,0,0,1)] flex flex-col gap-6">
             <div className="flex flex-col items-center gap-1">
-            <h2 className="text-lg font-black uppercase tracking-wider text-white text-center">BITÁCORA DE ENTRENAMIENTO</h2>
-            <div className="w-24 h-1 bg-red-600 rounded-full" />
+            <h2 className="text-base font-black uppercase tracking-[0.2em] text-white text-center">BITÁCORA DE ENTRENAMIENTO</h2>
+            <div className="w-16 h-1 bg-red-600 rounded-full" />
             </div>
 
             <button
@@ -205,7 +208,7 @@ export default function AthleteDashboardView() {
 
             <div className="pt-2 border-t border-zinc-900">
             <Button 
-                className="w-full h-14 bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold uppercase tracking-widest flex items-center justify-center gap-3" 
+                className="w-full h-14 bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-zinc-800" 
                 onClick={() => setShowCheckinModal(true)}
             >
                 <ClipboardCheck className="h-5 w-5 text-green-500" />
@@ -232,8 +235,8 @@ export default function AthleteDashboardView() {
 }
 
 const DashboardBtn = ({ icon, label, onClick }: any) => (
-  <button onClick={onClick} className="flex items-center justify-center gap-2 bg-zinc-950 border border-zinc-800 hover:border-zinc-700 rounded-lg py-4 transition-all">
-    <div className="w-4 h-4">{icon}</div>
-    <span className="font-bold text-[10px] uppercase tracking-wider">{label}</span>
+  <button onClick={onClick} className="flex items-center justify-center gap-2 bg-zinc-900/40 border border-zinc-900 hover:border-zinc-800 rounded-lg py-4 transition-all">
+    <div className="w-3.5 h-3.5">{icon}</div>
+    <span className="font-bold text-[9px] md:text-[10px] uppercase tracking-wider">{label}</span>
   </button>
 );
