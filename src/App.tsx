@@ -9,6 +9,7 @@ import { ProfileProvider } from "@/contexts/ProfileContext";
 import Index from "@/pages/Index";
 import CoachLanding from "@/pages/landing/CoachLanding";
 import Auth from "@/pages/auth/Auth";
+import Onboarding from "./pages/onboarding/Onboarding";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import WorkoutLogger from "@/pages/workout/WorkoutLogger";
 import PostWorkout from "@/pages/workout/PostWorkout";
@@ -51,9 +52,9 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/coach-landing" element={<CoachLanding />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/onboarding" element={<Onboarding />} />
 
               <Route element={<AppLayout />}>
-                {/* Entorno Atleta */}
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/workout" element={<WorkoutLogger />} />
                 <Route path="/nutrition" element={<Nutrition />} />
@@ -61,8 +62,6 @@ const App = () => {
                 <Route path="/analysis" element={<GlobalAnalysis />} />
                 <Route path="/pharmacology" element={<Pharmacology />} />
                 <Route path="/settings" element={<Settings />} />
-                
-                {/* Entorno Coach */}
                 <Route path="/coach" element={<CoachDashboard />} />
                 <Route path="/coach/athlete/:athleteId" element={<CoachAthleteDetail />} />
                 <Route path="/coach/business" element={<CoachBusiness />} />
