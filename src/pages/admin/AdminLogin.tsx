@@ -13,25 +13,47 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  // Si ya tiene sesión, verificar si es admin y redirigir
+  useEffect(() => {
+    const checkCurrentSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('is_admin')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+            
+            if (profile?.is_admin) {
+                navigate('/admin');
+            }
+        }
+    };
+    checkCurrentSession();
+  }, [navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
       if (error) {
-        if (error.message.includes("Email not confirmed")) {
-            throw new Error("El email aún no ha sido confirmado. Revisá tu casilla.");
+        // Errores comunes de Supabase Auth
+        if (error.message.toLowerCase().includes("invalid login credentials")) {
+            throw new Error("El correo o la contraseña no coinciden. Verificá que el email esté confirmado.");
+        }
+        if (error.message.toLowerCase().includes("email not confirmed")) {
+            throw new Error("El email aún no ha sido confirmado. Revisá tu casilla de SPAM.");
         }
         throw error;
       }
 
       if (data.user) {
-        // Buscamos el perfil directamente
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('is_admin')
