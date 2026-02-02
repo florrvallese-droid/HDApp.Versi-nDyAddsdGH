@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
     ChevronLeft, Briefcase, Plus, Trash2, Save, Loader2, 
     Instagram, MessageCircle, Globe, DollarSign, Award, Settings, Info, BookOpen, Brain, TrendingUp,
-    Sparkles, Share2, Image as ImageIcon, Camera, Library, Users, UserPlus, Building2
+    Sparkles, Share2, Image as ImageIcon, Camera, Library, Users, UserPlus, Building2, Lock
 } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { SocialMediaManager } from "@/components/coach/SocialMediaManager";
 import { TemplateLibrary } from "@/components/coach/TemplateLibrary";
 import { uploadBrandLogo } from "@/services/storage";
+import { LockedFeature } from "@/components/shared/LockedFeature";
 
 export default function CoachBusiness() {
   const navigate = useNavigate();
@@ -41,6 +42,9 @@ export default function CoachBusiness() {
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
   const [inviteEmail, setInviteEmail] = useState("");
 
+  // Check if is "Diamond" (Agency)
+  const isAgency = profile?.business_info?.plan_tier === 'agency' || profile?.is_admin;
+
   useEffect(() => {
     if (profile?.business_info) {
         const info = profile.business_info;
@@ -51,7 +55,6 @@ export default function CoachBusiness() {
         setWhatsapp(info.whatsapp || "");
         setSpecialty(info.specialty || "");
         setPlans(info.plans || []);
-        // Load simulated team (in real app this would be a relation)
         if (info.team_invites) setTeamMembers(info.team_invites);
     }
   }, [profile]);
@@ -111,7 +114,7 @@ export default function CoachBusiness() {
     if(!inviteEmail) return;
     setTeamMembers([...teamMembers, inviteEmail]);
     setInviteEmail("");
-    toast.success("Invitación registrada (Simulación)");
+    toast.success("Invitación registrada");
   };
 
   const removeCoach = (email: string) => {
@@ -145,7 +148,6 @@ export default function CoachBusiness() {
         </TabsList>
 
         <TabsContent value="strategy" className="space-y-8 animate-in slide-in-from-left-2">
-            {/* QUICK ACCESS TO AUDIT */}
             <Card className="bg-red-600/10 border-red-600/30 overflow-hidden group">
                 <CardContent className="p-0">
                     <button 
@@ -222,54 +224,63 @@ export default function CoachBusiness() {
         </TabsContent>
 
         <TabsContent value="team" className="animate-in slide-in-from-right-2 space-y-6">
-            <Card className="bg-zinc-950 border-zinc-900">
-                <CardHeader>
-                    <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-blue-500" /> Staff & Coaches
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                        Agrega entrenadores adjuntos a tu agencia.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="flex gap-2">
-                        <Input 
-                            value={inviteEmail} 
-                            onChange={(e) => setInviteEmail(e.target.value)} 
-                            placeholder="email.coach@ejemplo.com"
-                            className="bg-zinc-900 border-zinc-800"
-                        />
-                        <Button onClick={inviteCoach} className="bg-blue-600 hover:bg-blue-700 text-white font-bold uppercase text-xs">
-                            <UserPlus className="h-4 w-4 mr-2" /> Invitar
-                        </Button>
-                    </div>
+            {!isAgency ? (
+                <div className="pt-10">
+                    <LockedFeature 
+                        title="Gestión de Equipo Bloqueada" 
+                        description="La capacidad de invitar otros coaches y delegar alumnos es exclusiva para el Plan Agency (Diamante)." 
+                    />
+                </div>
+            ) : (
+                <Card className="bg-zinc-950 border-zinc-900">
+                    <CardHeader>
+                        <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                            <Building2 className="h-4 w-4 text-blue-500" /> Staff & Coaches
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                            Agrega entrenadores adjuntos a tu agencia.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="flex gap-2">
+                            <Input 
+                                value={inviteEmail} 
+                                onChange={(e) => setInviteEmail(e.target.value)} 
+                                placeholder="email.coach@ejemplo.com"
+                                className="bg-zinc-900 border-zinc-800"
+                            />
+                            <Button onClick={inviteCoach} className="bg-blue-600 hover:bg-blue-700 text-white font-bold uppercase text-xs">
+                                <UserPlus className="h-4 w-4 mr-2" /> Invitar
+                            </Button>
+                        </div>
 
-                    <div className="space-y-2">
-                        {teamMembers.length === 0 ? (
-                            <div className="text-center py-8 border border-dashed border-zinc-900 rounded-xl">
-                                <p className="text-zinc-600 text-xs font-bold uppercase">No hay coaches invitados</p>
-                            </div>
-                        ) : (
-                            teamMembers.map((email, i) => (
-                                <div key={i} className="flex justify-between items-center p-3 bg-zinc-900/50 rounded-lg border border-zinc-900">
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-zinc-800 p-2 rounded-full"><Users className="h-4 w-4 text-zinc-400" /></div>
-                                        <span className="text-sm font-bold text-zinc-300">{email}</span>
-                                    </div>
-                                    <Button variant="ghost" size="icon" onClick={() => removeCoach(email)} className="h-8 w-8 text-zinc-600 hover:text-red-500">
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                        <div className="space-y-2">
+                            {teamMembers.length === 0 ? (
+                                <div className="text-center py-8 border border-dashed border-zinc-900 rounded-xl">
+                                    <p className="text-zinc-600 text-xs font-bold uppercase">No hay coaches invitados</p>
                                 </div>
-                            ))
-                        )}
-                    </div>
-                </CardContent>
-                <CardFooter>
-                    <Button onClick={handleSave} disabled={loading} className="w-full bg-zinc-100 hover:bg-white text-black font-black uppercase text-xs tracking-widest">
-                        {loading ? "..." : "GUARDAR CAMBIOS EQUIPO"}
-                    </Button>
-                </CardFooter>
-            </Card>
+                            ) : (
+                                teamMembers.map((email, i) => (
+                                    <div key={i} className="flex justify-between items-center p-3 bg-zinc-900/50 rounded-lg border border-zinc-900">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-zinc-800 p-2 rounded-full"><Users className="h-4 w-4 text-zinc-400" /></div>
+                                            <span className="text-sm font-bold text-zinc-300">{email}</span>
+                                        </div>
+                                        <Button variant="ghost" size="icon" onClick={() => removeCoach(email)} className="h-8 w-8 text-zinc-600 hover:text-red-500">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                        <Button onClick={handleSave} disabled={loading} className="w-full bg-zinc-100 hover:bg-white text-black font-black uppercase text-xs tracking-widest">
+                            {loading ? "..." : "GUARDAR CAMBIOS EQUIPO"}
+                        </Button>
+                    </CardFooter>
+                </Card>
+            )}
         </TabsContent>
 
         <TabsContent value="library" className="animate-in slide-in-from-right-2">

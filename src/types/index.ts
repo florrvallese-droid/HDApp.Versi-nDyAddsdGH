@@ -30,6 +30,7 @@ export interface UserProfile {
     instagram?: string;
     whatsapp?: string;
     specialty?: string;
+    plan_tier?: 'starter' | 'hub' | 'agency'; // Nivel de suscripción del coach
     plans?: Array<{
       name: string;
       price: string;
