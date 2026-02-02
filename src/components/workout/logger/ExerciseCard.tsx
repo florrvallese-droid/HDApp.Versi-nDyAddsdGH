@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Link2, Trash2, Trophy, Pencil, ArrowUp, ArrowDown, ChevronRight, CornerDownRight, Check, X } from "lucide-react";
+import { Link2, Trash2, Trophy, Pencil, ArrowUp, ArrowDown, ChevronRight, CornerDownRight, Check, X, Skull } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WorkoutExercise, WorkoutSet, UnitSystem } from "@/types";
@@ -84,7 +84,9 @@ export function ExerciseCard({
       )}
 
       {exercise.sets.map((set, si) => (
-        <div key={si} className="bg-zinc-900/50 border border-zinc-800 p-3 rounded group">
+        <div key={si} className="bg-zinc-900/50 border border-zinc-800 p-3 rounded group relative overflow-hidden">
+          {set.is_failure && <div className="absolute top-0 right-0 w-3 h-3 bg-red-600 rounded-bl-md" />}
+          
           <div className="flex items-start justify-between">
             <div className="flex gap-4 items-center flex-1">
               <div className="flex flex-col">
@@ -98,7 +100,10 @@ export function ExerciseCard({
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] text-zinc-500 uppercase font-bold">Reps</span>
-                <span className="text-xl font-bold text-white">{set.reps}</span>
+                <span className="text-xl font-bold text-white flex items-center gap-1">
+                    {set.reps}
+                    {set.is_failure && <Skull className="h-3 w-3 text-red-600" />}
+                </span>
               </div>
               <div className="flex flex-wrap gap-1 max-w-[100px]">
                 {set.techniques?.map(tech => (

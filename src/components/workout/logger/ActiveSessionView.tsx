@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Plus, ChevronLeft, Loader2, CheckCircle2, Target, BookOpen, Lock } from "lucide-react";
+import { Plus, ChevronLeft, Loader2, CheckCircle2, Target, BookOpen, WifiOff } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { WorkoutExercise, UserProfile, LoggingPreference } from "@/types";
@@ -13,7 +13,6 @@ import { ExerciseCard } from "./ExerciseCard";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useProfile } from "@/hooks/useProfile";
-import { UpgradeModal } from "@/components/shared/UpgradeModal";
 
 interface ActiveSessionViewProps {
   muscleGroup: string;
@@ -26,15 +25,38 @@ interface ActiveSessionViewProps {
 export function ActiveSessionView({ muscleGroup, profile, loggingMode, preloadedExercises = [], onCancel }: ActiveSessionViewProps) {
   const navigate = useNavigate();
   const { hasProAccess } = useProfile();
-  const [exercises, setExercises] = useState<WorkoutExercise[]>(preloadedExercises);
+  
+  // Initialize state from props or localStorage fallback
+  const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
+    const saved = localStorage.getItem(`hd_active_session_${muscleGroup}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Only recover if it looks valid and is recent (optional: add timestamp check)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error("Error recovering session", e);
+      }
+    }
+    return preloadedExercises;
+  });
+
   const [newExerciseName, setNewExerciseName] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingPrevious, setLoadingPrevious] = useState(false);
-  
   const [showFinishModal, setShowFinishModal] = useState(false);
 
+  // Persistence Effect: Save to LocalStorage on every change
   useEffect(() => {
-    if (preloadedExercises.length > 0) {
+    if (exercises.length > 0) {
+      localStorage.setItem(`hd_active_session_${muscleGroup}`, JSON.stringify(exercises));
+    }
+  }, [exercises, muscleGroup]);
+
+  useEffect(() => {
+    // Only load previous stats if we didn't recover from local storage
+    const saved = localStorage.getItem(`hd_active_session_${muscleGroup}`);
+    if (!saved && preloadedExercises.length > 0) {
         loadPreviousDataForPreloaded();
     }
   }, []);
@@ -51,22 +73,26 @@ export function ActiveSessionView({ muscleGroup, profile, loggingMode, preloaded
   };
 
   const findPreviousExerciseStats = async (exerciseName: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
 
-    const { data } = await supabase
-      .from('logs')
-      .select('data')
-      .eq('user_id', user.id)
-      .eq('type', 'workout')
-      .order('created_at', { ascending: false })
-      .limit(10);
+      const { data } = await supabase
+        .from('logs')
+        .select('data')
+        .eq('user_id', user.id)
+        .eq('type', 'workout')
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-    if (!data) return null;
+      if (!data) return null;
 
-    for (const log of data) {
-      const ex = log.data.exercises?.find((e: any) => e.name.toLowerCase() === exerciseName.toLowerCase());
-      if (ex) return ex;
+      for (const log of data) {
+        const ex = log.data.exercises?.find((e: any) => e.name.toLowerCase() === exerciseName.toLowerCase());
+        if (ex) return ex;
+      }
+    } catch (e) {
+      console.warn("Could not fetch previous stats (offline?)");
     }
     return null;
   };
@@ -105,7 +131,7 @@ export function ActiveSessionView({ muscleGroup, profile, loggingMode, preloaded
 
       const totalSets = exercises.reduce((acc, ex) => acc + (ex.sets?.length || 0), 0);
       
-      await supabase.from('logs').insert({
+      const { error } = await supabase.from('logs').insert({
         user_id: user.id,
         type: 'workout',
         muscle_group: muscleGroup,
@@ -118,7 +144,12 @@ export function ActiveSessionView({ muscleGroup, profile, loggingMode, preloaded
         discipline: profile?.discipline || 'general'
       });
 
-      toast.success("Sesión Finalizada");
+      if (error) throw error;
+
+      // SUCCESS: Clear local backup
+      localStorage.removeItem(`hd_active_session_${muscleGroup}`);
+      
+      toast.success("Sesión Finalizada y Sincronizada");
       navigate('/workout/analysis', { 
         state: { 
           workoutData: { 
@@ -130,7 +161,15 @@ export function ActiveSessionView({ muscleGroup, profile, loggingMode, preloaded
         } 
       });
     } catch (err: any) {
-      toast.error(err.message);
+      console.error(err);
+      // OFFLINE HANDLING
+      toast.error("Error de conexión. Datos guardados localmente.", {
+        description: "No cierres sesión. Reintenta cuando tengas señal.",
+        duration: 5000,
+        icon: <WifiOff className="h-5 w-5 text-red-500" />
+      });
+      // We do NOT clear localStorage here, allowing the user to retry later or keeping it for recovery
+      setShowFinishModal(false);
     } finally {
       setLoading(false);
     }
@@ -252,7 +291,7 @@ export function ActiveSessionView({ muscleGroup, profile, loggingMode, preloaded
           </div>
           <DialogFooter>
              <Button className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-black uppercase tracking-widest" onClick={finishWorkout} disabled={loading}>
-                {loading ? "PROCESANDO..." : "GUARDAR Y ANALIZAR"}
+                {loading ? "Sincronizando..." : "GUARDAR Y ANALIZAR"}
              </Button>
           </DialogFooter>
         </DialogContent>

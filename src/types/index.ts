@@ -183,6 +183,7 @@ export interface WorkoutSet {
   tempo?: string;
   rest_seconds?: number;
   rpe?: number;
+  is_failure?: boolean; // NEW: Critical for HD System
   is_unilateral?: boolean; 
   techniques?: string[];
   technique_counts?: Record<string, number>;

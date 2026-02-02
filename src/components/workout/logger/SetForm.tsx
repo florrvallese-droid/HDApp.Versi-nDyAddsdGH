@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Skull } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IntensitySelector, getTechColor, getTechLabel } from "./IntensitySelector";
 import { WorkoutSet, UnitSystem, SetExtension } from "@/types";
@@ -26,6 +26,7 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
   const [tempo, setTempo] = useState(defaultValues?.tempo || "3-0-1");
   const [rest, setRest] = useState("2");
   const [isUnilateral, setIsUnilateral] = useState(false);
+  const [isFailure, setIsFailure] = useState(true); // Default to true in HD system
   
   const [techniques, setTechniques] = useState<string[]>([]);
   const [techniqueCounts, setTechniqueCounts] = useState<Record<string, string>>({});
@@ -72,6 +73,7 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
       reps: parseFloat(reps) || 0,
       tempo,
       is_unilateral: isUnilateral,
+      is_failure: isFailure,
       rest_seconds: parseFloat(rest) * 60,
       techniques,
       technique_counts: finalCounts,
@@ -84,6 +86,7 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
     setRpReps("");
     setDropWeight("");
     setDropReps("");
+    // We keep weight and tempo for next set convenience
   };
 
   return (
@@ -117,12 +120,12 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
         
         {/* Controles de Intensidad */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex-1 min-w-[80px] space-y-1">
+          <div className="flex-1 min-w-[70px] space-y-1">
              <Label className="text-[9px] text-zinc-600 uppercase font-bold">Cadencia</Label>
              <Input className="bg-zinc-900 border-zinc-800 text-zinc-400 h-9 text-xs font-mono" placeholder="3-0-1" value={tempo} onChange={(e) => setTempo(e.target.value)} />
           </div>
-          <div className="flex-1 min-w-[80px] space-y-1">
-             <Label className="text-[9px] text-zinc-600 uppercase font-bold">Descanso (m)</Label>
+          <div className="flex-1 min-w-[70px] space-y-1">
+             <Label className="text-[9px] text-zinc-600 uppercase font-bold">Descanso</Label>
              <Input type="number" className="bg-zinc-900 border-zinc-800 text-zinc-400 h-9 text-xs" placeholder="2" value={rest} onChange={(e) => setRest(e.target.value)} />
           </div>
           
@@ -136,6 +139,16 @@ export function SetForm({ units, onAddSet, defaultValues, isSuperset }: SetFormP
                 onClick={() => setIsUnilateral(!isUnilateral)}
             >
                 Unilat
+            </Button>
+            <Button 
+                variant="outline" 
+                className={cn(
+                    "h-9 px-3 border-zinc-800 bg-zinc-900 text-[10px] font-black uppercase tracking-tighter flex gap-1",
+                    isFailure ? "border-red-600 bg-red-600/10 text-red-500" : "text-zinc-600"
+                )}
+                onClick={() => setIsFailure(!isFailure)}
+            >
+                <Skull className="h-3 w-3" /> Fallo
             </Button>
             <IntensitySelector selectedTechniques={techniques} onChange={setTechniques} />
           </div>
