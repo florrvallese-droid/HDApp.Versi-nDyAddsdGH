@@ -142,7 +142,7 @@ const Index = () => {
                     price="$90.000"
                     duration="Dura 1 mes"
                     outcome="Si entrenás mal, la tirás a la basura."
-                    icon={<FlaskConical className="text-zinc-700" />}
+                    icon={<FlaskConical className="text-zinc-400" />}
                     negative
                 />
                 <ComparisonBox 
@@ -150,7 +150,7 @@ const Index = () => {
                     price="$30.000"
                     duration="Dura 2 horas"
                     outcome="Te da placer momentáneo. Nada más."
-                    icon={<Utensils className="text-zinc-700" />}
+                    icon={<Utensils className="text-zinc-400" />}
                     negative
                 />
                 <ComparisonBox 
@@ -323,9 +323,8 @@ const Index = () => {
 const ComparisonBox = ({ icon, title, price, duration, outcome, highlight = false, negative = false }: any) => (
     <div className="p-6 md:p-8 rounded-3xl border flex flex-col items-center text-center gap-4 transition-all"
         style={{
-            backgroundColor: highlight ? 'rgba(220,38,38,0.05)' : '#09090b',
-            borderColor: highlight ? 'rgba(220,38,38,0.3)' : '#18181b',
-            opacity: highlight ? 1 : 0.6,
+            backgroundColor: highlight ? 'rgba(220,38,38,0.05)' : '#161616',
+            borderColor: highlight ? 'rgba(220,38,38,0.3)' : '#27272a',
             boxShadow: highlight ? '0 25px 50px -12px rgba(0, 0, 0, 0.25)' : 'none'
         }}
     >
@@ -337,7 +336,7 @@ const ComparisonBox = ({ icon, title, price, duration, outcome, highlight = fals
                 <span className="text-[9px] md:text-[10px] font-bold text-zinc-600 uppercase">/ {duration}</span>
             </div>
         </div>
-        <p className={cn("text-[11px] md:text-xs font-medium leading-relaxed uppercase tracking-tighter", highlight ? "text-zinc-300" : "text-zinc-600")}>
+        <p className={cn("text-[11px] md:text-xs font-medium leading-relaxed uppercase tracking-tighter", highlight ? "text-zinc-300" : "text-zinc-500")}>
             {outcome}
         </p>
         {highlight && (
