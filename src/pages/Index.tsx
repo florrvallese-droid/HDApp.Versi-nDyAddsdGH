@@ -58,7 +58,7 @@ const Index = () => {
 
         <div className="relative z-10 max-w-5xl text-center space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-600/30 bg-red-600/5 text-red-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4">
-              <ShieldCheck className="w-3.5 h-3.5" /> INGENIERÍA BIOMÉTRICA DE ALTA PRECISIÓN
+              <ShieldCheck className="w-3.5 h-3.5" /> TU CUADERNO DE ENTRENAMIENTO INTEGRADO CON IA
            </div>
 
            <div className="space-y-6">
