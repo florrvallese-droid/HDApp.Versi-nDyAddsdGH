@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/services/supabase";
 import { aiService } from "@/services/ai";
 import { 
-  Users, Activity, ChevronRight, Search, Loader2, UserPlus, 
-  Settings, Briefcase, TrendingUp, Dumbbell, ClipboardCheck, AlertCircle, Cake, Lock
+  Search, Loader2, UserPlus, 
+  Settings, Briefcase, TrendingUp, ChevronRight
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,13 +15,12 @@ import { toast } from "sonner";
 import { AddAthleteModal } from "@/components/coach/AddAthleteModal";
 import { SmartBriefing } from "@/components/coach/SmartBriefing";
 import { cn } from "@/lib/utils";
-import { format, differenceInDays } from "date-fns";
 import { useProfile } from "@/hooks/useProfile";
 import { LockedFeature } from "@/components/shared/LockedFeature";
 
 export default function CoachDashboard() {
   const navigate = useNavigate();
-  const { profile, toggleRole, hasProAccess } = useProfile();
+  const { profile, hasProAccess } = useProfile();
   
   const [data, setData] = useState<any>({
     clients: [],
@@ -48,7 +47,6 @@ export default function CoachDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // 1. Cargar Asignaciones Financieras
       const { data: assignments, error } = await supabase
         .from('coach_assignments')
         .select(`
@@ -59,7 +57,6 @@ export default function CoachDashboard() {
 
       if (error) throw error;
 
-      // 2. Cargar Actividad Crítica para el Snapshot (24h)
       const athleteIds = assignments?.map(a => a.athlete_id) || [];
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
@@ -70,7 +67,6 @@ export default function CoachDashboard() {
         .in('user_id', athleteIds)
         .gte('created_at', yesterday.toISOString());
 
-      // 3. Procesar Clientes
       const processedClients = assignments?.map(a => {
         const clientProfile = a.profiles as any;
         return { ...clientProfile, status: a.status, payment_status: a.payment_status, monthly_fee: a.monthly_fee };
@@ -81,7 +77,6 @@ export default function CoachDashboard() {
         stats: { active: processedClients.length, late: processedClients.filter(c => c.payment_status !== 'up_to_date').length, pendingReview: 0, birthdays: 0 }
       });
 
-      // 4. GENERAR SNAPSHOT PARA IA
       const snapshot = {
         financial_alerts: assignments?.filter(a => a.payment_status !== 'up_to_date').map(a => ({
             student: (a.profiles as any).display_name,
@@ -108,7 +103,6 @@ export default function CoachDashboard() {
   };
 
   const generateBriefing = async (userId: string, coachName: string, snapshot: any) => {
-    // Implementación de caché simple en localStorage
     const cached = localStorage.getItem(`brief_${userId}`);
     const cacheTime = localStorage.getItem(`brief_time_${userId}`);
     
@@ -135,9 +129,7 @@ export default function CoachDashboard() {
         <div className="min-h-screen bg-black flex flex-col p-4">
             <div className="flex justify-between items-center mb-10">
                 <h1 className="text-xl font-black uppercase italic text-white">Coach Hub</h1>
-                <Button variant="outline" size="sm" onClick={toggleRole} className="bg-blue-600/10 border-blue-600/30 text-blue-500 font-black uppercase text-[10px] tracking-widest hover:bg-blue-600 hover:text-white">
-                    <Dumbbell className="w-4 h-4 mr-2" /> Modo Atleta
-                </Button>
+                <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-zinc-500 border border-zinc-900 h-11 w-11"><Settings className="w-5 h-5" /></Button>
             </div>
             <LockedFeature 
                 title="Centro de Mando Bloqueado" 
@@ -156,21 +148,12 @@ export default function CoachDashboard() {
       
       <AddAthleteModal open={showAddModal} onOpenChange={setShowAddModal} onSuccess={fetchCoachData} />
 
-      {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
             <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white leading-none">Business Unit</h1>
             <p className="text-red-500 text-xs font-bold uppercase tracking-widest mt-1">Gestión de Equipo Di Iorio</p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-            <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={toggleRole}
-                className="flex-1 sm:flex-none bg-blue-600/10 border-blue-600/30 text-blue-500 font-black uppercase text-[10px] tracking-widest h-11 hover:bg-blue-600 hover:text-white"
-            >
-                <Dumbbell className="w-4 h-4 mr-2" /> Modo Atleta
-            </Button>
             <Button 
                 variant="outline" 
                 className="flex-1 sm:flex-none bg-zinc-900 border-zinc-800 text-zinc-300 font-bold uppercase text-[10px] tracking-widest h-11 hover:text-white"
@@ -182,12 +165,10 @@ export default function CoachDashboard() {
         </div>
       </div>
 
-      {/* SMART BRIEFING (Prioridad Máxima) */}
       <SmartBriefing data={briefing} loading={loadingBrief} />
 
       <div className="h-px bg-zinc-900 w-full" />
 
-      {/* SEARCH & ACTIONS */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-600" />
@@ -203,7 +184,6 @@ export default function CoachDashboard() {
         </Button>
       </div>
 
-      {/* CLIENTS LIST */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-zinc-500 text-[10px] font-black uppercase tracking-widest px-1">
            <TrendingUp className="h-3 w-3" /> Estado de Alumnos

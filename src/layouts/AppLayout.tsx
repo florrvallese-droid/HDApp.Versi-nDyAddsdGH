@@ -8,9 +8,9 @@ import { useProfile } from "@/hooks/useProfile";
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, activeRole } = useProfile();
+  const { profile } = useProfile();
 
-  // La navegación ahora depende del activeRole o del prefijo de la URL
+  // La navegación depende del prefijo de la URL o del tipo de perfil
   const isCoachPath = location.pathname.startsWith('/coach');
   
   const navItems = isCoachPath

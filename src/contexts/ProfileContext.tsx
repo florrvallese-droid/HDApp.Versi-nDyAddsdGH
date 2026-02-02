@@ -9,8 +9,6 @@ interface ProfileContextType {
   loading: boolean;
   hasProAccess: boolean;
   daysLeftInTrial: number;
-  activeRole: 'athlete' | 'coach';
-  toggleRole: () => void;
   refreshProfile: () => Promise<void>;
 }
 
@@ -20,26 +18,13 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeRole, setActiveRole] = useState<'athlete' | 'coach'>('athlete');
   const [hasProAccess, setHasProAccess] = useState(false);
   const [daysLeftInTrial, setDaysLeftInTrial] = useState(0);
 
-  // 1. Cargar rol guardado
-  useEffect(() => {
-    const savedRole = localStorage.getItem('hd_active_role');
-    if (savedRole === 'coach' || savedRole === 'athlete') {
-      setActiveRole(savedRole as 'athlete' | 'coach');
-    }
-  }, []);
-
-  // 2. Lógica de carga de perfil con Failsafe
   const loadUserProfile = async (userId: string) => {
-    // Failsafe: Si después de 5 segundos no cargó, soltamos el loading
+    // Failsafe: 5 segundos máximo para intentar cargar
     const timeout = setTimeout(() => {
-        if (loading) {
-            console.warn("[ProfileContext] Carga lenta detectada. Forzando resolución.");
-            setLoading(false);
-        }
+        if (loading) setLoading(false);
     }, 5000);
 
     try {
@@ -53,21 +38,15 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
         const userProfile = data as UserProfile;
         setProfile(userProfile);
         calculateAccess(userProfile);
-        
-        if (!userProfile.is_coach && activeRole === 'coach') {
-          setActiveRole('athlete');
-          localStorage.setItem('hd_active_role', 'athlete');
-        }
       }
     } catch (error) {
-      console.error("[ProfileContext] Error crítico:", error);
+      console.error("[ProfileContext] Error:", error);
     } finally {
       clearTimeout(timeout);
       setLoading(false);
     }
   };
 
-  // 3. Inicialización de sesión
   useEffect(() => {
     let mounted = true;
 
@@ -132,14 +111,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
     }
   };
 
-  const toggleRole = () => {
-    if (profile?.is_coach) {
-      const newRole = activeRole === 'athlete' ? 'coach' : 'athlete';
-      setActiveRole(newRole);
-      localStorage.setItem('hd_active_role', newRole);
-    }
-  };
-
   const refreshProfile = async () => {
     if (session?.user) {
         await loadUserProfile(session.user.id);
@@ -149,7 +120,7 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
   return (
     <ProfileContext.Provider value={{ 
       profile, session, loading, hasProAccess, daysLeftInTrial, 
-      activeRole, toggleRole, refreshProfile 
+      refreshProfile 
     }}>
       {children}
     </ProfileContext.Provider>

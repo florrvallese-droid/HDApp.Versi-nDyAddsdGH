@@ -13,15 +13,14 @@ import { RestDayModal } from "@/components/dashboard/RestDayModal";
 import { CheckinReminderDialog } from "@/components/dashboard/CheckinReminderDialog";
 import { CoachInvitationAlert } from "@/components/dashboard/CoachInvitationAlert";
 import { WeeklyCheckinModal } from "@/components/dashboard/WeeklyCheckinModal";
-import { format, differenceInDays, isAfter } from "date-fns";
-import { es } from "date-fns/locale";
+import { differenceInDays, isAfter } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default function AthleteDashboardView() {
   const navigate = useNavigate();
-  const { profile, hasProAccess, toggleRole } = useProfile();
+  const { profile, hasProAccess } = useProfile();
   
   const [showPreWorkout, setShowPreWorkout] = useState(false);
   const [showCardio, setShowCardio] = useState(false);
@@ -92,12 +91,7 @@ export default function AthleteDashboardView() {
     }
   };
 
-  // Safe Guard: Si por alguna razón el perfil es null aquí, mostramos un loading
-  if (!profile) return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="animate-spin text-red-600 h-8 w-8" />
-    </div>
-  );
+  if (!profile) return null;
 
   const currentPhase = profile.settings?.nutrition?.phase_goal;
 
@@ -113,23 +107,12 @@ export default function AthleteDashboardView() {
             <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest truncate max-w-[100px]">{profile.display_name}</span>
         </div>
         <div className="flex gap-2">
-            {profile.is_coach && (
-                <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={toggleRole}
-                    className="bg-red-600/10 border-red-600/30 text-red-500 font-black uppercase text-[10px] tracking-widest hover:bg-red-600 hover:text-white h-9"
-                >
-                    <Users className="w-3 h-3 mr-1.5" /> Modo Coach
-                </Button>
-            )}
             <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-zinc-500 bg-zinc-900/50 backdrop-blur-sm rounded-full border border-zinc-800 h-9 w-9"><Settings className="w-4 h-4" /></Button>
         </div>
       </div>
 
       <div className="w-full max-w-md mx-auto space-y-6">
         
-        {/* NOTIFICATIONS */}
         {notifications.map(n => (
            <div key={n.id} className="bg-red-600/10 border border-red-600/30 p-4 rounded-xl animate-in slide-in-from-top-2">
               <div className="flex justify-between items-start mb-1">
@@ -142,9 +125,8 @@ export default function AthleteDashboardView() {
            </div>
         ))}
 
-        {!profile.is_coach && <CoachInvitationAlert userId={profile.user_id} />}
+        <CoachInvitationAlert userId={profile.user_id} />
 
-        {/* PLAN ACTUAL / COACH SECTION */}
         {coachBrand && (
             <Card className="bg-zinc-950 border-zinc-900 overflow-hidden shadow-2xl">
                 <CardContent className="p-0">

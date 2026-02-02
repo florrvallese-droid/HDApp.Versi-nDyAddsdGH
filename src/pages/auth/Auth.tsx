@@ -26,7 +26,6 @@ const Auth = () => {
   const initialTab = searchParams.get("tab") || "login";
 
   useEffect(() => {
-    // Verificar sesión existente al cargar
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -38,33 +37,23 @@ const Auth = () => {
 
   const checkProfileAndRedirect = async (userId: string) => {
     try {
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
-        .select('is_coach, is_admin')
+        .select('is_coach')
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (profileError) {
-        console.error("Profile check error:", profileError);
-        navigate('/dashboard');
-        return;
-      }
-
-      // Redirección estricta según rol
       if (profile) {
         if (profile.is_coach) {
             navigate('/coach');
         } else {
             navigate('/dashboard');
         }
-        return;
+      } else {
+        navigate('/onboarding');
       }
-
-      // Solo si no existe registro en profiles, vamos al onboarding
-      navigate('/onboarding');
-
     } catch (err) {
-      console.error("Auth redirect logic failed:", err);
+      console.error("Redirect error:", err);
       navigate('/dashboard'); 
     }
   };
