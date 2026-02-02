@@ -40,30 +40,30 @@ const Auth = () => {
     try {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('sex, display_name, is_coach, is_admin')
+        .select('is_coach, is_admin')
         .eq('user_id', userId)
         .maybeSingle();
 
       if (profileError) {
         console.error("Profile check error:", profileError);
-        navigate('/dashboard'); // Ante la duda, dejar pasar
+        // Si hay error, asumimos que puede entrar y el dashboard manejará el error
+        navigate('/dashboard');
         return;
       }
 
-      // Si no existe perfil en absoluto, enviar a onboarding
-      if (!profile) {
-        navigate('/onboarding');
+      // Si el perfil EXISTE (aunque esté incompleto), dejamos pasar.
+      // Eliminamos validaciones de nombre/sexo para evitar bucles.
+      if (profile) {
+        if (profile.is_coach) {
+            navigate('/coach');
+        } else {
+            navigate('/dashboard');
+        }
         return;
       }
 
-      // Si el perfil EXISTE, aunque esté incompleto, dejamos pasar al Dashboard.
-      // El usuario podrá completar sus datos desde Ajustes.
-      // Esto evita el bucle infinito de redirección.
-      if (profile.is_coach) {
-          navigate('/coach');
-      } else {
-          navigate('/dashboard');
-      }
+      // Solo si NO EXISTE registro en la tabla profiles, enviamos al onboarding
+      navigate('/onboarding');
 
     } catch (err) {
       console.error("Auth redirect logic failed:", err);
