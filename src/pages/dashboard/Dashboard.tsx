@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useProfileContext } from "@/contexts/ProfileContext";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AthleteDashboardView from "@/components/dashboard/AthleteDashboardView";
 import CoachDashboard from "@/pages/coach/CoachDashboard";
@@ -10,17 +10,18 @@ export default function Dashboard() {
   const { profile, coachProfile, loading, session } = useProfileContext();
 
   useEffect(() => {
-    if (loading) return; // Esperar a que termine la carga inicial
+    if (loading) return;
 
     if (!session) {
       navigate('/auth');
       return;
     }
 
-    // GUARDA DE SEGURIDAD: Si el usuario está logueado pero su perfil no se completó (falta el rol),
-    // lo forzamos a volver al onboarding. Esto evita el congelamiento.
+    // Si el usuario está logueado pero su perfil no se completó (falta el rol),
+    // lo forzamos a volver al auth para que elija un flujo.
+    // NOTA: Con el nuevo mago, este caso es menos probable, pero es una buena guarda.
     if (session && !profile?.user_role) {
-      navigate('/onboarding');
+      navigate('/auth?tab=signup');
       return;
     }
 
@@ -42,13 +43,11 @@ export default function Dashboard() {
 
   if (!session) return null;
 
-  // Lógica de detección de Coach redundante
   const isCoach = profile?.user_role === 'coach' || profile?.is_coach === true || !!coachProfile;
 
   if (isCoach) {
     return <CoachDashboard />;
   }
 
-  // Por defecto, vista de atleta
   return <AthleteDashboardView />;
 }

@@ -9,9 +9,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { 
     ChevronLeft, Loader2, MailCheck, Dumbbell, Users, 
-    ShieldCheck 
+    ShieldCheck, ArrowRight, Trophy, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -19,12 +20,18 @@ const Auth = () => {
   
   const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "login");
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<'athlete' | 'coach'>(() => (searchParams.get("role") as any) || 'athlete');
-  
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isVerifyStep, setIsVerifyStep] = useState(false);
+
+  // --- State para el Mago de Registro ---
+  const [signupStep, setSignupStep] = useState(1);
+  const [formData, setFormData] = useState({
+    role: 'athlete' as 'athlete' | 'coach',
+    displayName: "",
+    planType: 'starter' as 'starter' | 'hub' | 'agency',
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -37,37 +44,43 @@ const Auth = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({ 
-        email: email.trim().toLowerCase(), 
-        password 
+        email: formData.email.trim().toLowerCase(), 
+        password: formData.password
       });
       
       if (error) throw error;
       navigate('/dashboard');
     } catch (err: any) {
       toast.error(err.message || "Error al ingresar");
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleAtomicSignup = async (e: React.FormEvent) => {
+  const handleFinishSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
       toast.error("Las contraseñas no coinciden");
       return;
+    }
+    if (formData.password.length < 8) {
+        toast.error("La contraseña debe tener al menos 8 caracteres.");
+        return;
     }
 
     setLoading(true);
     
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanEmail = formData.email.trim().toLowerCase();
     const metadata = {
-        role,
-        display_name: cleanEmail.split('@')[0],
+        role: formData.role,
+        display_name: formData.displayName || cleanEmail.split('@')[0],
+        plan_type: formData.role === 'coach' ? formData.planType : undefined
     };
 
     try {
       const { error } = await supabase.auth.signUp({
         email: cleanEmail,
-        password,
+        password: formData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: metadata
@@ -84,6 +97,10 @@ const Auth = () => {
     }
   };
 
+  const handleFormChange = (field: keyof typeof formData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   if (isVerifyStep) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-black p-4">
@@ -94,7 +111,7 @@ const Auth = () => {
             </div>
             <CardTitle className="text-2xl font-black uppercase italic text-white">REVISÁ TU BANDEJA</CardTitle>
             <CardDescription className="text-zinc-400">
-              Te enviamos un link de confirmación a <br/> <strong className="text-white">{email}</strong>
+              Te enviamos un link de confirmación a <br/> <strong className="text-white">{formData.email}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -141,8 +158,8 @@ const Auth = () => {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-3">
-                  <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-black border-zinc-800 h-12" required />
-                  <Input type="password" placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-black border-zinc-800 h-12" required />
+                  <Input type="email" placeholder="Email" value={formData.email} onChange={(e) => handleFormChange('email', e.target.value)} className="bg-black border-zinc-800 h-12" required />
+                  <Input type="password" placeholder="Contraseña" value={formData.password} onChange={(e) => handleFormChange('password', e.target.value)} className="bg-black border-zinc-800 h-12" required />
                 </div>
                 <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic" type="submit" disabled={loading}>
                   {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "ACCEDER"}
@@ -151,39 +168,71 @@ const Auth = () => {
             </TabsContent>
             
             <TabsContent value="signup">
-              <form onSubmit={handleAtomicSignup} className="space-y-6">
-                  <div className="space-y-3">
-                      <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Identificación de Rol</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                          <button 
-                            type="button"
-                            onClick={() => setRole('athlete')} 
-                            className={cn("p-3 rounded-lg border-2 flex flex-col items-center gap-1 transition-all", role === 'athlete' ? "border-red-600 bg-red-950/20 text-white" : "border-zinc-800 text-zinc-600")}
-                          >
-                              <Dumbbell className="h-4 w-4" />
-                              <span className="text-[9px] font-black uppercase">Atleta</span>
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={() => setRole('coach')} 
-                            className={cn("p-3 rounded-lg border-2 flex flex-col items-center gap-1 transition-all", role === 'coach' ? "border-red-600 bg-red-950/20 text-white" : "border-zinc-800 text-zinc-600")}
-                          >
-                              <Users className="h-4 w-4" />
-                              <span className="text-[9px] font-black uppercase">Coach</span>
-                          </button>
-                      </div>
-                  </div>
+              {/* --- MAGO DE REGISTRO --- */}
+              {signupStep === 1 && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                    <p className="text-zinc-400 text-xs text-center uppercase font-bold tracking-tight">Paso 1 de 3: Elegí tu función</p>
+                    <div className="grid grid-cols-2 gap-4">
+                        <button onClick={() => handleFormChange('role', 'athlete')} className={cn("p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all", formData.role === 'athlete' ? "border-red-600 bg-red-600/10" : "border-zinc-900 bg-zinc-900/40 text-zinc-500")}>
+                            <Trophy className={cn("h-8 w-8", formData.role === 'athlete' ? "text-red-500" : "text-zinc-700")} />
+                            <span className="font-black uppercase text-xs tracking-widest">Atleta</span>
+                        </button>
+                        <button onClick={() => handleFormChange('role', 'coach')} className={cn("p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all", formData.role === 'coach' ? "border-blue-600 bg-blue-600/10" : "border-zinc-900 bg-zinc-900/40 text-zinc-500")}>
+                            <Briefcase className={cn("h-8 w-8", formData.role === 'coach' ? "text-blue-500" : "text-zinc-700")} />
+                            <span className="font-black uppercase text-xs tracking-widest">Coach</span>
+                        </button>
+                    </div>
+                    <Button className="w-full h-14 bg-white text-black font-black uppercase italic tracking-widest" onClick={() => setSignupStep(2)}>
+                        Siguiente <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                </div>
+              )}
 
-                  <div className="space-y-3">
-                      <Input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="bg-black border-zinc-800 h-12" required />
-                      <Input type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} className="bg-black border-zinc-800 h-12" required minLength={8} />
-                      <Input type="password" placeholder="Confirmar Contraseña" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-black border-zinc-800 h-12" required />
-                  </div>
+              {signupStep === 2 && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                    <p className="text-zinc-400 text-xs text-center uppercase font-bold tracking-tight">Paso 2 de 3: Datos del Perfil</p>
+                    <div className="space-y-2">
+                        <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">{formData.role === 'coach' ? 'Nombre de tu Marca / Team' : 'Tu Nombre o Alias'}</Label>
+                        <Input value={formData.displayName} onChange={e => handleFormChange('displayName', e.target.value)} placeholder="Ej: John Doe" className="bg-black border-zinc-800 h-12 font-bold text-white" />
+                    </div>
+                    {formData.role === 'coach' && (
+                        <div className="space-y-2">
+                            <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Plan de Coach</Label>
+                            <Select value={formData.planType} onValueChange={(v: any) => handleFormChange('planType', v)}>
+                                <SelectTrigger className="bg-black border-zinc-800 h-12 font-bold text-xs uppercase text-white"><SelectValue /></SelectTrigger>
+                                <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                                    <SelectItem value="starter">Independent (15 alumnos)</SelectItem>
+                                    <SelectItem value="hub">Hub (50 alumnos)</SelectItem>
+                                    <SelectItem value="agency">Agency (Ilimitado)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    <div className="flex gap-2">
+                        <Button variant="ghost" className="flex-1 text-zinc-500 font-bold uppercase text-[10px]" onClick={() => setSignupStep(1)}>Volver</Button>
+                        <Button className="flex-[2] h-12 bg-white text-black hover:bg-zinc-200 font-black uppercase italic tracking-widest" onClick={() => setSignupStep(3)}>
+                            Siguiente <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+              )}
 
-                  <Button className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-black uppercase italic" type="submit" disabled={loading}>
-                      {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "CREAR CUENTA"}
-                  </Button>
-              </form>
+              {signupStep === 3 && (
+                <form onSubmit={handleFinishSignup} className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                    <p className="text-zinc-400 text-xs text-center uppercase font-bold tracking-tight">Paso 3 de 3: Credenciales</p>
+                    <div className="space-y-3">
+                        <Input type="email" placeholder="Email" value={formData.email} onChange={e => handleFormChange('email', e.target.value)} className="bg-black border-zinc-800 h-12" required />
+                        <Input type="password" placeholder="Contraseña (mín. 8 caracteres)" value={formData.password} onChange={e => handleFormChange('password', e.target.value)} className="bg-black border-zinc-800 h-12" required minLength={8} />
+                        <Input type="password" placeholder="Confirmar Contraseña" value={formData.confirmPassword} onChange={e => handleFormChange('confirmPassword', e.target.value)} className="bg-black border-zinc-800 h-12" required />
+                    </div>
+                    <div className="flex gap-2">
+                        <Button variant="ghost" className="flex-1 text-zinc-500 font-bold uppercase text-[10px]" onClick={() => setSignupStep(2)}>Volver</Button>
+                        <Button className="flex-[2] h-12 bg-white text-black hover:bg-zinc-200 font-black uppercase italic tracking-widest" type="submit" disabled={loading}>
+                            {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "FINALIZAR REGISTRO"}
+                        </Button>
+                    </div>
+                </form>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>

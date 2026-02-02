@@ -9,7 +9,6 @@ import { ProfileProvider } from "@/contexts/ProfileContext";
 import Index from "@/pages/Index";
 import CoachLanding from "@/pages/landing/CoachLanding";
 import Auth from "@/pages/auth/Auth";
-import Onboarding from "./pages/onboarding/Onboarding";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import WorkoutLogger from "@/pages/workout/WorkoutLogger";
 import PostWorkout from "@/pages/workout/PostWorkout";
@@ -52,7 +51,6 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/coach-landing" element={<CoachLanding />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/onboarding" element={<Onboarding />} />
 
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
