@@ -1,6 +1,6 @@
-// HEAVY DUTY - COACH LANDING v1.1.2 - FORCE DEPLOY
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { 
     Accordion,
@@ -11,7 +11,7 @@ import {
 import { 
     Brain, Briefcase, Zap, 
     ArrowRight, MessageSquare, TrendingUp, Sparkles, 
-    Star, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, Lock, MessageCircle, DollarSign, Calculator
+    Star, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, Lock, MessageCircle, DollarSign, Calculator, Users, Trophy, BarChart3, Image as ImageIcon
 } from "lucide-react";
 import { CoachApplicationForm } from "@/components/landing/CoachApplicationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
@@ -20,14 +20,10 @@ import { cn } from "@/lib/utils";
 export default function CoachLanding() {
   const navigate = useNavigate();
 
-  const openWhatsApp = () => {
-    window.open("https://wa.me/5491154821533?text=Hola!%20Tengo%20una%20duda%20específica%20sobre%20el%20Founders%20Club%20de%20Heavy%20Duty", "_blank");
-  };
-
   return (
     <div className="min-h-screen bg-black text-white flex flex-col selection:bg-yellow-500/30 relative overflow-x-hidden">
       
-      {/* 1. HERO SECTION - BUSINESS FOCUS */}
+      {/* HERO SECTION */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6">
         <div className="absolute inset-0 z-0">
            <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/40 to-black z-10" />
@@ -52,8 +48,8 @@ export default function CoachLanding() {
         </nav>
 
         <div className="relative z-20 max-w-5xl text-center space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 text-yellow-500 text-[10px] font-black uppercase tracking-[0.4em] mb-4 shadow-[0_0_20px_rgba(245,158,11,0.1)]">
-              <Star className="w-3.5 h-3.5 fill-current" /> SOFTWARE DE GESTIÓN EMPRESARIAL HIGH-TICKET
+           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 text-yellow-500 text-[10px] font-black uppercase tracking-[0.4em] mb-4">
+              <Star className="w-3.5 h-3.5 fill-current" /> SOFTWARE DE GESTIÓN PARA PREPARADORES ELITE
            </div>
 
            <div className="space-y-6">
@@ -64,7 +60,7 @@ export default function CoachLanding() {
            </div>
 
            <p className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto font-bold uppercase italic leading-tight">
-             Tus alumnos pagan $150.000 por un servicio Premium. No podés seguir mandando un Excel. Dales App propia, Inteligencia Artificial y justificá tu tarifa.
+             App propia para tus alumnos, Auditoría Técnica con IA y Business Intelligence. Justificá tu tarifa con tecnología de vanguardia.
            </p>
 
            <div className="pt-8">
@@ -82,16 +78,98 @@ export default function CoachLanding() {
                    <CoachApplicationForm />
                 </DialogContent>
               </Dialog>
-              <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest mt-6">Posicionate en la cima del mercado de asesorías</p>
            </div>
         </div>
       </section>
 
-      {/* 2. BUSINESS CASE - ROI CALCULATOR BLOCK */}
+      {/* CORE BUSINESS TOOLS SECTION */}
       <section className="py-24 md:py-32 px-6 bg-zinc-950 border-y border-zinc-900">
-        <div className="max-w-4xl mx-auto bg-black border-2 border-yellow-600/30 rounded-[3rem] p-10 md:p-16 text-center space-y-10 shadow-2xl relative overflow-hidden">
+        <div className="max-w-6xl mx-auto space-y-32">
+            
+            {/* 1. Business Hub */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div className="space-y-8">
+                    <Badge variant="outline" className="text-yellow-500 border-yellow-500/30 font-black uppercase px-3 py-1">Management Hub</Badge>
+                    <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none">TU PANEL DE<br/><span className="text-zinc-700">COMANDO CENTRAL</span></h2>
+                    <p className="text-zinc-400 text-lg leading-relaxed font-medium">Gestioná tus alumnos con precisión clínica. Control de pagos, vencimientos, modo competidor y ficha técnica biológica unificada.</p>
+                    <ul className="space-y-4">
+                        <FeatureItem text="Control de cobros y deudores en tiempo real." />
+                        <FeatureItem text="Vínculo digital directo con la App del atleta." />
+                        <FeatureItem text="Biblioteca de plantillas de protocolos (HIT/Heavy Duty)." />
+                    </ul>
+                </div>
+                <div className="bg-zinc-900 rounded-3xl border border-zinc-800 p-8 shadow-2xl relative">
+                    <Briefcase className="w-full h-auto text-zinc-800 opacity-20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" size={200} />
+                    <div className="relative z-10 space-y-6">
+                        <div className="h-12 w-48 bg-zinc-800 rounded-lg animate-pulse" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="h-24 bg-zinc-950 rounded-xl border border-zinc-800" />
+                            <div className="h-24 bg-zinc-950 rounded-xl border border-zinc-800" />
+                        </div>
+                        <div className="h-32 bg-red-600/10 rounded-xl border border-red-600/20" />
+                    </div>
+                </div>
+            </div>
+
+            {/* 2. Smart Briefing */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center md:flex-row-reverse">
+                <div className="md:order-2 space-y-8">
+                    <Badge variant="outline" className="text-red-500 border-red-500/30 font-black uppercase px-3 py-1">Daily Briefing IA</Badge>
+                    <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none">NO PIERDAS TIEMPO<br/><span className="text-zinc-700">BUSCANDO DATOS</span></h2>
+                    <p className="text-zinc-400 text-lg leading-relaxed font-medium">Nuestra IA audita la actividad de todos tus alumnos y te resume lo importante cada mañana. Te avisa quién se estancó, quién batió un récord y quién reportó dolor.</p>
+                    <ul className="space-y-4">
+                        <FeatureItem text="Snapshot financiero: Quién debe pagar hoy." />
+                        <FeatureItem text="Alertas de regresión: Detectamos mesetas antes que el atleta." />
+                        <FeatureItem text="Briefing técnico: Resumen de carga del equipo." />
+                    </ul>
+                </div>
+                <div className="md:order-1 bg-black rounded-3xl border-2 border-red-600/30 p-8 shadow-[0_0_50px_rgba(220,38,38,0.1)]">
+                    <Brain className="w-12 h-12 text-red-600 mb-6" />
+                    <div className="space-y-4">
+                        <div className="p-4 bg-zinc-900/50 rounded-xl border border-zinc-800 border-l-4 border-l-red-500">
+                            <p className="text-[10px] font-black uppercase text-zinc-500">Alerta de Salud</p>
+                            <p className="text-sm font-bold text-white mt-1">Juan Perez reportó dolor lumbar agudo en Sentadilla.</p>
+                        </div>
+                        <div className="p-4 bg-zinc-900/50 rounded-xl border border-zinc-800 border-l-4 border-l-green-500">
+                            <p className="text-[10px] font-black uppercase text-zinc-500">Hito de Progreso</p>
+                            <p className="text-sm font-bold text-white mt-1">Maria Lopez superó su 1RM en Prensa x 12%.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 3. Marketing IA */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div className="space-y-8">
+                    <Badge variant="outline" className="text-blue-500 border-blue-500/30 font-black uppercase px-3 py-1">Marketing Generator</Badge>
+                    <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none">CONVERTÍ LOGROS<br/><span className="text-zinc-700">EN CLIENTES</span></h2>
+                    <p className="text-zinc-400 text-lg leading-relaxed font-medium">Generador automático de casos de éxito. La IA toma los datos reales del entrenamiento del alumno y te crea el Copy para Instagram y la Placa Visual lista para compartir.</p>
+                    <ul className="space-y-4">
+                        <FeatureItem text="Diseño de placas Story-ready con tu logo." />
+                        <FeatureItem text="Copies persuasivos basados en evidencia real." />
+                        <FeatureItem text="Posicionamiento como autoridad técnica." />
+                    </ul>
+                </div>
+                <div className="bg-zinc-900 rounded-3xl border border-zinc-800 p-8 flex flex-col items-center justify-center gap-6">
+                    <ImageIcon className="w-12 h-12 text-zinc-700" />
+                    <div className="w-48 aspect-[9/16] bg-black border-2 border-red-600 rounded-2xl p-4 flex flex-col justify-between">
+                         <div className="h-4 w-12 bg-red-600 rounded" />
+                         <div className="h-2 w-full bg-zinc-800 rounded" />
+                         <div className="h-2 w-2/3 bg-zinc-800 rounded" />
+                         <div className="h-10 w-full bg-red-600/20 rounded-lg" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Contenido generado en 2 segundos</p>
+                </div>
+            </div>
+
+        </div>
+      </section>
+
+      {/* ROI CALCULATOR BLOCK */}
+      <section className="py-24 md:py-32 px-6 bg-black">
+        <div className="max-w-4xl mx-auto bg-zinc-950 border-2 border-yellow-600/30 rounded-[3rem] p-10 md:p-16 text-center space-y-10 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5"><Calculator className="w-40 h-40 text-yellow-500" /></div>
-            <h2 className="text-4xl font-black uppercase italic tracking-tighter text-white">LA MATEMÁTICA ES SIMPLE</h2>
+            <h2 className="text-4xl font-black uppercase italic tracking-tighter text-white leading-none">LA MATEMÁTICA <br/><span className="text-yellow-600">DEL BUSINESS</span></h2>
             <div className="space-y-6 max-w-2xl mx-auto">
                 <p className="text-lg md:text-xl text-zinc-400 font-bold leading-relaxed uppercase">
                     Si nuestra IA recupera a <span className="text-white">UN SOLO ALUMNO</span> que se iba a dar de baja, o el Generador de Marketing te consigue <span className="text-white">UN CLIENTE NUEVO</span>...
@@ -101,19 +179,16 @@ export default function CoachLanding() {
                         LA SUSCRIPCIÓN ANUAL YA SE PAGÓ SOLA.
                     </p>
                 </div>
-                <p className="text-zinc-500 font-bold uppercase text-sm italic">
-                    El resto de tus alumnos son ganancia limpia.
-                </p>
             </div>
         </div>
       </section>
 
-      {/* 3. PRICING TABLE - INVESTMENT LOGIC */}
-      <section className="py-24 md:py-32 px-6 bg-black">
+      {/* PRICING TABLE SECTION */}
+      <section className="py-24 md:py-32 px-6 bg-zinc-950 border-t border-zinc-900">
         <div className="max-w-5xl mx-auto space-y-16">
             <div className="text-center space-y-2">
-                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter">PLANES DE INVERSIÓN EMPRESARIAL</h2>
-                <p className="text-zinc-500 font-bold uppercase text-xs tracking-[0.3em]">ESCALÁ TU MARCA PERSONAL</p>
+                <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter">FOUNDERS CLUB — PLANES</h2>
+                <p className="text-zinc-500 font-bold uppercase text-xs tracking-[0.3em]">RESERVÁ TU LUGAR COMO FUNDADOR</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
@@ -123,15 +198,15 @@ export default function CoachLanding() {
                         <CardTitle className="text-sm font-black uppercase tracking-[0.3em] text-zinc-500">COACH STARTER</CardTitle>
                         <div className="pt-4 flex flex-col gap-1">
                             <span className="text-5xl font-black text-white">$95.000</span>
-                            <span className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-2">Costo de {"<"} 1 Alumno</span>
+                            <span className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-2">PAGO ÚNICO ANUAL</span>
                         </div>
                     </CardHeader>
                     <CardContent className="flex-1 space-y-6 py-10 px-10">
                         <PricingFeature text="Hasta 15 Alumnos" active />
-                        <PricingFeature text="IA Auditoría Estándar" active />
-                        <PricingFeature text="Bitácora Atleta Incluida" active />
-                        <PricingFeature text="Generador de Marketing" active={false} />
-                        <PricingFeature text="Radar de Churn" active={false} />
+                        <PricingFeature text="Gestión de Pagos" active />
+                        <PricingFeature text="Auditoría IA Básica" active />
+                        <PricingFeature text="Marketing Generator" active={false} />
+                        <PricingFeature text="Migración VIP" active={false} />
                     </CardContent>
                     <CardFooter className="p-10 pt-0">
                         <Button variant="outline" className="w-full h-16 border-zinc-800 text-zinc-500 hover:text-white font-black uppercase tracking-widest text-xs" onClick={() => navigate('/auth')}>ELEGIR STARTER</Button>
@@ -145,46 +220,21 @@ export default function CoachLanding() {
                         <CardTitle className="text-sm font-black uppercase tracking-[0.3em] text-yellow-600">COACH ELITE</CardTitle>
                         <div className="pt-4 flex flex-col gap-1">
                             <span className="text-5xl font-black text-white">$180.000</span>
-                            <span className="text-yellow-600/60 text-[10px] font-black uppercase tracking-widest mt-2">Costo de ~1 Alumno High-Ticket</span>
+                            <span className="text-yellow-600/60 text-[10px] font-black uppercase tracking-widest mt-2">PAGO ÚNICO ANUAL</span>
                         </div>
                     </CardHeader>
                     <CardContent className="flex-1 space-y-6 py-10 px-10">
-                        <PricingFeature text="Hasta 60 Alumnos" active highlight color="text-yellow-500" />
-                        <PricingFeature text="IA Auditoría Prioridad Alta" active highlight color="text-yellow-500" />
+                        <PricingFeature text="Alumnos ILIMITADOS" active highlight color="text-yellow-500" />
+                        <PricingFeature text="Smart Briefing IA Diario" active highlight color="text-yellow-500" />
                         <PricingFeature text="Generador de Marketing Viral" active highlight color="text-yellow-500" />
-                        <PricingFeature text="Radar de Churn (Anti-Fuga)" active highlight color="text-yellow-500" />
-                        <PricingFeature text="Migración Asistida (VIP)" active highlight color="text-yellow-500" />
+                        <PricingFeature text="Radar de Churn (IA)" active highlight color="text-yellow-500" />
+                        <PricingFeature text="Migración Asistida VIP" active highlight color="text-yellow-500" />
                     </CardContent>
                     <CardFooter className="p-10 pt-0">
-                        <Button className="w-full h-16 bg-yellow-600 hover:bg-yellow-700 text-black font-black uppercase italic tracking-widest text-sm shadow-2xl" onClick={() => navigate('/auth')}>ELEGIR ELITE</Button>
+                        <Button className="w-full h-16 bg-yellow-600 hover:bg-yellow-700 text-black font-black uppercase italic tracking-widest text-sm shadow-2xl" onClick={() => navigate('/auth')}>UNIRSE AL ELITE</Button>
                     </CardFooter>
                 </Card>
             </div>
-        </div>
-      </section>
-
-      {/* 4. FAQ - COACH BUSINESS QUESTIONS */}
-      <section className="py-24 md:py-32 px-6 bg-zinc-950 border-t border-zinc-900">
-        <div className="max-w-3xl mx-auto space-y-12">
-            <div className="flex items-center gap-4">
-                <div className="p-2 bg-yellow-600/10 rounded-lg">
-                    <DollarSign className="w-8 h-8 text-yellow-600" />
-                </div>
-                <h2 className="text-3xl font-black uppercase italic tracking-tighter">FINANZAS & NEGOCIO</h2>
-            </div>
-
-            <Accordion type="single" collapsible className="w-full space-y-4">
-                <FAQItem 
-                    value="item-price"
-                    question="¿Es caro?"
-                    answer="Representa un costo operativo aproximado del 4%. Si facturás 2 Millones de pesos (20 alumnos x $100k), pagar $95k por la herramienta que sostiene todo el negocio, audita a tus alumnos por vos y te consigue nuevos clientes con marketing IA, es la inversión más barata que vas a hacer en el año."
-                />
-                <FAQItem 
-                    value="item-migration"
-                    question="¿Qué es la Migración Asistida VIP?"
-                    answer="Si elegís el Plan Elite, no tenés que cargar un solo dato. Nos pasás tus Excels o notas actuales y nuestro equipo técnico migra todo tu historial de alumnos a la app en menos de 48hs. Empezás a usar el sistema llave en mano."
-                />
-            </Accordion>
         </div>
       </section>
 
@@ -198,29 +248,18 @@ export default function CoachLanding() {
   );
 }
 
+const FeatureItem = ({ text }: { text: string }) => (
+    <li className="flex items-center gap-3">
+        <div className="h-1.5 w-1.5 rounded-full bg-yellow-600 shrink-0" />
+        <span className="text-zinc-300 font-bold uppercase text-[10px] tracking-widest">{text}</span>
+    </li>
+);
+
 const PricingFeature = ({ text, active = true, highlight = false, color = "text-zinc-500" }: any) => (
     <div className={cn("flex items-center gap-4", !active && "opacity-20")}>
         {active ? <CheckCircle2 className={cn("h-4 w-4", highlight ? color : "text-zinc-600")} /> : <XCircle className="h-4 w-4 text-zinc-800" />}
         <span className={cn("text-[11px] font-black uppercase tracking-widest", active ? "text-zinc-300" : "text-zinc-800", highlight && color)}>{text}</span>
     </div>
-);
-
-const FAQItem = ({ value, question, answer }: any) => (
-    <AccordionItem value={value} className="border-zinc-800 bg-zinc-900/40 rounded-3xl px-10 border transition-all hover:border-zinc-700">
-        <AccordionTrigger className="text-left font-black uppercase tracking-widest text-zinc-100 hover:text-white hover:no-underline py-8 text-sm">
-            {question}
-        </AccordionTrigger>
-        <AccordionContent className="text-zinc-400 text-sm leading-relaxed pb-8 italic font-medium">
-            {answer}
-        </AccordionContent>
-    </AccordionItem>
-);
-
-const VsItem = ({ icon, text }: any) => (
-    <li className="flex items-center gap-4">
-        <div className="shrink-0">{icon}</div>
-        <span className="text-zinc-300 font-bold uppercase text-xs tracking-wide">{text}</span>
-    </li>
 );
 
 function XCircle({ className }: { className?: string }) {
