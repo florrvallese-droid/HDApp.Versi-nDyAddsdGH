@@ -65,8 +65,8 @@ const Index = () => {
 
            <div className="space-y-4">
               <h1 className="text-5xl md:text-9xl font-black tracking-tighter uppercase italic leading-[0.85]">
-                LA ÚNICA APP CON IA QUE TE PROHÍBE EL <br/>
-                <span className="text-zinc-700">VOLUMEN BASURA</span>
+                LA ÚNICA APP QUE TE ENSEÑA <br/>
+                <span className="text-zinc-700">A ENTRENAR DE VERDAD</span>
               </h1>
               <div className="flex flex-col items-center gap-2">
                 <h2 className="text-sm md:text-xl font-black tracking-[0.3em] text-red-600 uppercase">
@@ -75,9 +75,14 @@ const Index = () => {
               </div>
            </div>
 
-           <p className="text-lg md:text-xl text-zinc-500 max-w-2xl mx-auto font-medium italic">
-             "Bienvenido a la era de la verdad fisiológica."
-           </p>
+           <div className="space-y-2">
+              <p className="text-lg md:text-xl text-white font-black uppercase italic tracking-tight">
+                Hoy vas a dejar de perder tiempo en el gimnasio.
+              </p>
+              <p className="text-sm md:text-base text-zinc-500 font-medium italic">
+                "Bienvenido a la era de la verdad fisiológica."
+              </p>
+           </div>
 
            <div className="pt-8 flex flex-col items-center gap-4">
               <Button 
