@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save, Target, BookOpen, Brain, Ticket, Briefcase, Instagram, MessageCircle, Calendar, Star, TrendingUp } from "lucide-react";
+import { User, Camera, Loader2, Save, Calendar, Star, TrendingUp, Target, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LoggingPreference, CoachTone } from "@/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -68,6 +67,7 @@ export function ProfileForm() {
     setLoading(true);
 
     const businessData = {
+      ...profile.business_info,
       brand_name: brandName,
       bio: bio,
       instagram: instagram,
@@ -162,9 +162,9 @@ export function ProfileForm() {
         <div className="space-y-10 w-full">
           
           {profile?.is_coach && (
-            <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800 space-y-4">
+            <div className="bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800 space-y-4 shadow-xl">
                <div className="flex items-center gap-2 text-red-500 mb-2">
-                  <Ticket className="h-5 w-5" />
+                  <Star className="h-5 w-5 fill-current" />
                   <h3 className="font-black uppercase italic text-sm">Programa de Referidos</h3>
                </div>
                <div className="space-y-2">
@@ -191,19 +191,6 @@ export function ProfileForm() {
                         <Calendar className="absolute right-3 top-4 h-4 w-4 text-zinc-600" />
                     </div>
                 </div>
-
-                {!profile?.is_coach && (
-                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-zinc-500 text-[10px] uppercase font-bold">Altura (cm)</Label>
-                      <Input type="number" value={height} onChange={e => setHeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-zinc-500 text-[10px] uppercase font-bold">Peso Actual</Label>
-                      <Input type="number" value={weight} onChange={e => setWeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
-                    </div>
-                  </div>
-                )}
             </div>
           </div>
 
@@ -215,8 +202,20 @@ export function ProfileForm() {
             <RadioGroup value={coachTone} onValueChange={(v) => setCoachTone(v as CoachTone)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {profile?.is_coach ? (
                     <>
-                        <PersonalityCard id="business_analytical" label="Business Analytical" desc="Enfoque dual: Ciencia aplicada + Crecimiento de marca." current={coachTone} icon={<TrendingUp className="h-4 w-4 text-blue-500"/>} />
-                        <PersonalityCard id="strict" label="Pure Technical" desc="Mike Mentzer Style. Crudo, directo y basado en HIT." current={coachTone} icon={<Target className="h-4 w-4 text-red-500"/>} />
+                        <PersonalityCard 
+                          id="business_analytical" 
+                          label="Business Analytical" 
+                          desc="Socio estratega. Foco en Retención (LTV), Churn y Marketing." 
+                          current={coachTone} 
+                          icon={<TrendingUp className="h-4 w-4 text-blue-500"/>} 
+                        />
+                        <PersonalityCard 
+                          id="strict" 
+                          label="Pure Technical" 
+                          desc="Mike Mentzer Style. Crudo, directo y basado en HIT." 
+                          current={coachTone} 
+                          icon={<Target className="h-4 w-4 text-red-500"/>} 
+                        />
                     </>
                 ) : (
                     <>
@@ -230,7 +229,7 @@ export function ProfileForm() {
           </div>
 
           <div className="pt-10">
-            <Button className="w-full h-16 bg-white text-black hover:bg-zinc-200 font-black italic uppercase tracking-wider text-lg" onClick={handleSave} disabled={loading}>
+            <Button className="w-full h-16 bg-white text-black hover:bg-zinc-200 font-black italic uppercase tracking-wider text-lg shadow-2xl" onClick={handleSave} disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-6 w-6 animate-spin"/> : <Save className="mr-2 h-6 w-6"/>}
                 GUARDAR CONFIGURACIÓN
             </Button>

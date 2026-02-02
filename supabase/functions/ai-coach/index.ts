@@ -103,6 +103,10 @@ Deno.serve(async (req) => {
         "card_data": { "status": "string", "main_insight": "string" },
         "detailed_report": "## Documento Oficial de Auditoría\\n\\n..."
       }`,
+      business_audit: `{
+        "card_data": { "revenue_status": "string", "churn_risk": "high" | "low" },
+        "detailed_report": "## Auditoría Estratégica de Negocio\\n\\n..."
+      }`,
       marketing_generation: `{
         "card_data": { "hook": "string" },
         "detailed_report": "## Copy Estratégico para Instagram\\n\\n..."
@@ -129,12 +133,15 @@ Deno.serve(async (req) => {
       ${JSON.stringify(data)}
     `;
 
+    // Ajuste de temperatura según el tono: Business requiere más "pensamiento estratégico" (0.6) que entrenamiento puro (0.2)
+    const temperature = (tone === 'business_analytical' || action === 'marketing_generation') ? 0.6 : 0.2;
+
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: finalPrompt }] }],
-        generationConfig: { response_mime_type: "application/json", temperature: tone.includes('business') ? 0.5 : 0.2 }
+        generationConfig: { response_mime_type: "application/json", temperature }
       })
     });
 
