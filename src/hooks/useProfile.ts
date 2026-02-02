@@ -16,7 +16,6 @@ export function useProfile() {
   const [daysLeftInTrial, setDaysLeftInTrial] = useState(0);
 
   useEffect(() => {
-    // Load preferred role from localStorage
     const savedRole = localStorage.getItem('hd_active_role');
     if (savedRole === 'coach' || savedRole === 'athlete') {
       setActiveRole(savedRole);
@@ -62,8 +61,6 @@ export function useProfile() {
         setProfile(userProfile);
         calculateAccess(userProfile);
         
-        // If they are a coach, they might have a saved preference.
-        // If not a coach, always force 'athlete'
         if (!userProfile.is_coach) {
           setActiveRole('athlete');
           localStorage.setItem('hd_active_role', 'athlete');
@@ -85,13 +82,15 @@ export function useProfile() {
   };
 
   const calculateAccess = (p: UserProfile) => {
-    // Coaches always have PRO access to use the tools
-    if (p.is_premium || p.is_coach) {
+    // ESTRATEGIA: Si es Coach y está pagando su suscripción (is_premium), tiene PRO en todo.
+    // O si es un Atleta individual pagando PRO.
+    if (p.is_premium) {
       setHasProAccess(true);
       setDaysLeftInTrial(0);
       return;
     }
 
+    // Trial de 7 días automático para nuevos
     if (p.trial_started_at) {
       const trialStart = new Date(p.trial_started_at).getTime();
       const now = new Date().getTime();
