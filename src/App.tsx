@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ProfileProvider } from "@/contexts/ProfileContext";
 
 // Pages
 import Index from "./pages/Index";
@@ -41,45 +42,47 @@ const queryClient = new QueryClient();
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/onboarding" element={<Onboarding />} />
+      <ProfileProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/onboarding" element={<Onboarding />} />
 
-            <Route element={<AppLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/workout" element={<WorkoutLogger />} />
-              <Route path="/nutrition" element={<Nutrition />} />
-              <Route path="/checkin" element={<Checkin />} />
-              <Route path="/analysis" element={<GlobalAnalysis />} />
-              <Route path="/pharmacology" element={<Pharmacology />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route element={<AppLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/workout" element={<WorkoutLogger />} />
+                <Route path="/nutrition" element={<Nutrition />} />
+                <Route path="/checkin" element={<Checkin />} />
+                <Route path="/analysis" element={<GlobalAnalysis />} />
+                <Route path="/pharmacology" element={<Pharmacology />} />
+                <Route path="/settings" element={<Settings />} />
+                
+                <Route path="/coach" element={<CoachDashboard />} />
+                <Route path="/coach/athlete/:athleteId" element={<CoachAthleteDetail />} />
+                <Route path="/coach/business" element={<CoachBusiness />} />
+                <Route path="/coach/business/audit" element={<CoachBusinessAudit />} />
+              </Route>
               
-              <Route path="/coach" element={<CoachDashboard />} />
-              <Route path="/coach/athlete/:athleteId" element={<CoachAthleteDetail />} />
-              <Route path="/coach/business" element={<CoachBusiness />} />
-              <Route path="/coach/business/audit" element={<CoachBusinessAudit />} />
-            </Route>
-            
-            <Route path="/workout/analysis" element={<PostWorkout />} />
+              <Route path="/workout/analysis" element={<PostWorkout />} />
 
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="prompts" element={<PromptManager />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="logs" element={<AILogs />} />
-              <Route path="flags" element={<FeatureFlags />} />
-            </Route>
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="prompts" element={<PromptManager />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="logs" element={<AILogs />} />
+                <Route path="flags" element={<FeatureFlags />} />
+              </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ProfileProvider>
     </QueryClientProvider>
   );
 };
