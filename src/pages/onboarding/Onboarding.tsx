@@ -12,7 +12,7 @@ import { Loader2, Trophy, Briefcase, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Onboarding() {
-  const { profile, athleteProfile, coachProfile, session, refreshProfile } = useProfileContext();
+  const { athleteProfile, coachProfile, session, refreshProfile } = useProfileContext();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -22,8 +22,8 @@ export default function Onboarding() {
   const [displayName, setDisplayName] = useState("");
   const [planType, setPlanType] = useState<'starter' | 'hub' | 'agency'>('starter');
 
+  // REDIRECCIÓN AUTOMÁTICA: Si el trigger ya hizo su trabajo, nos vamos al dashboard
   useEffect(() => {
-    // Si ya tiene algún perfil específico, lo mandamos al dashboard
     if (athleteProfile || coachProfile) {
       navigate('/dashboard');
     }
@@ -34,11 +34,12 @@ export default function Onboarding() {
     setLoading(true);
 
     try {
-      // 1. Actualizar perfil base
+      // 1. Actualizar perfil base (Display Name y Rol)
+      // Usamos upsert para que no falle si ya existe
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          display_name: displayName,
+          display_name: displayName || session.user.email?.split('@')[0],
           user_role: role,
           updated_at: new Date().toISOString()
         })
@@ -46,29 +47,29 @@ export default function Onboarding() {
 
       if (profileError) throw profileError;
 
-      // 2. Crear perfil específico
+      // 2. Crear perfil específico SOLO si no existe (el trigger debería haberlo hecho)
       if (role === 'athlete') {
-        const { error: athleteError } = await supabase
-            .from('athlete_profiles')
-            .insert({ user_id: session.user.id, tier: 'free' });
-        if (athleteError) throw athleteError;
+        await supabase.from('athlete_profiles').upsert({ user_id: session.user.id, tier: 'free' });
       } else {
-        const { error: coachError } = await supabase
-            .from('coach_profiles')
-            .insert({ 
-                user_id: session.user.id, 
-                plan_type: planType,
-                business_name: displayName,
-                student_limit: planType === 'starter' ? 15 : planType === 'hub' ? 50 : 999
-            });
-        if (coachError) throw coachError;
+        await supabase.from('coach_profiles').upsert({ 
+            user_id: session.user.id, 
+            plan_type: planType,
+            business_name: displayName,
+            student_limit: planType === 'starter' ? 15 : planType === 'hub' ? 50 : 999
+        });
       }
 
       await refreshProfile();
-      toast.success("¡Bienvenido al sistema!");
+      toast.success("¡Configuración terminada!");
       navigate('/dashboard');
     } catch (err: any) {
-      toast.error(err.message);
+      // Si el error es que ya existe, simplemente refrescamos y navegamos
+      if (err.code === '23505') {
+          await refreshProfile();
+          navigate('/dashboard');
+      } else {
+          toast.error(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -80,16 +81,17 @@ export default function Onboarding() {
         <div className="h-1.5 w-full bg-red-600" />
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-black italic uppercase tracking-tighter text-white">
-            CONFIGURA TU ACCESO
+            FINALIZAR PERFIL
           </CardTitle>
           <CardDescription className="text-zinc-500 uppercase text-[10px] font-bold tracking-widest">
-            Paso {step} de 2
+            Confirmación de Identidad
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
           {step === 1 ? (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                  <p className="text-zinc-400 text-xs text-center uppercase font-bold tracking-tight">Confirmá tu función en el sistema:</p>
                   <div className="grid grid-cols-2 gap-4">
                       <button 
                         onClick={() => setRole('athlete')}
@@ -114,7 +116,7 @@ export default function Onboarding() {
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
                   <div className="space-y-2">
                       <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
-                        {role === 'coach' ? 'Nombre de tu Marca / Team' : 'Tu Nombre Completo'}
+                        {role === 'coach' ? 'Nombre de tu Marca / Team' : 'Tu Nombre o Alias'}
                       </Label>
                       <Input 
                         value={displayName} 
@@ -145,9 +147,9 @@ export default function Onboarding() {
                     <Button 
                         className="flex-[2] h-12 bg-white text-black hover:bg-zinc-200 font-black uppercase italic tracking-widest"
                         onClick={handleFinish}
-                        disabled={loading || !displayName}
+                        disabled={loading}
                     >
-                        {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "FINALIZAR"}
+                        {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "ENTRAR AL SISTEMA"}
                     </Button>
                   </div>
               </div>
