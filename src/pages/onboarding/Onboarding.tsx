@@ -22,7 +22,7 @@ export default function Onboarding() {
   const [displayName, setDisplayName] = useState("");
   const [planType, setPlanType] = useState<'starter' | 'hub' | 'agency'>('starter');
 
-  // REDIRECCIÓN AUTOMÁTICA: Si el trigger ya hizo su trabajo, nos vamos al dashboard
+  // REDIRECCIÓN AUTOMÁTICA: Si el contexto ya detectó perfiles, saltamos el onboarding
   useEffect(() => {
     if (athleteProfile || coachProfile) {
       navigate('/dashboard');
@@ -35,42 +35,43 @@ export default function Onboarding() {
 
     try {
       // 1. Actualizar perfil base (Display Name y Rol)
-      // Usamos upsert para que no falle si ya existe
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          user_id: session.user.id,
+          email: session.user.email,
           display_name: displayName || session.user.email?.split('@')[0],
           user_role: role,
           updated_at: new Date().toISOString()
-        })
-        .eq('user_id', session.user.id);
+        }, { onConflict: 'user_id' });
 
       if (profileError) throw profileError;
 
-      // 2. Crear perfil específico SOLO si no existe (el trigger debería haberlo hecho)
+      // 2. Crear perfil específico
       if (role === 'athlete') {
-        await supabase.from('athlete_profiles').upsert({ user_id: session.user.id, tier: 'free' });
+        const { error: athleteError } = await supabase
+            .from('athlete_profiles')
+            .upsert({ user_id: session.user.id, tier: 'free', subscription_status: 'active' }, { onConflict: 'user_id' });
+        if (athleteError) console.error("Error creating athlete profile:", athleteError);
       } else {
-        await supabase.from('coach_profiles').upsert({ 
-            user_id: session.user.id, 
-            plan_type: planType,
-            business_name: displayName,
-            student_limit: planType === 'starter' ? 15 : planType === 'hub' ? 50 : 999
-        });
+        const { error: coachError } = await supabase
+            .from('coach_profiles')
+            .upsert({ 
+                user_id: session.user.id, 
+                plan_type: planType,
+                business_name: displayName,
+                student_limit: planType === 'starter' ? 15 : planType === 'hub' ? 50 : 999
+            }, { onConflict: 'user_id' });
+        if (coachError) console.error("Error creating coach profile:", coachError);
       }
 
+      // Refrescamos y navegamos independientemente de errores menores en los pasos 2 para no trabar al usuario
       await refreshProfile();
-      toast.success("¡Configuración terminada!");
+      toast.success("¡Bienvenido al sistema!");
       navigate('/dashboard');
     } catch (err: any) {
-      // Si el error es que ya existe, simplemente refrescamos y navegamos
-      if (err.code === '23505') {
-          await refreshProfile();
-          navigate('/dashboard');
-      } else {
-          toast.error(err.message);
-      }
-    } finally {
+      console.error("Onboarding error:", err);
+      toast.error(err.message || "Ocurrió un error al guardar tu perfil.");
       setLoading(false);
     }
   };
@@ -84,14 +85,14 @@ export default function Onboarding() {
             FINALIZAR PERFIL
           </CardTitle>
           <CardDescription className="text-zinc-500 uppercase text-[10px] font-bold tracking-widest">
-            Confirmación de Identidad
+            Configuración de Acceso
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
           {step === 1 ? (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                  <p className="text-zinc-400 text-xs text-center uppercase font-bold tracking-tight">Confirmá tu función en el sistema:</p>
+                  <p className="text-zinc-400 text-xs text-center uppercase font-bold tracking-tight">Elegí tu función en Heavy Duty:</p>
                   <div className="grid grid-cols-2 gap-4">
                       <button 
                         onClick={() => setRole('athlete')}
@@ -152,6 +153,9 @@ export default function Onboarding() {
                         {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "ENTRAR AL SISTEMA"}
                     </Button>
                   </div>
+                  <p className="text-[9px] text-zinc-600 text-center uppercase font-black tracking-tighter italic">
+                    Al hacer clic, aceptas los términos del sistema de alta intensidad.
+                  </p>
               </div>
           )}
         </CardContent>
