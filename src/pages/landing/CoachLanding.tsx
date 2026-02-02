@@ -33,7 +33,7 @@ export default function CoachLanding() {
            <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/40 to-black z-10" />
            <img 
              src="/coach-hero.jpg" 
-             className="w-full h-full object-cover grayscale contrast-150 opacity-40 scale-105 transition-transform duration-[10s] hover:scale-110"
+             className="w-full h-full object-cover grayscale contrast-150 opacity-40 scale-105 transition-transform duration-[10000ms] hover:scale-110"
              alt="Coach Premium Management"
            />
         </div>
@@ -191,7 +191,7 @@ export default function CoachLanding() {
       <footer className="p-12 text-center border-t border-zinc-900 bg-black">
         <img src="/logo.png" className="h-6 md:h-8 w-auto brightness-0 invert opacity-20 mx-auto mb-8" alt="Logo" />
         <p className="text-zinc-800 text-[10px] font-mono tracking-[0.4em] uppercase">
-          HEAVY DUTY SYSTEM — ENTERPRISE EDITION v1.1
+          &copy; {new Date().getFullYear()} Heavy Duty Di Iorio — Enterprise Edition v1.1
         </p>
       </footer>
     </div>
