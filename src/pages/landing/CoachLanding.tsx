@@ -28,10 +28,10 @@ export default function CoachLanding() {
       {/* 1. HERO SECTION */}
       <section className="relative h-[90vh] flex flex-col items-center justify-center overflow-hidden px-6">
         <div className="absolute inset-0 z-0">
-           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black z-10" />
+           <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black z-10" />
            <img 
-             src="https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=1974&auto=format&fit=crop" 
-             className="w-full h-full object-cover grayscale opacity-40 scale-110"
+             src="/coach-hero.jpg" 
+             className="w-full h-full object-cover grayscale contrast-125 opacity-50 scale-105 transition-transform duration-[10s] hover:scale-110"
              alt="Coach Command Center"
            />
         </div>
