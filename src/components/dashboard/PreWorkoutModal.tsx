@@ -5,13 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Loader2, AlertCircle, ChevronLeft, ShieldCheck, FileText, ChevronDown } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, AlertCircle, ChevronLeft, ShieldCheck, FileText, ChevronDown, CalendarDays, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { aiService, BioStopResponse } from "@/services/ai";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
-import { differenceInDays, parseISO, isValid } from "date-fns";
+import { differenceInDays, parseISO, isValid, format } from "date-fns";
 import { MarkdownRenderer } from "@/components/shared/MarkdownRenderer";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -35,6 +36,8 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess }:
   const [hasPain, setHasPain] = useState(false);
   const [painLevel, setPainLevel] = useState(0);
   const [painLocation, setPainLocation] = useState("");
+  const [sensationText, setSensationText] = useState("");
+  const [lastCycleStart, setLastCycleStart] = useState(profile?.settings?.last_cycle_start || "");
   const [result, setResult] = useState<BioStopResponse | null>(null);
 
   const analyzeData = async () => {
@@ -43,8 +46,8 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess }:
 
     try {
       let cycleDay = undefined;
-      if (profile?.sex === 'female' && profile.settings?.last_cycle_start) {
-        const start = parseISO(profile.settings.last_cycle_start);
+      if (profile?.sex === 'female' && lastCycleStart) {
+        const start = parseISO(lastCycleStart);
         if (isValid(start)) {
           cycleDay = differenceInDays(new Date(), start) + 1;
         }
@@ -55,7 +58,8 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess }:
         stress,
         cycle_day: cycleDay,
         pain_level: hasPain ? painLevel : 0,
-        pain_location: hasPain ? painLocation : "none"
+        pain_location: hasPain ? painLocation : "none",
+        user_sensation: sensationText
       }, coachTone);
 
       setResult(audit);
@@ -77,14 +81,15 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess }:
             <ChevronLeft className="h-6 w-6" />
           </Button>
           <div>
-            <DialogTitle className="text-xl font-black italic uppercase tracking-tighter">BIO-STOP FILTER</DialogTitle>
-            <DialogDescription className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mt-0.5 leading-none">Análisis de Preparación Física</DialogDescription>
+            <DialogTitle className="text-xl font-black italic uppercase tracking-tighter">FASE 1: ANÁLISIS SNC</DialogTitle>
+            <DialogDescription className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mt-0.5 leading-none">Bio-Stop Filter System</DialogDescription>
           </div>
         </div>
 
         <div className="p-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
           {step === 'input' && (
             <div className="grid gap-8 py-2">
+              
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <Label className="text-red-600 font-black uppercase tracking-widest text-[10px]">Horas de Sueño</Label>
@@ -99,6 +104,32 @@ export function PreWorkoutModal({ open, onOpenChange, coachTone, hasProAccess }:
                   <span className="font-black text-3xl italic text-zinc-400">{stress}</span>
                 </div>
                 <Slider value={[stress]} min={1} max={10} step={1} onValueChange={(v) => setStress(v[0])} className="py-4" />
+              </div>
+
+              {profile?.sex === 'female' && (
+                <div className="space-y-2 animate-in slide-in-from-left-2 duration-500">
+                    <Label className="text-zinc-500 font-black uppercase tracking-widest text-[10px] flex items-center gap-2">
+                        <CalendarDays className="w-3.5 h-3.5 text-pink-500" /> Fecha Última Menstruación
+                    </Label>
+                    <Input 
+                        type="date" 
+                        value={lastCycleStart} 
+                        onChange={e => setLastCycleStart(e.target.value)} 
+                        className="bg-black border-zinc-800 h-12 font-bold"
+                    />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                  <Label className="text-zinc-500 font-black uppercase tracking-widest text-[10px] flex items-center gap-2">
+                      <Activity className="w-3.5 h-3.5 text-blue-500" /> ¿Cómo te sentís hoy?
+                  </Label>
+                  <Textarea 
+                    placeholder="Sentite libre de decirle a la IA si estás cansado, motivado, o con sensaciones extrañas..."
+                    className="bg-black border-zinc-800 min-h-[80px] text-sm text-zinc-300"
+                    value={sensationText}
+                    onChange={e => setSensationText(e.target.value)}
+                  />
               </div>
 
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-zinc-900 space-y-4">

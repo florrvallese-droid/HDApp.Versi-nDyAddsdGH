@@ -3,12 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { aiService } from "@/services/ai";
 import { GlobalAnalysisResponse, NutritionConfig } from "@/types";
-import { ChevronLeft, Brain, TrendingUp, Calendar, Lock, BarChart3, Loader2, AlertCircle } from "lucide-react";
+import { ChevronLeft, Brain, TrendingUp, Lock, BarChart3, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -39,16 +38,20 @@ export default function GlobalAnalysis() {
 
   const checkLastRun = async () => {
     if (!profile) return;
-    const { data } = await supabase
-      .from('ai_logs')
-      .select('created_at')
-      .eq('user_id', profile.user_id)
-      .eq('action', 'globalanalysis')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    try {
+      const { data } = await supabase
+        .from('ai_logs')
+        .select('created_at')
+        .eq('user_id', profile.user_id)
+        .eq('action', 'globalanalysis')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    if (data) setLastRunDate(data.created_at);
+      if (data) setLastRunDate(data.created_at);
+    } catch (e) {
+      console.warn("Could not fetch last run date", e);
+    }
   };
 
   const runAudit = async () => {
@@ -78,36 +81,49 @@ export default function GlobalAnalysis() {
           units: profile.units,
           dietStrategy: profile.settings?.nutrition 
         },
-        logsCount: logs?.length,
-        logs: logs?.map(l => ({ type: l.type, date: l.created_at, muscle: l.muscle_group, data: l.data }))
+        logsCount: logs?.length || 0,
+        logs: logs?.map(l => ({ type: l.type, date: l.created_at, muscle: l.muscle_group, data: l.data })) || []
       };
 
       const result = await aiService.getGlobalAnalysis(profile.coach_tone, summary);
-      setAnalysis(result);
-      setActiveTab("ai");
-    } catch (error) {
+      if (result) {
+        setAnalysis(result);
+        setActiveTab("ai");
+        checkLastRun();
+      } else {
+        throw new Error("La IA no devolvió resultados.");
+      }
+    } catch (error: any) {
       console.error(error);
-      toast.error("Error al ejecutar la auditoría");
+      toast.error("Error al ejecutar la auditoría: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  if (profileLoading || (!profile && loading)) {
+  // Fallback visual mientras carga el perfil para evitar pantalla negra
+  if (profileLoading) {
     return (
-        <div className="min-h-screen bg-black flex items-center justify-center">
-            <Loader2 className="animate-spin text-red-600 h-8 w-8" />
+        <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
+            <div className="relative">
+                <div className="absolute inset-0 bg-red-600/20 blur-2xl animate-pulse rounded-full" />
+                <Loader2 className="animate-spin text-red-600 h-10 w-10 relative z-10" />
+            </div>
+            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">Sincronizando Auditoría...</p>
         </div>
     );
   }
 
-  // Si después de cargar el perfil sigue siendo null, mostramos error
+  // Si después de cargar no hay perfil (caso raro pero posible), mostramos error en vez de pantalla negra
   if (!profile) {
     return (
-        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 text-center space-y-4">
-            <AlertCircle className="text-red-600 h-10 w-10" />
-            <p className="text-white font-bold">No se encontró el perfil de usuario.</p>
-            <Button onClick={() => navigate('/dashboard')}>Volver</Button>
+        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 text-center space-y-6">
+            <AlertCircle className="text-red-600 h-12 w-12" />
+            <div className="space-y-2">
+                <h2 className="text-white font-black uppercase tracking-widest italic">Sesión no encontrada</h2>
+                <p className="text-zinc-500 text-sm">No pudimos cargar tu perfil de atleta.</p>
+            </div>
+            <Button onClick={() => window.location.reload()} className="bg-zinc-800 text-white">Reintentar</Button>
         </div>
     );
   }
@@ -144,9 +160,9 @@ export default function GlobalAnalysis() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="w-full bg-zinc-900 border border-zinc-800 p-1">
-          <TabsTrigger value="visual" className="flex-1 font-bold uppercase text-[10px] tracking-widest"><BarChart3 className="w-3 h-3 mr-2" /> Tendencias</TabsTrigger>
-          <TabsTrigger value="ai" className="flex-1 font-bold uppercase text-[10px] tracking-widest"><Brain className="w-3 h-3 mr-2" /> Juicio IA</TabsTrigger>
+        <TabsList className="w-full bg-zinc-900 border border-zinc-800 p-1 h-12">
+          <TabsTrigger value="visual" className="flex-1 font-black uppercase text-[10px] tracking-widest"><BarChart3 className="w-3.5 h-3.5 mr-2" /> Tendencias</TabsTrigger>
+          <TabsTrigger value="ai" className="flex-1 font-black uppercase text-[10px] tracking-widest"><Brain className="w-3.5 h-3.5 mr-2" /> Juicio IA</TabsTrigger>
         </TabsList>
 
         <TabsContent value="visual" className="space-y-8 animate-in fade-in slide-in-from-left-2">
@@ -182,18 +198,18 @@ export default function GlobalAnalysis() {
 
           {analysis && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-              <Card className="border-l-4 border-l-red-600 bg-zinc-950/50">
-                <CardHeader className="pb-2"><CardTitle className="text-sm uppercase font-black text-zinc-500">Evaluación General</CardTitle></CardHeader>
-                <CardContent><MarkdownRenderer content={analysis.overall_assessment} /></CardContent>
+              <Card className="border-l-4 border-l-red-600 bg-zinc-950/50 overflow-hidden">
+                <CardHeader className="pb-2 bg-zinc-900/20 border-b border-zinc-900/30"><CardTitle className="text-xs uppercase font-black text-zinc-500">Evaluación General</CardTitle></CardHeader>
+                <CardContent className="pt-4"><MarkdownRenderer content={analysis.overall_assessment} /></CardContent>
               </Card>
 
               <div className="space-y-3">
-                <h3 className="font-black flex items-center gap-2 text-xs uppercase tracking-widest text-white"><TrendingUp className="h-4 w-4 text-green-500" /> Patrones Detectados</h3>
-                {analysis.top_patterns.map((item, i) => (
+                <h3 className="font-black flex items-center gap-2 text-xs uppercase tracking-widest text-white px-1"><TrendingUp className="h-4 w-4 text-green-500" /> Patrones Detectados</h3>
+                {analysis.top_patterns?.map((item, i) => (
                   <Card key={i} className="bg-zinc-900/40 border-zinc-800">
                     <CardContent className="p-4 space-y-2">
                       <p className="font-bold text-sm text-zinc-200">{item.pattern}</p>
-                      <Badge variant="secondary" className="bg-zinc-800 text-zinc-400">Evidencia: {item.evidence}</Badge>
+                      <Badge variant="secondary" className="bg-zinc-800 text-zinc-400 border-0">Evidencia: {item.evidence}</Badge>
                       <p className="text-xs text-zinc-500 italic pt-1">{item.action}</p>
                     </CardContent>
                   </Card>

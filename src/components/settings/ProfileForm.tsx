@@ -2,30 +2,28 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
-import { User, Camera, Loader2, Save, Calendar, Star, Brain, ShieldCheck, ShieldAlert, ChevronRight } from "lucide-react";
+import { User, Camera, Loader2, Save, Brain, Target, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CoachTone } from "@/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
 export function ProfileForm() {
   const { profile, loading: profileLoading } = useProfile();
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const [displayName, setDisplayName] = useState("");
-  const [sex, setSex] = useState<'male'|'female'>("male");
+  const [sex, setSex] = useState<'male'|'female'|'other'>("male");
   const [birthDate, setBirthDate] = useState("");
   const [coachTone, setCoachTone] = useState<CoachTone>("strict");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   
   // Athlete Specific
-  const [age, setAge] = useState("");
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const [objectives, setObjectives] = useState("");
@@ -33,13 +31,12 @@ export function ProfileForm() {
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || "");
-      if (profile.sex === 'male' || profile.sex === 'female') setSex(profile.sex);
+      setSex(profile.sex || "male");
       setBirthDate(profile.birth_date || "");
       setCoachTone(profile.coach_tone || "strict");
       setAvatarUrl(profile.avatar_url || null);
       
       if (profile.settings) {
-        setAge(profile.settings.age || "");
         setHeight(profile.settings.height || "");
         setWeight(profile.settings.current_weight || "");
         setObjectives(profile.settings.objectives || "");
@@ -53,7 +50,6 @@ export function ProfileForm() {
 
     const updatedSettings = {
       ...(profile.settings || {}),
-      age,
       height,
       current_weight: weight,
       objectives
@@ -73,9 +69,9 @@ export function ProfileForm() {
         .eq('user_id', profile.user_id);
 
       if (error) throw error;
-      toast.success("Perfil actualizado");
+      toast.success("Perfil actualizado correctamente");
     } catch (error: any) {
-      toast.error("Error: " + error.message);
+      toast.error("Error al guardar: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -92,7 +88,7 @@ export function ProfileForm() {
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
       await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('user_id', profile.user_id);
       setAvatarUrl(publicUrl);
-      toast.success("Foto actualizada");
+      toast.success("Foto de perfil actualizada");
     } catch (error) {
       toast.error("Error al subir imagen");
     } finally {
@@ -122,47 +118,61 @@ export function ProfileForm() {
 
       <div className="grid gap-6">
         <div className="space-y-2">
-            <Label className="text-zinc-500 text-[10px] uppercase font-bold">Nombre</Label>
-            <Input value={displayName} onChange={e => setDisplayName(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
+            <Label className="text-zinc-500 text-[10px] uppercase font-black tracking-widest">Nombre Completo</Label>
+            <Input value={displayName} onChange={e => setDisplayName(e.target.value)} className="bg-black border-zinc-800 h-12 font-bold text-white" />
         </div>
 
-        {!profile?.is_coach && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label className="text-zinc-500 text-[10px] uppercase font-black tracking-widest">Fecha de Nacimiento</Label>
+                <div className="relative">
+                    <Calendar className="absolute left-3 top-3.5 h-4 w-4 text-zinc-600" />
+                    <Input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="bg-black border-zinc-800 h-12 pl-10 font-bold text-white" />
+                </div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label className="text-zinc-500 text-[10px] uppercase font-bold">Altura (cm)</Label>
-                    <Input value={height} onChange={e => setHeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
+                    <Label className="text-zinc-500 text-[10px] uppercase font-black tracking-widest">Altura (cm)</Label>
+                    <Input value={height} onChange={e => setHeight(e.target.value)} className="bg-black border-zinc-800 h-12 font-bold text-white text-center" />
                 </div>
                 <div className="space-y-2">
-                    <Label className="text-zinc-500 text-[10px] uppercase font-bold">Peso Inicial (kg)</Label>
-                    <Input value={weight} onChange={e => setWeight(e.target.value)} className="bg-black/50 border-zinc-800 h-12 font-bold" />
+                    <Label className="text-zinc-500 text-[10px] uppercase font-black tracking-widest">Peso Inicial (kg)</Label>
+                    <Input value={weight} onChange={e => setWeight(e.target.value)} className="bg-black border-zinc-800 h-12 font-bold text-white text-center" />
                 </div>
             </div>
-        )}
+        </div>
 
-        <div className="space-y-6 pt-4 border-t border-zinc-900">
+        <div className="space-y-3 pt-4 border-t border-zinc-900">
+            <div className="flex items-center gap-2 text-red-500">
+                <Target className="h-5 w-5" />
+                <h3 className="font-black uppercase italic text-sm">Tus Objetivos</h3>
+            </div>
+            <p className="text-[11px] text-zinc-500 font-bold uppercase leading-tight italic">
+              Rellená este campo para no olvidarte de tu para qué. <br/>
+              Cuando la motivación falla, recordar esto te va a ser muy útil.
+            </p>
+            <Textarea 
+              value={objectives} 
+              onChange={e => setObjectives(e.target.value)} 
+              className="bg-black border-zinc-800 min-h-[100px] text-zinc-300"
+              placeholder="¿Qué querés lograr con este sistema?"
+            />
+        </div>
+
+        <div className="space-y-6 pt-8 border-t border-zinc-900">
             <div className="flex items-center gap-2 text-red-500">
                 <Brain className="h-5 w-5" />
-                <h3 className="font-black uppercase italic text-sm">Personalidad de tu IA</h3>
+                <h3 className="font-black uppercase italic text-sm">Cerebro de tu Coach IA</h3>
             </div>
             <RadioGroup value={coachTone} onValueChange={(v) => setCoachTone(v as CoachTone)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {profile?.is_coach ? (
-                    <PersonalityCard 
-                      id="business_analytical" 
-                      label="Strategic Business" 
-                      desc="Analista de negocio. Enfoque en rentabilidad, retención y marketing de equipo." 
-                      current={coachTone} 
-                      className="md:col-span-2"
-                    />
-                ) : (
-                    <>
-                        <PersonalityCard id="strict" label="Strict" desc="Mentzer Style. Sin excusas." current={coachTone} />
-                        <PersonalityCard id="motivational" label="Motivational" desc="Energía positiva y empuje." current={coachTone} />
-                    </>
-                )}
+                <PersonalityCard id="strict" label="Strict" desc="Sin excusas. Fallo absoluto. Disciplina férrea estilo Mentzer." current={coachTone} />
+                <PersonalityCard id="analytical" label="Analytical" desc="Basado en datos duros. Frío y enfocado únicamente en las métricas." current={coachTone} />
+                <PersonalityCard id="motivational" label="Motivational" desc="Energía positiva y empuje constante para superar tus límites." current={coachTone} />
+                <PersonalityCard id="friendly" label="Friendly" desc="Empático y profesional. Apoyo técnico con cercanía emocional." current={coachTone} />
             </RadioGroup>
         </div>
 
-        <Button className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-black uppercase italic tracking-widest mt-6" onClick={handleSave} disabled={loading}>
+        <Button className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-black uppercase italic tracking-widest mt-6 shadow-xl" onClick={handleSave} disabled={loading}>
             {loading ? <Loader2 className="animate-spin h-5 w-5"/> : <Save className="h-5 w-5 mr-2"/>}
             GUARDAR CONFIGURACIÓN
         </Button>

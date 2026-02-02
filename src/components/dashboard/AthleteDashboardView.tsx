@@ -63,8 +63,18 @@ export default function AthleteDashboardView() {
   };
 
   const markAsRead = async (id: string) => {
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
-    setNotifications(notifications.filter(n => n.id !== id));
+    // Actualizamos localmente para feedback inmediato
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    
+    // Actualizamos en la DB para que no vuelva a aparecer al recargar/cambiar pestaña
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', id);
+      
+    if (error) {
+        console.error("Error marking notification as read:", error);
+    }
   };
 
   const checkCheckin = async () => {
@@ -113,17 +123,19 @@ export default function AthleteDashboardView() {
 
       <div className="w-full max-w-md mx-auto space-y-6">
         
-        {notifications.map(n => (
-           <div key={n.id} className="bg-red-600/10 border border-red-600/30 p-4 rounded-xl animate-in slide-in-from-top-2">
-              <div className="flex justify-between items-start mb-1">
-                 <p className="text-[10px] font-black uppercase text-red-500 flex items-center gap-2">
-                    <Bell className="w-3 h-3" /> Alerta de Coach
-                 </p>
-                 <button onClick={() => markAsRead(n.id)} className="text-[9px] text-zinc-500 uppercase font-bold hover:text-white">Cerrar</button>
-              </div>
-              <p className="text-sm font-bold text-white leading-tight">{n.message}</p>
-           </div>
-        ))}
+        <div className="space-y-3">
+          {notifications.map(n => (
+             <div key={n.id} className="bg-red-600/10 border border-red-600/30 p-4 rounded-xl animate-in slide-in-from-top-2">
+                <div className="flex justify-between items-start mb-1">
+                   <p className="text-[10px] font-black uppercase text-red-500 flex items-center gap-2">
+                      <Bell className="w-3 h-3" /> Alerta de Coach
+                   </p>
+                   <button onClick={() => markAsRead(n.id)} className="text-[9px] text-zinc-500 uppercase font-bold hover:text-white transition-colors">Entendido</button>
+                </div>
+                <p className="text-sm font-bold text-white leading-tight">{n.message}</p>
+             </div>
+          ))}
+        </div>
 
         <CoachInvitationAlert userId={profile.user_id} />
 
