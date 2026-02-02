@@ -118,7 +118,14 @@ const Auth = () => {
             <div className="bg-zinc-900/50 p-4 rounded-lg border border-zinc-800 text-[10px] text-zinc-500 uppercase font-bold leading-relaxed">
                 Por seguridad, no podrás ingresar hasta que valides tu identidad haciendo clic en el botón del correo.
             </div>
-            <Button variant="outline" className="w-full border-zinc-800 text-zinc-300 font-bold h-12" onClick={() => setActiveTab('login')}>
+            <Button 
+                variant="outline" 
+                className="w-full border-zinc-800 text-zinc-300 font-bold h-12" 
+                onClick={() => {
+                    setIsVerifyStep(false);
+                    setActiveTab('login');
+                }}
+            >
                 YA LO HICE, IR AL LOGIN
             </Button>
           </CardContent>
@@ -245,7 +252,7 @@ const Auth = () => {
                       <div className="flex gap-2 pt-2">
                           <Button variant="ghost" type="button" className="flex-1 text-zinc-500 font-bold uppercase text-[10px]" onClick={() => setStep(2)}>Volver</Button>
                           <Button className="flex-[2] h-12 bg-white text-black hover:bg-zinc-200 font-black uppercase italic" type="submit" disabled={loading}>
-                              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "FINALIZAR REGISTRO"}
+                              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "FINALIZAR REGISTRO"}
                           </Button>
                       </div>
                   </form>
