@@ -38,16 +38,16 @@ export default function CoachLanding() {
               <div className="flex gap-4 items-center">
                 <button 
                     onClick={() => navigate("/")}
-                    className="hidden sm:block text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
+                    className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors border-r border-zinc-800 pr-4 mr-1"
                 >
-                    Volver a Atletas
+                    Soy Atleta
                 </button>
                 <Button 
                     variant="ghost" 
                     className="text-zinc-300 hover:text-white font-bold uppercase text-[9px] md:text-[10px] tracking-widest border border-zinc-800 h-8 md:h-9"
-                    onClick={() => navigate("/auth")}
+                    onClick={() => navigate("/auth?role=coach")}
                 >
-                    Entrar al Panel
+                    Entrar
                 </Button>
               </div>
             </div>
@@ -124,7 +124,7 @@ export default function CoachLanding() {
                           <PlanFeature text="Roadmap Estándar" active />
                       </CardContent>
                       <CardFooter className="p-8 pt-0">
-                          <Button variant="outline" className="w-full h-14 border-zinc-800 text-zinc-400 hover:text-white font-black uppercase tracking-widest text-[10px]" onClick={() => navigate('/auth')}>EMPE ZAR PRUEBA</Button>
+                          <Button variant="outline" className="w-full h-14 border-zinc-800 text-zinc-400 hover:text-white font-black uppercase tracking-widest text-[10px]" onClick={() => navigate('/auth?role=coach')}>EMPE ZAR PRUEBA</Button>
                       </CardFooter>
                   </Card>
 
@@ -149,7 +149,7 @@ export default function CoachLanding() {
                           <PlanFeature text="Roadmap Estándar" active />
                       </CardContent>
                       <CardFooter className="p-8 pt-0">
-                          <Button className="w-full h-16 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic tracking-widest text-[11px] md:text-sm shadow-2xl" onClick={() => navigate('/auth')}>OBTENER PLAN HUB</Button>
+                          <Button className="w-full h-16 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic tracking-widest text-[11px] md:text-sm shadow-2xl" onClick={() => navigate('/auth?role=coach')}>OBTENER PLAN HUB</Button>
                       </CardFooter>
                   </Card>
 

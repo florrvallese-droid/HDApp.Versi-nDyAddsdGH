@@ -37,9 +37,9 @@ const Index = () => {
             <div className="flex gap-3 md:gap-4 items-center">
                 <button 
                     onClick={() => navigate("/coach-landing")}
-                    className="hidden sm:block text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
+                    className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors border-r border-zinc-800 pr-4 mr-1"
                 >
-                    ¿Sos Preparador?
+                    Soy Coach
                 </button>
                 <Button 
                     variant="ghost" 
@@ -300,10 +300,14 @@ const Index = () => {
 };
 
 const ComparisonBox = ({ icon, title, price, duration, outcome, highlight = false, negative = false }: any) => (
-    <div className={cn(
-        "p-6 md:p-8 rounded-3xl border flex flex-col items-center text-center gap-4 transition-all",
-        highlight ? "bg-red-600/5 border-red-600/30 shadow-2xl" : "bg-zinc-950 border-zinc-900 opacity-60"
-    )}>
+    <div className="p-6 md:p-8 rounded-3xl border flex flex-col items-center text-center gap-4 transition-all"
+        style={{
+            backgroundColor: highlight ? 'rgba(220,38,38,0.05)' : '#09090b',
+            borderColor: highlight ? 'rgba(220,38,38,0.3)' : '#18181b',
+            opacity: highlight ? 1 : 0.6,
+            boxShadow: highlight ? '0 25px 50px -12px rgba(0, 0, 0, 0.25)' : 'none'
+        }}
+    >
         <div className="p-3 bg-zinc-900 rounded-xl mb-2">{icon}</div>
         <div className="space-y-1">
             <h4 className="text-xs md:text-sm font-black uppercase tracking-widest text-white">{title}</h4>
