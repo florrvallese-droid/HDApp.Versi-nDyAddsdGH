@@ -46,12 +46,11 @@ const Auth = () => {
 
       if (profileError) {
         console.error("Profile check error:", profileError);
-        // Si hay error, asumimos que puede entrar y el dashboard manejará el error
         navigate('/dashboard');
         return;
       }
 
-      // Si el perfil EXISTE (aunque esté incompleto), dejamos pasar.
+      // Si el perfil existe, entramos al dashboard o coach hub
       if (profile) {
         if (profile.is_coach) {
             navigate('/coach');
@@ -61,7 +60,7 @@ const Auth = () => {
         return;
       }
 
-      // Solo si NO EXISTE registro en la tabla profiles, enviamos al onboarding
+      // Solo si no existe registro en profiles, vamos al onboarding
       navigate('/onboarding');
 
     } catch (err) {

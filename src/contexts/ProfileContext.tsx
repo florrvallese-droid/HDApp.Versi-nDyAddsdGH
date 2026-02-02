@@ -25,7 +25,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
   const [daysLeftInTrial, setDaysLeftInTrial] = useState(0);
 
   useEffect(() => {
-    // 1. Recuperar rol guardado
     const savedRole = localStorage.getItem('hd_active_role');
     if (savedRole === 'coach' || savedRole === 'athlete') {
       setActiveRole(savedRole);
@@ -33,14 +32,13 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
     let mounted = true;
 
-    // 2. Función de carga de perfil robusta
     const loadUserProfile = async (userId: string) => {
       try {
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("user_id", userId)
-          .maybeSingle(); // Usamos maybeSingle para no lanzar error si no existe
+          .maybeSingle();
 
         if (mounted) {
           if (data) {
@@ -48,13 +46,11 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
             setProfile(userProfile);
             calculateAccess(userProfile);
             
-            // Forzar modo atleta si no es coach
             if (!userProfile.is_coach) {
               setActiveRole('athlete');
               localStorage.setItem('hd_active_role', 'athlete');
             }
           } else {
-            // Usuario autenticado pero sin perfil (raro, pero posible)
             setProfile(null);
           }
         }
@@ -65,7 +61,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
       }
     };
 
-    // 3. Inicialización de sesión
     const initialize = async () => {
       try {
         const { data: { session: initSession } } = await supabase.auth.getSession();
@@ -86,14 +81,12 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
     initialize();
 
-    // 4. Listener de cambios de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       if (!mounted) return;
       
       setSession(newSession);
       
       if (newSession?.user) {
-        // Solo recargar si el usuario cambió o si no tenemos perfil cargado
         if (!profile || profile.user_id !== newSession.user.id) {
             setLoading(true);
             await loadUserProfile(newSession.user.id);
@@ -105,14 +98,13 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
       }
     });
 
-    // 5. Timeout de seguridad (Escape Hatch)
-    // Si por alguna razón supabase cuelga, liberamos la UI en 5 segundos
+    // Safety Timeout: Force loading to end after 6 seconds to unlock UI
     const safetyTimeout = setTimeout(() => {
       if (loading && mounted) {
-        console.warn("Profile loading timed out, forcing UI render");
+        console.warn("Safety timeout reached, unlocking UI");
         setLoading(false);
       }
-    }, 5000);
+    }, 6000);
 
     return () => {
       mounted = false;
