@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/services/supabase";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, MessageSquare, Activity, Users, LogOut, ShieldAlert, Flag, Menu } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Activity, Users, LogOut, ShieldAlert, Flag, Menu, History, ShieldCheck } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 
@@ -53,27 +53,37 @@ const AdminLayout = () => {
   useEffect(() => {
     const checkAdmin = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        // Obtenemos la sesión actual de forma segura
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (!user) {
+        if (sessionError || !session?.user) {
+          console.warn("No active session for admin area.");
           navigate('/admin/login'); 
           return;
         }
 
-        const { data: profile } = await supabase
+        // Consultamos el perfil verificando específicamente el campo is_admin
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('is_admin')
-          .eq('user_id', user.id)
-          .single();
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        if (profileError) {
+            console.error("Error fetching admin profile:", profileError);
+            toast.error("Error al verificar permisos.");
+            navigate('/dashboard');
+            return;
+        }
 
         if (profile?.is_admin) {
           setIsAdmin(true);
         } else {
-          toast.error("Acceso no autorizado. Área restringida.");
+          toast.error("Acceso no autorizado.");
           navigate('/dashboard');
         }
       } catch (error) {
-        console.error("Admin check failed", error);
+        console.error("Critical admin check failed:", error);
         navigate('/dashboard');
       } finally {
         setLoading(false);
@@ -93,7 +103,15 @@ const AdminLayout = () => {
     setMobileOpen(false);
   };
 
-  if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-400">Verificando credenciales...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4 text-zinc-400">
+        <ShieldAlert className="h-12 w-12 text-red-600 animate-pulse" />
+        <span className="font-bold uppercase tracking-widest text-xs">Verificando Credenciales...</span>
+      </div>
+    );
+  }
+
   if (!isAdmin) return null;
 
   return (
