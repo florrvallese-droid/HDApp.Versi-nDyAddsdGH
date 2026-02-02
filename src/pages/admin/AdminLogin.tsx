@@ -1,138 +1,145 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/services/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ShieldAlert, Lock, Loader2, AlertCircle } from "lucide-react";
+import { ShieldAlert, Mail, Loader2, CheckCircle2, ArrowRight } from "lucide-react";
+
+const ADMIN_EMAIL = "florr.vallese@gmail.com";
 
 const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [email, setInputEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [sent, setSent] = useState(false);
+  const [alreadyLoggedIn, setAlreadyLoggedIn] = useState(false);
   const navigate = useNavigate();
 
-  // Si ya tiene sesión, verificar si es admin y redirigir
+  // Verificar si el usuario ya tiene una sesión activa con el mail correcto
   useEffect(() => {
-    const checkCurrentSession = async () => {
+    const checkSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('is_admin')
-                .eq('user_id', session.user.id)
-                .maybeSingle();
-            
-            if (profile?.is_admin) {
-                navigate('/admin');
-            }
+        if (session?.user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+            setAlreadyLoggedIn(true);
         }
     };
-    checkCurrentSession();
-  }, [navigate]);
+    checkSession();
+  }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const cleanEmail = email.trim().toLowerCase();
+    
+    if (cleanEmail !== ADMIN_EMAIL.toLowerCase()) {
+      toast.error("Este correo no tiene permisos de administración.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
+      const { error } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/admin`,
+        },
       });
 
-      if (error) {
-        // Errores comunes de Supabase Auth
-        if (error.message.toLowerCase().includes("invalid login credentials")) {
-            throw new Error("El correo o la contraseña no coinciden. Verificá que el email esté confirmado.");
-        }
-        if (error.message.toLowerCase().includes("email not confirmed")) {
-            throw new Error("El email aún no ha sido confirmado. Revisá tu casilla de SPAM.");
-        }
-        throw error;
-      }
-
-      if (data.user) {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
-
-        if (profileError) throw new Error("Error verificando permisos de base de datos.");
-
-        if (profile?.is_admin) {
-          toast.success("Acceso administrativo concedido.");
-          navigate('/admin');
-        } else {
-          toast.error("Tu cuenta no tiene nivel de acceso ADMINISTRADOR.");
-          await supabase.auth.signOut();
-        }
-      }
+      if (error) throw error;
+      setSent(true);
+      toast.success("Enlace de acceso enviado a tu casilla.");
     } catch (error: any) {
-      toast.error(error.message || "Error de autenticación");
+      toast.error(error.message || "Error al enviar el enlace");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleGoToAdmin = () => {
+      navigate('/admin');
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-zinc-950 p-4">
-      <Card className="w-full max-w-md border-zinc-800 bg-zinc-900 text-zinc-100 shadow-2xl">
-        <CardHeader className="text-center space-y-4">
+      <Card className="w-full max-w-md border-zinc-800 bg-zinc-900 text-zinc-100 shadow-2xl overflow-hidden">
+        <div className="h-1.5 w-full bg-red-600" />
+        <CardHeader className="text-center space-y-4 pb-8">
           <div className="mx-auto bg-red-900/20 p-4 rounded-full w-fit mb-2">
             <ShieldAlert className="w-10 h-10 text-red-500" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-black tracking-wider uppercase italic">Heavy Duty Admin</CardTitle>
-            <CardDescription className="text-zinc-400">Control Central de Inteligencia</CardDescription>
+            <CardTitle className="text-2xl font-black tracking-wider uppercase italic">Cerebro Heavy Duty</CardTitle>
+            <CardDescription className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">Acceso Restringido Propietario</CardDescription>
           </div>
         </CardHeader>
+        
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Input 
-                type="email" 
-                placeholder="Email de Administrador" 
-                value={email}
-                onChange={(e) => setInputEmail(e.target.value)}
-                className="bg-zinc-950 border-zinc-800 h-12"
-                required 
-              />
-              <div className="relative">
-                <Input 
-                  type="password" 
-                  placeholder="Contraseña" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-zinc-950 border-zinc-800 h-12"
-                  required 
-                />
-                <Lock className="absolute right-3 top-4 h-4 w-4 text-zinc-600" />
-              </div>
-            </div>
-            <Button 
-              className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic tracking-widest" 
-              type="submit" 
-              disabled={loading}
-            >
-              {loading ? <Loader2 className="animate-spin mr-2 h-5 w-5" /> : "ENTRAR AL PANEL"}
-            </Button>
-          </form>
-
-          <div className="mt-8 pt-6 border-t border-zinc-800 space-y-4">
-             <div className="flex items-start gap-3 bg-blue-900/10 p-4 rounded-lg border border-blue-900/20">
-                <AlertCircle className="h-5 w-5 text-blue-500 shrink-0" />
-                <p className="text-[10px] text-blue-400 font-bold uppercase leading-relaxed">
-                    Si acabás de registrarte, recordá confirmar tu email antes de intentar ingresar al panel de control.
-                </p>
-             </div>
-             <div className="text-center">
-                <Button variant="link" className="text-zinc-600 text-xs uppercase font-bold tracking-tighter" onClick={() => navigate('/')}>
-                    ← Volver a la App
+          {alreadyLoggedIn ? (
+            <div className="space-y-6 text-center py-4 animate-in fade-in zoom-in">
+                <div className="bg-green-900/10 border border-green-900/30 p-4 rounded-xl space-y-2">
+                    <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto" />
+                    <p className="text-sm font-bold text-white">Sesión Identificada</p>
+                    <p className="text-[10px] text-zinc-500 uppercase font-black">{ADMIN_EMAIL}</p>
+                </div>
+                <Button 
+                    onClick={handleGoToAdmin}
+                    className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-black uppercase italic tracking-widest"
+                >
+                    ENTRAR AL PANEL <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-             </div>
+                <Button variant="link" className="text-zinc-600 text-xs uppercase font-bold" onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }}>
+                    Cerrar sesión e ingresar con otro mail
+                </Button>
+            </div>
+          ) : sent ? (
+            <div className="space-y-6 text-center py-4 animate-in slide-in-from-bottom-4">
+                <div className="bg-blue-900/10 border border-blue-900/30 p-6 rounded-xl space-y-3">
+                    <Mail className="h-10 w-10 text-blue-500 mx-auto animate-bounce" />
+                    <p className="text-sm font-bold text-white uppercase tracking-tight">¡Enlace Enviado!</p>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                        Revisá tu correo <strong>{email}</strong> y hacé click en el botón de acceso.
+                    </p>
+                </div>
+                <Button variant="outline" className="w-full border-zinc-800 text-zinc-500 h-12 uppercase font-bold text-xs" onClick={() => setSent(false)}>
+                    Volver a intentar
+                </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleMagicLink} className="space-y-6">
+              <div className="space-y-3">
+                <Label className="text-[10px] font-black uppercase text-zinc-600 tracking-[0.2em] ml-1">Email de Propietario</Label>
+                <div className="relative">
+                    <Input 
+                        type="email" 
+                        placeholder="tu@email.com" 
+                        value={email}
+                        onChange={(e) => setInputEmail(e.target.value)}
+                        className="bg-black border-zinc-800 h-14 pl-12 font-bold text-white placeholder:text-zinc-800"
+                        required 
+                    />
+                    <Mail className="absolute left-4 top-5 h-4 w-4 text-zinc-700" />
+                </div>
+              </div>
+              <Button 
+                className="w-full h-16 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic tracking-widest text-sm shadow-xl shadow-red-900/20" 
+                type="submit" 
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="animate-spin mr-2 h-5 w-5" /> : "SOLICITAR ACCESO DIRECTO"}
+              </Button>
+              <p className="text-[9px] text-zinc-700 text-center uppercase font-black tracking-tighter italic">
+                El sistema enviará un código de un solo uso para verificar tu identidad biométrica.
+              </p>
+            </form>
+          )}
+
+          <div className="mt-8 pt-6 border-t border-zinc-800 text-center">
+             <Button variant="link" className="text-zinc-600 text-[10px] uppercase font-bold tracking-widest" onClick={() => navigate('/')}>
+                ← VOLVER A LA APP PÚBLICA
+             </Button>
           </div>
         </CardContent>
       </Card>
