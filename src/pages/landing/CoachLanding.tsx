@@ -2,9 +2,15 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
+import { 
     Brain, Briefcase, Zap, 
     ArrowRight, MessageSquare, TrendingUp, Sparkles, 
-    Star, CheckCircle2, ChevronRight 
+    Star, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, Lock
 } from "lucide-react";
 import { CoachApplicationForm } from "@/components/landing/CoachApplicationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
@@ -25,6 +31,20 @@ export default function CoachLanding() {
              alt="Coach Command Center"
            />
         </div>
+
+        <nav className="absolute top-0 w-full max-w-7xl mx-auto flex justify-between items-center p-6 z-50">
+            {/* Logo refinado */}
+            <img src="/logo.png" className="h-8 md:h-10 w-auto brightness-0 invert" alt="Heavy Duty" />
+            <div className="flex gap-4 items-center">
+                <Button 
+                    variant="ghost" 
+                    className="text-zinc-300 hover:text-white font-bold uppercase text-[10px] tracking-widest border border-zinc-800 h-9"
+                    onClick={() => navigate("/auth")}
+                >
+                    Entrar al Panel
+                </Button>
+            </div>
+        </nav>
 
         <div className="relative z-20 max-w-4xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/5 text-yellow-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
@@ -63,9 +83,6 @@ export default function CoachLanding() {
               <p className="text-[10px] text-zinc-600 uppercase font-black tracking-widest mt-4">Cupo limitado a los primeros 50 Coaches</p>
            </div>
         </div>
-
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-red-600/10 blur-[120px] rounded-full" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-yellow-600/10 blur-[120px] rounded-full" />
       </section>
 
       {/* 2. EL PROBLEMA */}
@@ -99,7 +116,7 @@ export default function CoachLanding() {
       {/* 3. LA SOLUCIÓN */}
       <section className="py-32 px-6 relative overflow-hidden">
          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8 animate-in slide-in-from-left-10 duration-1000">
+            <div className="space-y-8">
                <div className="space-y-3">
                   <h3 className="text-red-500 font-black uppercase tracking-widest text-sm">TU CENTRO DE COMANDO</h3>
                   <h2 className="text-5xl md:text-7xl font-black uppercase italic leading-[0.9]">NO ES OTRA "APP DE RUTINAS".</h2>
@@ -155,15 +172,65 @@ export default function CoachLanding() {
                     desc="Genera automáticamente posteos basados en los récords reales de tus alumnos. Convertí resultados en ventas."
                 />
                 <FeatureCard 
-                    icon={<Briefcase className="text-green-500" />}
+                    icon={<Lock className="text-green-500" />}
                     title="Bóveda de Protocolos"
-                    desc="Guardá tus dietas, rutinas y protocolos maestros. La IA te audita los borradores para evitar errores."
+                    desc="Guardá tus esquemas maestros. La IA audita los borradores para evitar errores de seguridad o dosis ilógicas."
                 />
             </div>
         </div>
       </section>
 
-      {/* 5. LA OFERTA */}
+      {/* 5. FAQ (OBJETION HANDLING) */}
+      <section className="py-24 px-6 bg-black border-b border-zinc-900">
+        <div className="max-w-3xl mx-auto space-y-12">
+            <div className="flex items-center gap-4">
+                <div className="p-2 bg-yellow-500/10 rounded-lg">
+                    <HelpCircle className="w-6 h-6 text-yellow-500" />
+                </div>
+                <h2 className="text-3xl font-black uppercase italic tracking-tighter">PREGUNTAS FRECUENTES (SIN VUELTAS)</h2>
+            </div>
+
+            <Accordion type="single" collapsible className="w-full space-y-4">
+                <FAQItem 
+                    value="item-1"
+                    question="¿La IA va a reemplazar mi trabajo o 'robarme' alumnos?"
+                    answer="Absolutamente no. La IA es tu Secretario, no el Jefe. El sistema se encarga de lo operativo: contar repeticiones, detectar estancamientos y avisarte si alguien no pagó. La Estrategia y la Relación Humana siguen siendo 100% tuyas. La app hace que tu servicio se vea más Premium, lo que fideliza al alumno con tu marca, no con la app."
+                />
+                <FAQItem 
+                    value="item-2"
+                    question="Tengo 30 alumnos en Excel y WhatsApp. ¿Es muy difícil pasarlos?"
+                    answer="Sabemos que migrar da pereza, por eso lo resolvemos nosotros. Si entrás al 'Founders Club' (cupo limitado), tenés incluido el servicio de Migración Asistida. Nos pasás tus planillas y nosotros te entregamos la cuenta con todos tus alumnos cargados y listos para empezar. Vos no perdés tiempo cargando datos."
+                />
+                <FAQItem 
+                    value="item-3"
+                    question="No uso 'Heavy Duty' estricto con todos. ¿Me sirve igual?"
+                    answer="Sí. Aunque la app prioriza la Alta Intensidad, la base es la Sobrecarga Progresiva, que aplica a cualquier sistema (PPL, Upper/Lower, Frecuencia 2). Lo que la IA va a auditar es que el alumno mejore (suba peso, reps o mejore técnica). Si tus alumnos progresan, la app te va a servir para demostrarlo con datos."
+                />
+                <FAQItem 
+                    value="item-4"
+                    question="¿La IA habla con mis alumnos? ¿Qué tono usa?"
+                    answer="La IA no chatea libremente (no es un ChatGPT suelto). Emite dictámenes técnicos post-entreno. Y lo mejor: Vos elegís la personalidad. Desde tu panel, configurás si querés que la IA sea un 'Sargento Estricto', un 'Motivador Eufórico' o un 'Analista Frío'. El alumno siente que sos vos quien le está hablando."
+                />
+                <FAQItem 
+                    value="item-5"
+                    question="¿Cómo se manejan los pagos? ¿Dólares o Pesos?"
+                    answer="Estamos en Argentina y entendemos el contexto. La suscripción del Coach se cobra en Pesos Argentinos vía Mercado Pago (Débito Automático). El precio se ajusta trimestralmente por índice oficial para que no pierdas previsibilidad. Nada de gastos sorpresa en dólares en la tarjeta."
+                />
+                <FAQItem 
+                    value="item-6"
+                    question="¿Puedo cargar mis propios planes de Farmacología y Nutrición?"
+                    answer="Sí. Tenés una Bóveda Privada. Podés cargar tus protocolos y asignarlos. Nuestra IA actúa como un 'Auditor de Seguridad': antes de enviar un plan, el sistema revisa (si se lo pedís) que no haya errores de tipeo o inconsistencias graves. Es un seguro de calidad para tu trabajo."
+                />
+                <FAQItem 
+                    value="item-7"
+                    question="¿Qué pasa si un alumno deja de pagar?"
+                    answer="El sistema tiene un Radar de Retención. Si detectamos que un alumno dejó de cargar datos o se le venció el plan, te aparece una 'Alerta Roja' en tu Dashboard de inmediato. La idea es que te enteres antes de que el alumno se enfríe y se vaya, para que puedas reactivarlo a tiempo."
+                />
+            </Accordion>
+        </div>
+      </section>
+
+      {/* 6. LA OFERTA */}
       <section className="py-24 px-6">
         <Card className="max-w-4xl mx-auto bg-gradient-to-br from-zinc-900 to-black border-2 border-yellow-500/20 overflow-hidden rounded-[3rem] shadow-[0_0_100px_rgba(245,158,11,0.1)]">
             <CardContent className="p-8 md:p-16 flex flex-col md:flex-row items-center gap-12">
@@ -203,13 +270,13 @@ export default function CoachLanding() {
         </Card>
       </section>
 
-      {/* 6. FOOTER */}
+      {/* 7. FOOTER */}
       <footer className="p-12 text-center border-t border-zinc-900">
          <p className="text-xl font-bold uppercase italic text-zinc-400 max-w-xl mx-auto mb-10 leading-snug">
             ESCALAR TU NEGOCIO NO SIGNIFICA TRABAJAR MÁS HORAS. SIGNIFICA TENER MEJORES HERRAMIENTAS.
          </p>
          <div className="flex flex-col items-center gap-4">
-            <img src="/logo.png" className="h-12 w-auto brightness-0 invert opacity-50" alt="Logo" />
+            <img src="/logo.png" className="h-8 w-auto brightness-0 invert opacity-50" alt="Logo" />
             <p className="text-[10px] text-zinc-700 font-mono tracking-widest">
                 POTENCIADO POR GOOGLE GEMINI AI • HEAVY DUTY DI IORIO 
             </p>
@@ -236,6 +303,17 @@ const FeatureCard = ({ icon, title, desc }: any) => (
           <p className="text-[10px] text-zinc-500 font-bold uppercase leading-relaxed">{desc}</p>
         </CardContent>
     </Card>
+);
+
+const FAQItem = ({ value, question, answer }: any) => (
+    <AccordionItem value={value} className="border-zinc-800 bg-zinc-950/50 rounded-xl px-6 border">
+        <AccordionTrigger className="text-left font-bold uppercase tracking-wide text-zinc-200 hover:text-white hover:no-underline py-4 text-xs md:text-sm">
+            {question}
+        </AccordionTrigger>
+        <AccordionContent className="text-zinc-500 text-xs md:text-sm leading-relaxed pb-4">
+            {answer}
+        </AccordionContent>
+    </AccordionItem>
 );
 
 const CheckItem = ({ text }: { text: string }) => (
