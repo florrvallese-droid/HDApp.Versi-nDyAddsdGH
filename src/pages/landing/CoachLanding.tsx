@@ -222,73 +222,73 @@ export default function CoachLanding() {
               <Accordion type="single" collapsible className="w-full space-y-4">
                   
                   <AccordionItem value="item-1" className="border border-zinc-900 bg-zinc-900/20 rounded-3xl px-6 md:px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-base py-6 md:py-8 text-white text-left leading-snug">
+                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-white text-left leading-snug">
                           1. ¿$85.000 no es caro para una App?
                       </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-[11px] md:text-sm">
+                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
                         Miralo como empresario: Si cobrás una cuota promedio de $50.000 - $80.000, con un solo alumno y medio ya pagaste todo el sistema. El plan PRO te permite gestionar hasta 50 alumnos. Básicamente, usás el ingreso de 1 alumno para pagar la herramienta y los otros 49 son ganancia limpia. No es un gasto, es el costo operativo más bajo de tu negocio (apenas el 4% de tu facturación potencial).
                       </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="item-2" className="border border-zinc-900 bg-zinc-900/20 rounded-3xl px-6 md:px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-base py-6 md:py-8 text-white text-left leading-snug">
+                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-white text-left leading-snug">
                           2. ¿Qué significa que puedo "Pedir Funciones" en el Plan Agency?
                       </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-[11px] md:text-sm">
+                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
                         Es nuestro servicio más exclusivo. Entendemos que los grandes equipos tienen necesidades únicas. Si sos Plan Agency ($150.000), tenés línea directa con nuestro equipo de desarrollo. ¿Necesitás un reporte específico para tu centro? ¿Una integración especial? Lo pedís y lo ponemos en nuestro mapa de desarrollo. Es lo más parecido a tener tu propio equipo de programadores, sin gastar millones.
                       </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="item-3" className="border border-zinc-900 bg-zinc-900/20 rounded-3xl px-6 md:px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-base py-6 md:py-8 text-white text-left leading-snug">
+                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-white text-left leading-snug">
                           3. Tengo 40 alumnos en Excel. ¿Es muy difícil pasarlos a la App?
                       </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-[11px] md:text-sm">
+                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
                         Sabemos que migrar da pereza, por eso lo hacemos nosotros. Si entrás al plan PRO o AGENCY, tenés incluido el servicio de Migración Asistida. Nos pasás tus planillas y nosotros te entregamos la cuenta con todos tus alumnos cargados y listos para empezar. Vos no perdés ni una hora cargando datos.
                       </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="item-4" className="border border-zinc-900 bg-zinc-900/20 rounded-3xl px-6 md:px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-base py-6 md:py-8 text-white text-left leading-snug">
+                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-white text-left leading-snug">
                           4. ¿La IA va a reemplazar mi trabajo?
                       </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-[11px] md:text-sm">
+                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
                         Absolutamente no. La IA es tu Secretario, no el Jefe. El sistema se encarga de lo operativo: auditar series, detectar quién se está por bajar y avisarte si alguien no pagó. La Estrategia y la Relación Humana siguen siendo 100% tuyas. La app hace que tu servicio se vea Premium, lo que te permite cobrar más caro.
                       </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="item-5" className="border border-zinc-900 bg-zinc-900/20 rounded-3xl px-6 md:px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-base py-6 md:py-8 text-white text-left leading-snug">
+                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-white text-left leading-snug">
                           5. ¿Es obligatorio usar el sistema "Heavy Duty" con todos?
                       </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-[11px] md:text-sm">
+                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
                         La app prioriza la Alta Intensidad, pero la física es universal. El motor de IA audita la Sobrecarga Progresiva (subir peso, reps o mejorar técnica). Si usás otros sistemas (PPL, Upper/Lower), la herramienta te sirve igual para demostrarle a tu alumno con datos duros que está progresando (o estancado).
                       </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="item-6" className="border border-zinc-800 bg-zinc-900/20 rounded-3xl px-6 md:px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-base py-6 md:py-8 text-zinc-400 text-left leading-snug">
+                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-zinc-400 text-left leading-snug">
                           6. ¿Cómo se cobra? ¿Dólares o Pesos?
                       </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-[11px] md:text-sm">
+                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
                         Estamos en Argentina. **Cobramos en Pesos Argentinos** a través de Mercado Pago (Débito Automático). El precio es final y te damos factura para que puedas deducirlo como gasto de tu negocio.
                       </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="item-7" className="border border-zinc-800 bg-zinc-900/20 rounded-3xl px-6 md:px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-base py-6 md:py-8 text-zinc-400 text-left leading-snug">
+                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-zinc-400 text-left leading-snug">
                           7. ¿Qué pasa si mis alumnos no quieren pagar la versión PRO?
                       </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-[11px] md:text-sm">
+                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
                         Como Coach, vos tenés acceso total a tu Dashboard. Tus alumnos pueden usar la versión GRATUITA de la app (Bitácora básica) y vos igual ves sus datos. Sin embargo, recomendamos que el alumno tenga la versión PRO para recibir el feedback de la IA en tiempo real, lo que te ahorra a vos tener que corregir cada serie manualmente. Muchos coaches incluyen el costo de la app dentro de su cuota mensual para simplificar.
                       </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="item-8" className="border border-zinc-800 bg-zinc-900/20 rounded-3xl px-6 md:px-8">
-                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-base py-6 md:py-8 text-zinc-400 text-left leading-snug">
+                      <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-zinc-400 text-left leading-snug">
                           8. ¿La IA habla con mis alumnos? ¿Qué tono usa?
                       </AccordionTrigger>
-                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-[11px] md:text-sm">
+                      <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
                         Sí, y vos lo controlás. Desde tu panel, configurás la personalidad del "Auditor IA". Podés elegir entre un "Sargento Estricto", un "Motivador Eufórico" o un "Analista Frío". El alumno siente que sos vos (o tu equipo) quien le está marcando el ritmo, manteniendo tu identidad de marca.
                       </AccordionContent>
                   </AccordionItem>

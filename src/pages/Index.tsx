@@ -142,7 +142,7 @@ const Index = () => {
                     price="$90.000"
                     duration="Dura 1 mes"
                     outcome="Si entrenás mal, la tirás a la basura."
-                    icon={<FlaskConical className="text-zinc-400" />}
+                    icon={<FlaskConical className="text-zinc-700" />}
                     negative
                 />
                 <ComparisonBox 
@@ -150,7 +150,7 @@ const Index = () => {
                     price="$30.000"
                     duration="Dura 2 horas"
                     outcome="Te da placer momentáneo. Nada más."
-                    icon={<Utensils className="text-zinc-400" />}
+                    icon={<Utensils className="text-zinc-700" />}
                     negative
                 />
                 <ComparisonBox 
@@ -255,46 +255,46 @@ const Index = () => {
             <Accordion type="single" collapsible className="w-full space-y-4">
                 
                 <AccordionItem value="q1" className="border border-red-600/20 bg-red-600/5 rounded-2xl px-4 md:px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-left leading-snug">
                         1. ¿Por qué cuesta $28.500? Me parece caro para una app.
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-[11px] md:text-xs font-medium border-t border-red-600/10 pt-4">
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-red-600/10 pt-6">
                         No estás pagando por una "app para anotar pesas". Estás pagando por un Motor de Inteligencia Artificial que hace el trabajo técnico de un entrenador humano. Un buen coach te cobra $150.000 al mes. Nosotros te damos la misma auditoría de sobrecarga y control de fatiga por el 20% de ese valor. Es una decisión de inteligencia financiera.
                     </AccordionContent>
                 </AccordionItem>
 
                 <AccordionItem value="q2" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-4 md:px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-left leading-snug">
                         2. No tengo Coach y entreno solo. ¿Esto me sirve?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-6 text-[11px] md:text-xs font-medium pt-2">
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
                         Es exactamente para vos. El problema de entrenar solo es que nadie te dice "eso fue basura" o "hoy descansá". La IA ocupa ese lugar. Es tu Auditor Silencioso que te dice en tiempo real si tu serie fue efectiva o no.
                     </AccordionContent>
                 </AccordionItem>
 
                 <AccordionItem value="q3" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-4 md:px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-left leading-snug">
                         3. ¿Es obligatorio entrenar con el sistema Heavy Duty?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
-                        La filosofía es la Alta Intensidad, pero la física es universal. Si hacés PPL, Upper/Lower o Frecuencia 2, la herramienta te sirve igual porque lo que medimos es la Sobrecarga Progresiva. Si no estás su biendo cargas o repeticiones, no estás creciendo.
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
+                        La filosofía es la Alta Intensidad, pero la física es universal. Si hacés PPL, Upper/Lower o Frecuencia 2, la herramienta te sirve igual porque lo que medimos es la Sobrecarga Progresiva. Si no estás subiendo cargas o repeticiones, no estás creciendo.
                     </AccordionContent>
                 </AccordionItem>
 
                 <AccordionItem value="q4" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-4 md:px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-left leading-snug">
                         4. ¿La IA es un chat? ¿Tengo que hablarle?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
                         No. No venís al gimnasio a chatear. La IA es automática. Vos cargás tus datos y ella te devuelve Dictámenes. Es un semáforo de rendimiento visual y sin vueltas.
                     </AccordionContent>
                 </AccordionItem>
 
                 <AccordionItem value="q5" className="border border-zinc-900 bg-zinc-900/20 rounded-2xl px-4 md:px-6">
-                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-xs md:text-sm py-5 md:py-6 text-left leading-snug">
+                    <AccordionTrigger className="hover:no-underline font-black uppercase italic text-sm md:text-base py-6 md:py-8 text-left leading-snug">
                         5. ¿Qué es el "Bio-Stop" y por qué no me deja entrenar?
                     </AccordionTrigger>
-                    <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-sm">
+                    <AccordionContent className="text-zinc-400 leading-relaxed pb-8 text-xs md:text-sm font-medium border-t border-zinc-800/50 pt-6">
                         Es nuestro sistema de seguridad biológica. Si tu Sistema Nervioso Central (SNC) está "frito" por falta de sueño o exceso de estrés, la App te bloquea el entrenamiento pesado para evitar lesiones y sobreentrenamiento. Te enseñamos a descansar para crecer.
                     </AccordionContent>
                 </AccordionItem>
