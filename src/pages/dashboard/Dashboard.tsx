@@ -7,18 +7,13 @@ import CoachDashboard from "@/pages/coach/CoachDashboard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { profile, athleteProfile, coachProfile, loading, session } = useProfileContext();
+  const { profile, coachProfile, loading, session } = useProfileContext();
 
   useEffect(() => {
-    if (!loading) {
-      if (!session) {
-        navigate('/auth');
-      } else if (!profile && !athleteProfile && !coachProfile) {
-        // Si hay sesión pero no hay ningún perfil, forzar Onboarding
-        navigate('/onboarding');
-      }
+    if (!loading && !session) {
+      navigate('/auth');
     }
-  }, [loading, profile, athleteProfile, coachProfile, session, navigate]);
+  }, [loading, session, navigate]);
 
   if (loading) {
     return (
@@ -34,13 +29,13 @@ export default function Dashboard() {
     );
   }
 
-  // Si no se ha cargado nada tras el loading, evitamos flash de contenido
   if (!session) return null;
 
-  // Renderizar Dashboard según perfil detectado
-  if (coachProfile) {
+  // Si es Coach, dashboard de gestión
+  if (coachProfile || profile?.user_role === 'coach') {
     return <CoachDashboard />;
   }
 
+  // Por defecto (o Atleta), dashboard de entreno
   return <AthleteDashboardView />;
 }

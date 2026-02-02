@@ -60,16 +60,11 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
             const { data: coach } = await supabase.from('coach_profiles').select('*').eq('user_id', userId).maybeSingle();
             setCoachProfile(coach);
         }
-      } else {
-        // Si no hay perfil, reseteamos estados pero permitimos que loading sea false
-        setProfile(null);
-        setAthleteProfile(null);
-        setCoachProfile(null);
-        setHasProAccess(false);
       }
     } catch (error) {
       console.error("[ProfileContext] Error loading profiles:", error);
     } finally {
+      // Siempre terminamos la carga para no bloquear la app
       setLoading(false);
     }
   };
@@ -96,7 +91,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
       setSession(newSession);
       
       if (newSession?.user) {
-        // No ponemos loading(true) aquí para evitar parpadeos, loadAllProfiles se encarga de finalizar
         await loadAllProfiles(newSession.user.id);
       } else {
         setProfile(null);

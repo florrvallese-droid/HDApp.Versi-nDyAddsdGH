@@ -4,14 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/services/supabase";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { 
-    ChevronLeft, Loader2, MailCheck, User, Dumbbell, Users, 
-    ChevronRight, Target, Brain, Star, CheckCircle2, ShieldCheck, Zap 
+    ChevronLeft, Loader2, MailCheck, Dumbbell, Users, 
+    ShieldCheck 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,18 +19,8 @@ const Auth = () => {
   
   const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "login");
   const [loading, setLoading] = useState(false);
-
-  const [step, setStep] = useState(1);
   const [role, setRole] = useState<'athlete' | 'coach'>(() => (searchParams.get("role") as any) || 'athlete');
   
-  const [weight, setWeight] = useState(75);
-  const [height, setHeight] = useState("175");
-  const [phase, setPhase] = useState<'volume' | 'definition' | 'maintenance'>('maintenance');
-  const [tone, setTone] = useState('strict');
-
-  const [brandName, setBrandName] = useState("");
-  const [studentCount, setStudentCount] = useState("10_30");
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -56,7 +44,6 @@ const Auth = () => {
       if (error) throw error;
       navigate('/dashboard');
     } catch (err: any) {
-      // MOSTRAMOS EL ERROR REAL PARA DIAGNOSTICAR
       toast.error(err.message || "Error al ingresar");
       setLoading(false);
     }
@@ -72,19 +59,9 @@ const Auth = () => {
     setLoading(true);
     
     const cleanEmail = email.trim().toLowerCase();
-    const metadata = role === 'athlete' ? {
+    const metadata = {
         role,
-        weight: weight.toString(),
-        height,
-        phase,
-        tone,
         display_name: cleanEmail.split('@')[0],
-    } : {
-        role,
-        brand_name: brandName,
-        student_count: studentCount,
-        display_name: brandName,
-        plan_type: studentCount === 'plus_50' ? 'agency' : (studentCount === '10_30' ? 'hub' : 'starter')
     };
 
     try {
@@ -122,7 +99,7 @@ const Auth = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="bg-zinc-900/50 p-4 rounded-lg border border-zinc-800 text-[10px] text-zinc-500 uppercase font-bold leading-relaxed">
-                Por seguridad, no podrás ingresar hasta que valides tu identidad haciendo clic en el botón del correo.
+                Hacé clic en el link del mail para activar tu cuenta y entrar directamente al Dashboard.
             </div>
             <Button 
                 variant="outline" 
@@ -174,95 +151,39 @@ const Auth = () => {
             </TabsContent>
             
             <TabsContent value="signup">
-              {step === 1 && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                      <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest text-center block mb-2">Paso 1: Identificación de Rol</Label>
-                      <div className="grid gap-3">
-                          <RoleBtn active={role === 'athlete'} onClick={() => setRole('athlete')} icon={<Dumbbell/>} title="Atleta" desc="Para registrar mis entrenos y recibir auditoría." />
-                          <RoleBtn active={role === 'coach'} onClick={() => setRole('coach')} icon={<Users/>} title="Coach / Preparador" desc="Para gestionar alumnos y auditoría de negocio." />
-                      </div>
-                      <Button className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic" onClick={() => setStep(2)}>
-                          CONTINUAR <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
-                  </div>
-              )}
-
-              {step === 2 && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                      <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest text-center block mb-2">Paso 2: Cuestionario Técnico</Label>
-                      
-                      {role === 'athlete' ? (
-                          <div className="space-y-6">
-                              <div className="grid grid-cols-2 gap-4">
-                                  <div className="space-y-1.5">
-                                      <Label className="text-[9px] font-black uppercase text-zinc-500">Peso ({weight}kg)</Label>
-                                      <Slider value={[weight]} min={40} max={150} step={1} onValueChange={(v) => setWeight(v[0])} />
-                                  </div>
-                                  <div className="space-y-1.5">
-                                      <Label className="text-[9px] font-black uppercase text-zinc-500">Altura (cm)</Label>
-                                      <Input value={height} onChange={e => setHeight(e.target.value)} type="number" className="bg-black border-zinc-800 h-9" />
-                                  </div>
-                              </div>
-                              <div className="space-y-2">
-                                  <Label className="text-[9px] font-black uppercase text-zinc-500">Fase Actual</Label>
-                                  <div className="grid grid-cols-3 gap-1 bg-zinc-900 p-1 rounded-lg">
-                                      {(['volume', 'definition', 'maintenance'] as const).map(p => (
-                                          <button key={p} onClick={() => setPhase(p)} className={cn("py-1.5 text-[8px] font-black uppercase rounded", phase === p ? "bg-zinc-800 text-white" : "text-zinc-600")}>
-                                              {p === 'volume' ? 'Volumen' : p === 'definition' ? 'Def' : 'Mnt'}
-                                          </button>
-                                      ))}
-                                  </div>
-                              </div>
-                              <div className="space-y-2">
-                                  <Label className="text-[9px] font-black uppercase text-zinc-500">Tono del Coach IA</Label>
-                                  <RadioGroup value={tone} onValueChange={setTone} className="grid grid-cols-2 gap-2">
-                                      <ToneItem id="strict" label="Strict" current={tone} />
-                                      <ToneItem id="analytical" label="Analytical" current={tone} />
-                                      <ToneItem id="motivational" label="Motivational" current={tone} />
-                                      <ToneItem id="friendly" label="Friendly" current={tone} />
-                                  </RadioGroup>
-                              </div>
-                          </div>
-                      ) : (
-                          <div className="space-y-6">
-                              <div className="space-y-2">
-                                  <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Nombre de la Marca / Team</Label>
-                                  <Input value={brandName} onChange={e => setBrandName(e.target.value)} placeholder="Ej: Di Iorio High Performance" className="bg-black border-zinc-800 h-12 font-bold" />
-                              </div>
-                              <div className="space-y-2">
-                                  <Label className="text-[10px] font-black uppercase text-zinc-500">Cantidad de Alumnos Actuales</Label>
-                                  <select value={studentCount} onChange={e => setStudentCount(e.target.value)} className="w-full h-12 bg-black border border-zinc-800 rounded-md px-3 text-sm font-bold">
-                                      <option value="less_10">Menos de 10</option>
-                                      <option value="10_30">Entre 10 y 30</option>
-                                      <option value="plus_50">Más de 50</option>
-                                  </select>
-                              </div>
-                          </div>
-                      )}
-                      
-                      <div className="flex gap-2">
-                          <Button variant="ghost" className="flex-1 text-zinc-500 font-bold uppercase text-[10px]" onClick={() => setStep(1)}>Volver</Button>
-                          <Button className="flex-[2] h-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic" onClick={() => setStep(3)}>CONTINUAR</Button>
+              <form onSubmit={handleAtomicSignup} className="space-y-6">
+                  <div className="space-y-3">
+                      <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Identificación de Rol</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                          <button 
+                            type="button"
+                            onClick={() => setRole('athlete')} 
+                            className={cn("p-3 rounded-lg border-2 flex flex-col items-center gap-1 transition-all", role === 'athlete' ? "border-red-600 bg-red-950/20 text-white" : "border-zinc-800 text-zinc-600")}
+                          >
+                              <Dumbbell className="h-4 w-4" />
+                              <span className="text-[9px] font-black uppercase">Atleta</span>
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => setRole('coach')} 
+                            className={cn("p-3 rounded-lg border-2 flex flex-col items-center gap-1 transition-all", role === 'coach' ? "border-red-600 bg-red-950/20 text-white" : "border-zinc-800 text-zinc-600")}
+                          >
+                              <Users className="h-4 w-4" />
+                              <span className="text-[9px] font-black uppercase">Coach</span>
+                          </button>
                       </div>
                   </div>
-              )}
 
-              {step === 3 && (
-                  <form onSubmit={handleAtomicSignup} className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                      <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest text-center block mb-2">Paso 3: Creación de Cuenta</Label>
-                      <div className="space-y-3">
-                          <Input type="email" placeholder="Tu Email" value={email} onChange={e => setEmail(e.target.value)} className="bg-black border-zinc-800 h-12" required />
-                          <Input type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} className="bg-black border-zinc-800 h-12" required minLength={8} />
-                          <Input type="password" placeholder="Confirmar Contraseña" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-black border-zinc-800 h-12" required />
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                          <Button variant="ghost" type="button" className="flex-1 text-zinc-500 font-bold uppercase text-[10px]" onClick={() => setStep(2)}>Volver</Button>
-                          <Button className="flex-[2] h-12 bg-white text-black hover:bg-zinc-200 font-black uppercase italic" type="submit" disabled={loading}>
-                              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "FINALIZAR REGISTRO"}
-                          </Button>
-                      </div>
-                  </form>
-              )}
+                  <div className="space-y-3">
+                      <Input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="bg-black border-zinc-800 h-12" required />
+                      <Input type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} className="bg-black border-zinc-800 h-12" required minLength={8} />
+                      <Input type="password" placeholder="Confirmar Contraseña" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-black border-zinc-800 h-12" required />
+                  </div>
+
+                  <Button className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-black uppercase italic" type="submit" disabled={loading}>
+                      {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "CREAR CUENTA"}
+                  </Button>
+              </form>
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -276,21 +197,5 @@ const Auth = () => {
     </div>
   );
 };
-
-const RoleBtn = ({ active, onClick, icon, title, desc }: any) => (
-    <button onClick={onClick} className={cn("w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left", active ? "bg-red-950/20 border-red-600" : "bg-zinc-900/50 border-zinc-800 hover:border-zinc-700")}>
-        <div className={cn("p-2 rounded-lg", active ? "bg-red-600 text-white" : "bg-zinc-800 text-zinc-500")}>{icon}</div>
-        <div>
-            <h4 className={cn("font-black uppercase italic text-xs", active ? "text-white" : "text-zinc-400")}>{title}</h4>
-            <p className="text-[9px] text-zinc-600 uppercase font-bold leading-none mt-0.5">{desc}</p>
-        </div>
-    </button>
-);
-
-const ToneItem = ({ id, label, current }: any) => (
-    <div className={cn("p-2 rounded-lg border text-center text-[10px] font-black uppercase transition-all", current === id ? "bg-red-600 border-red-500 text-white" : "bg-zinc-900 border-zinc-800 text-zinc-600")}>
-        {label}
-    </div>
-);
 
 export default Auth;
