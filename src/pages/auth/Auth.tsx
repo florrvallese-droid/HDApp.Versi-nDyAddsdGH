@@ -19,25 +19,20 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  // Tab Principal (Login / Signup)
   const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "login");
   const [loading, setLoading] = useState(false);
 
-  // --- Wizard State ---
   const [step, setStep] = useState(1);
   const [role, setRole] = useState<'athlete' | 'coach'>(() => (searchParams.get("role") as any) || 'athlete');
   
-  // Datos Atleta
   const [weight, setWeight] = useState(75);
   const [height, setHeight] = useState("175");
   const [phase, setPhase] = useState<'volume' | 'definition' | 'maintenance'>('maintenance');
   const [tone, setTone] = useState('strict');
 
-  // Datos Coach
   const [brandName, setBrandName] = useState("");
   const [studentCount, setStudentCount] = useState("10_30");
 
-  // Credenciales
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -57,7 +52,7 @@ const Auth = () => {
       if (error) throw error;
       navigate('/dashboard');
     } catch (err: any) {
-      toast.error("Credenciales inválidas");
+      toast.error("Credenciales inválidas. ¿Confirmaste tu email?");
       setLoading(false);
     }
   };
@@ -71,21 +66,19 @@ const Auth = () => {
 
     setLoading(true);
     
-    // Preparar metadatos según rol
     const metadata = role === 'athlete' ? {
         role,
         weight: weight.toString(),
         height,
         phase,
         tone,
-        display_name: email.split('@')[0], // Fallback inicial
-        sex: 'other'
+        display_name: email.split('@')[0],
     } : {
         role,
         brand_name: brandName,
         student_count: studentCount,
         display_name: brandName,
-        sex: 'other'
+        plan_type: studentCount === 'plus_50' ? 'agency' : (studentCount === '10_30' ? 'hub' : 'starter')
     };
 
     try {
@@ -100,7 +93,7 @@ const Auth = () => {
 
       if (error) throw error;
       setIsVerifyStep(true);
-      toast.success("¡Perfil creado con éxito!");
+      toast.success("¡Registro exitoso! Por favor revisá tu email.");
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -116,17 +109,17 @@ const Auth = () => {
             <div className="mx-auto bg-blue-600/10 p-4 rounded-full w-fit mb-4">
               <MailCheck className="h-10 w-10 text-blue-500" />
             </div>
-            <CardTitle className="text-2xl font-black uppercase italic text-white">¡PERFIL LISTO!</CardTitle>
+            <CardTitle className="text-2xl font-black uppercase italic text-white">REVISÁ TU BANDEJA</CardTitle>
             <CardDescription className="text-zinc-400">
-              Verificá tu email para activar tu cuenta.
+              Te enviamos un link de confirmación a <br/> <strong className="text-white">{email}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <p className="text-xs text-zinc-500 leading-relaxed uppercase font-bold tracking-widest">
-              Tu configuración técnica ya fue guardada. <br/> El sistema te espera.
-            </p>
-            <Button variant="outline" className="w-full border-zinc-800 text-zinc-300 font-bold h-12" onClick={() => window.location.reload()}>
-                YA VERIFIQUÉ, ENTRAR
+            <div className="bg-zinc-900/50 p-4 rounded-lg border border-zinc-800 text-[10px] text-zinc-500 uppercase font-bold leading-relaxed">
+                Por seguridad, no podrás ingresar hasta que valides tu identidad haciendo clic en el botón del correo.
+            </div>
+            <Button variant="outline" className="w-full border-zinc-800 text-zinc-300 font-bold h-12" onClick={() => setActiveTab('login')}>
+                YA LO HICE, IR AL LOGIN
             </Button>
           </CardContent>
         </Card>
@@ -168,7 +161,6 @@ const Auth = () => {
             </TabsContent>
             
             <TabsContent value="signup">
-              {/* STEP 1: ROLE */}
               {step === 1 && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
                       <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest text-center block mb-2">Paso 1: Identificación de Rol</Label>
@@ -182,7 +174,6 @@ const Auth = () => {
                   </div>
               )}
 
-              {/* STEP 2: TECHNICAL (BRANCHED) */}
               {step === 2 && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
                       <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest text-center block mb-2">Paso 2: Cuestionario Técnico</Label>
@@ -222,7 +213,7 @@ const Auth = () => {
                       ) : (
                           <div className="space-y-6">
                               <div className="space-y-2">
-                                  <Label className="text-[10px] font-black uppercase text-zinc-500">Nombre de la Marca / Team</Label>
+                                  <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Nombre de la Marca / Team</Label>
                                   <Input value={brandName} onChange={e => setBrandName(e.target.value)} placeholder="Ej: Di Iorio High Performance" className="bg-black border-zinc-800 h-12 font-bold" />
                               </div>
                               <div className="space-y-2">
@@ -232,12 +223,6 @@ const Auth = () => {
                                       <option value="10_30">Entre 10 y 30</option>
                                       <option value="plus_50">Más de 50</option>
                                   </select>
-                              </div>
-                              <div className="bg-blue-950/20 border border-blue-900/30 p-4 rounded-xl flex items-start gap-3">
-                                 <Brain className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                                 <p className="text-[10px] text-zinc-400 font-bold uppercase leading-tight">
-                                    Tu IA está configurada automáticamente en modo <span className="text-blue-500">Business Analytical</span>.
-                                 </p>
                               </div>
                           </div>
                       )}
@@ -249,46 +234,16 @@ const Auth = () => {
                   </div>
               )}
 
-              {/* STEP 3: PLANES */}
               {step === 3 && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                      <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest text-center block mb-2">Paso 3: Selección de Membresía</Label>
-                      
-                      <Card className={cn("bg-black border-2 overflow-hidden", role === 'athlete' ? "border-blue-600" : "border-red-600")}>
-                          <div className={cn("p-2 text-center text-[8px] font-black uppercase tracking-widest", role === 'athlete' ? "bg-blue-600" : "bg-red-600")}>
-                              {role === 'athlete' ? "Plan Atleta PRO" : "Plan Coach HUB"}
-                          </div>
-                          <CardContent className="p-5 space-y-4">
-                              <div className="flex items-baseline justify-center gap-1">
-                                  <span className="text-3xl font-black text-white">{role === 'athlete' ? '$28.500' : '$85.000'}</span>
-                                  <span className="text-zinc-500 text-[10px] font-bold uppercase">/ mes</span>
-                              </div>
-                              <div className="space-y-2">
-                                  <CheckItem text={role === 'athlete' ? "Auditoría de Sesión IA" : "Gestión hasta 50 alumnos"} />
-                                  <CheckItem text={role === 'athlete' ? "Bio-Stop SNC System" : "Business Intelligence IA"} />
-                                  <CheckItem text="7 Días de Prueba Gratis" />
-                              </div>
-                          </CardContent>
-                      </Card>
-
-                      <div className="flex gap-2">
-                          <Button variant="ghost" className="flex-1 text-zinc-500 font-bold uppercase text-[10px]" onClick={() => setStep(2)}>Volver</Button>
-                          <Button className="flex-[2] h-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase italic" onClick={() => setStep(4)}>ACEPTAR Y CONTINUAR</Button>
-                      </div>
-                  </div>
-              )}
-
-              {/* STEP 4: CREDENTIALS */}
-              {step === 4 && (
                   <form onSubmit={handleAtomicSignup} className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                      <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest text-center block mb-2">Paso 4: Creación de Cuenta</Label>
+                      <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest text-center block mb-2">Paso 3: Creación de Cuenta</Label>
                       <div className="space-y-3">
                           <Input type="email" placeholder="Tu Email" value={email} onChange={e => setEmail(e.target.value)} className="bg-black border-zinc-800 h-12" required />
                           <Input type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} className="bg-black border-zinc-800 h-12" required minLength={8} />
                           <Input type="password" placeholder="Confirmar Contraseña" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="bg-black border-zinc-800 h-12" required />
                       </div>
                       <div className="flex gap-2 pt-2">
-                          <Button variant="ghost" type="button" className="flex-1 text-zinc-500 font-bold uppercase text-[10px]" onClick={() => setStep(3)}>Volver</Button>
+                          <Button variant="ghost" type="button" className="flex-1 text-zinc-500 font-bold uppercase text-[10px]" onClick={() => setStep(2)}>Volver</Button>
                           <Button className="flex-[2] h-12 bg-white text-black hover:bg-zinc-200 font-black uppercase italic" type="submit" disabled={loading}>
                               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "FINALIZAR REGISTRO"}
                           </Button>
@@ -322,13 +277,6 @@ const RoleBtn = ({ active, onClick, icon, title, desc }: any) => (
 const ToneItem = ({ id, label, current }: any) => (
     <div className={cn("p-2 rounded-lg border text-center text-[10px] font-black uppercase transition-all", current === id ? "bg-red-600 border-red-500 text-white" : "bg-zinc-900 border-zinc-800 text-zinc-600")}>
         {label}
-    </div>
-);
-
-const CheckItem = ({ text }: { text: string }) => (
-    <div className="flex items-center gap-2">
-        <CheckCircle2 className="h-3 w-3 text-green-500" />
-        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">{text}</span>
     </div>
 );
 
