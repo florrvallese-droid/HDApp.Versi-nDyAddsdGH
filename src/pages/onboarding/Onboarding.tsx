@@ -12,29 +12,26 @@ import { Loader2, Trophy, Briefcase, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Onboarding() {
-  const { athleteProfile, coachProfile, session, refreshProfile } = useProfileContext();
+  const { profile, athleteProfile, coachProfile, session, refreshProfile } = useProfileContext();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
 
-  // Form states
   const [role, setRole] = useState<'athlete' | 'coach'>('athlete');
   const [displayName, setDisplayName] = useState("");
   const [planType, setPlanType] = useState<'starter' | 'hub' | 'agency'>('starter');
 
-  // REDIRECCIÓN AUTOMÁTICA: Si el contexto ya detectó perfiles, saltamos el onboarding
   useEffect(() => {
-    if (athleteProfile || coachProfile) {
+    if (profile && (athleteProfile || coachProfile)) {
       navigate('/dashboard');
     }
-  }, [athleteProfile, coachProfile, navigate]);
+  }, [profile, athleteProfile, coachProfile, navigate]);
 
   const handleFinish = async () => {
     if (!session?.user) return;
     setLoading(true);
 
     try {
-      // 1. Actualizar perfil base (Display Name y Rol)
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
@@ -47,12 +44,11 @@ export default function Onboarding() {
 
       if (profileError) throw profileError;
 
-      // 2. Crear perfil específico
       if (role === 'athlete') {
         const { error: athleteError } = await supabase
             .from('athlete_profiles')
             .upsert({ user_id: session.user.id, tier: 'free', subscription_status: 'active' }, { onConflict: 'user_id' });
-        if (athleteError) console.error("Error creating athlete profile:", athleteError);
+        if (athleteError) throw athleteError;
       } else {
         const { error: coachError } = await supabase
             .from('coach_profiles')
@@ -62,16 +58,15 @@ export default function Onboarding() {
                 business_name: displayName,
                 student_limit: planType === 'starter' ? 15 : planType === 'hub' ? 50 : 999
             }, { onConflict: 'user_id' });
-        if (coachError) console.error("Error creating coach profile:", coachError);
+        if (coachError) throw coachError;
       }
 
-      // Refrescamos y navegamos independientemente de errores menores en los pasos 2 para no trabar al usuario
       await refreshProfile();
-      toast.success("¡Bienvenido al sistema!");
+      toast.success("Perfil sincronizado correctamente.");
       navigate('/dashboard');
     } catch (err: any) {
       console.error("Onboarding error:", err);
-      toast.error(err.message || "Ocurrió un error al guardar tu perfil.");
+      toast.error("Error al finalizar el perfil. Reintentando...");
       setLoading(false);
     }
   };
@@ -154,7 +149,7 @@ export default function Onboarding() {
                     </Button>
                   </div>
                   <p className="text-[9px] text-zinc-600 text-center uppercase font-black tracking-tighter italic">
-                    Al hacer clic, aceptas los términos del sistema de alta intensidad.
+                    Al hacer clic, completas la sincronización de tu cuenta.
                   </p>
               </div>
           )}

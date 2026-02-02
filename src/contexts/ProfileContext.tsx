@@ -25,7 +25,6 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Helper flags
   const [isAdmin, setIsAdmin] = useState(false);
   const [hasProAccess, setHasProAccess] = useState(false);
   const [daysLeftInTrial, setDaysLeftInTrial] = useState(0);
@@ -37,9 +36,8 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
     return diff > 0 ? diff : 0;
   };
 
-  const loadAllProfiles = async (userId: string, email: string) => {
+  const loadAllProfiles = async (userId: string) => {
     try {
-      // 1. Cargar perfil base
       const { data: baseProfile } = await supabase
         .from("profiles")
         .select("*")
@@ -50,13 +48,11 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
         const fullProfile = baseProfile as UserProfile;
         setProfile(fullProfile);
         
-        // Calcular estados premium y trial
         const trialDays = calculateTrial(fullProfile);
         setDaysLeftInTrial(trialDays);
         setHasProAccess(fullProfile.is_premium === true || trialDays > 0);
         setIsAdmin(fullProfile.is_admin === true);
 
-        // 2. Cargar perfiles específicos
         if (fullProfile.user_role === 'athlete') {
             const { data: athlete } = await supabase.from('athlete_profiles').select('*').eq('user_id', userId).maybeSingle();
             setAthleteProfile(athlete);
@@ -64,6 +60,12 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
             const { data: coach } = await supabase.from('coach_profiles').select('*').eq('user_id', userId).maybeSingle();
             setCoachProfile(coach);
         }
+      } else {
+        // Si no hay perfil, reseteamos estados pero permitimos que loading sea false
+        setProfile(null);
+        setAthleteProfile(null);
+        setCoachProfile(null);
+        setHasProAccess(false);
       }
     } catch (error) {
       console.error("[ProfileContext] Error loading profiles:", error);
@@ -78,9 +80,10 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
     const initialize = async () => {
       const { data: { session: initSession } } = await supabase.auth.getSession();
       if (!mounted) return;
+      
       setSession(initSession);
       if (initSession?.user) {
-        await loadAllProfiles(initSession.user.id, initSession.user.email!);
+        await loadAllProfiles(initSession.user.id);
       } else {
         setLoading(false);
       }
@@ -91,9 +94,10 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
       setSession(newSession);
+      
       if (newSession?.user) {
-        setLoading(true);
-        await loadAllProfiles(newSession.user.id, newSession.user.email!);
+        // No ponemos loading(true) aquí para evitar parpadeos, loadAllProfiles se encarga de finalizar
+        await loadAllProfiles(newSession.user.id);
       } else {
         setProfile(null);
         setAthleteProfile(null);
@@ -113,7 +117,7 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
   const refreshProfile = async () => {
     if (session?.user) {
-        await loadAllProfiles(session.user.id, session.user.email!);
+        await loadAllProfiles(session.user.id);
     }
   };
 

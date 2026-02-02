@@ -6,14 +6,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// REGLA GLOBAL DE LENGUAJE (MANDATORIA)
 const ARGENTINE_LANGUAGE_RULE = `
-### LANGUAGE_RULE (MANDATORIA) ###
-- DIALECT: Rioplatense Spanish (Argentina).
-- GRAMMAR: Uso mandatorio de "Voseo" (ej: "Vos podés", "Hacé esto", "Sentite libre", "Entrenaste"). 
-- PROHIBICIÓN: NUNCA uses "Tú" ni "Usted". NUNCA uses terminaciones en "-as" para la segunda persona (ej: no digas "tienes", di "tenés").
-- CURRENCY/MEASUREMENTS: Siempre Sistema Métrico (kg).
-- FILTRO: Mantener el respeto. Permitidas palabras como "carajo" o "boludo" solo en contextos amigables o de mucha arenga, nunca como insulto directo agresivo.
+### LANGUAGE_RULE ###
+- Dialecto: Castellano Rioplatense (Argentina).
+- Voseo mandatorio: Usar "vos", "hacé", "tenés" en lugar de "tú", "haz", "tienes".
+- Tono: Directo y profesional.
 `;
 
 Deno.serve(async (req) => {
@@ -26,148 +23,76 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!GEMINI_API_KEY) throw new Error("Configuration Error: GEMINI_API_KEY is missing.");
+    if (!GEMINI_API_KEY) throw new Error("Falta GEMINI_API_KEY.");
     
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-
-    let body;
-    try {
-      body = await req.json();
-    } catch (e) {
-      throw new Error("Invalid JSON body");
-    }
-
+    const body = await req.json();
     const { action, tone, data, userId } = body;
-    if (!action || !data) throw new Error("Bad Request: Missing 'action' or 'data'.");
 
-    // 1. Fetch Prompt (Personality)
-    let systemInstruction = `Sos un analista experto en Heavy Duty.`;
-    let promptVersion = "v3.1-arg-locale";
+    // 1. Obtener Prompt de la Personalidad desde DB
+    let systemInstruction = "Sos un coach experto en Heavy Duty.";
+    const { data: promptData } = await supabase
+      .from('ai_prompts')
+      .select('system_instruction')
+      .eq('action', action)
+      .eq('coach_tone', tone || 'strict')
+      .eq('is_active', true)
+      .maybeSingle();
 
-    try {
-      const { data: promptData } = await supabase
-        .from('ai_prompts')
-        .select('system_instruction, version')
-        .eq('action', action)
-        .eq('coach_tone', tone || 'strict')
-        .eq('is_active', true)
-        .maybeSingle();
+    if (promptData) systemInstruction = promptData.system_instruction;
 
-      if (promptData) {
-        systemInstruction = promptData.system_instruction;
-        promptVersion = promptData.version;
-      }
-    } catch (dbErr) {
-      console.error("[ai-coach] DB Prompt Error:", dbErr);
-    }
+    // 2. Obtener Base de Conocimiento Global
+    const { data: kbData } = await supabase
+      .from('ai_knowledge_base')
+      .select('content')
+      .eq('is_active', true)
+      .limit(1)
+      .maybeSingle();
 
-    // 2. Fetch Shared Knowledge Base
-    let knowledgeContext = "";
-    try {
-      const { data: kbData } = await supabase
-        .from('ai_knowledge_base')
-        .select('content')
-        .eq('is_active', true)
-        .limit(1)
-        .maybeSingle();
-
-      if (kbData && kbData.content) {
-        knowledgeContext = kbData.content;
-      }
-    } catch (kbErr) {
-      console.error("[ai-coach] DB Knowledge Error:", kbErr);
-    }
-
-    const formatRule = `
-      ### REGLA DE FORMATO DE SALIDA OBLIGATORIA ###
-      Debes responder SIEMPRE en formato JSON válido.
-      El JSON debe contener exactamente dos partes:
-      
-      1. "card_data": Datos breves y estructurados para la interfaz visual.
-      2. "detailed_report": Un texto extenso en formato Markdown. Aquí es donde te explayas como coach usando el voseo argentino.
-         - Usa títulos (##) para secciones.
-         - Usa negritas (**texto**) para resaltar datos clave.
-         - Usa listas (- item) para enumerar hallazgos.
-    `;
-
-    const schemas = {
-      preworkout: `{
-        "card_data": { "status": "GO" | "CAUTION" | "STOP", "ui_title": "string", "ui_color": "green" | "yellow" | "red" },
-        "detailed_report": "## Informe de Recuperación SNC\\n\\n..."
-      }`,
-      postworkout: `{
-        "card_data": { "verdict": "PROGRESS" | "STAGNATION" | "REGRESSION", "score": 1-10, "ui_title": "string" },
-        "detailed_report": "## Auditoría de Sesión\\n\\n..."
-      }`,
-      globalanalysis: `{
-        "card_data": { "status": "string", "main_insight": "string" },
-        "detailed_report": "## Documento Oficial de Auditoría\\n\\n..."
-      }`,
-      business_audit: `{
-        "card_data": { "revenue_status": "string", "churn_risk": "high" | "low" },
-        "detailed_report": "## Auditoría Estratégica de Negocio\\n\\n..."
-      }`,
-      marketing_generation: `{
-        "card_data": { "hook": "string" },
-        "detailed_report": "## Copy Estratégico para Instagram\\n\\n..."
-      }`
-    };
+    const knowledgeContext = kbData?.content || "";
 
     const finalPrompt = `
       ${ARGENTINE_LANGUAGE_RULE}
       
-      ${formatRule}
-
-      ### PERSONALIDAD Y CONTEXTO ###
-      ${systemInstruction}
-
-      ### CONOCIMIENTO TÉCNICO (NÚCLEO) ###
+      ### CONTEXTO TÉCNICO GLOBAL ###
       ${knowledgeContext}
 
-      ### TAREA ESPECÍFICA ###
-      Analiza los siguientes datos y genera el informe estructurado solicitado. 
-      Responde SOLO en el siguiente esquema JSON:
-      ${schemas[action] || "{}"}
+      ### INSTRUCCIONES DE PERSONALIDAD ###
+      ${systemInstruction}
 
-      ### DATOS DE ENTRADA ###
+      ### DATOS DEL ATLETA ###
       ${JSON.stringify(data)}
-    `;
 
-    // Ajuste de temperatura según el tono: Business requiere más "pensamiento estratégico" (0.6) que entrenamiento puro (0.2)
-    const temperature = (tone === 'business_analytical' || action === 'marketing_generation') ? 0.6 : 0.2;
+      Responde ÚNICAMENTE en formato JSON válido con los campos "card_data" (resumen) y "detailed_report" (markdown extenso).
+    `;
 
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: finalPrompt }] }],
-        generationConfig: { response_mime_type: "application/json", temperature }
+        generationConfig: { response_mime_type: "application/json", temperature: 0.2 }
       })
     });
 
     const aiData = await res.json();
-    if (!aiData.candidates) throw new Error("IA fail: " + JSON.stringify(aiData));
+    const output = JSON.parse(aiData.candidates[0].content.parts[0].text);
 
-    const generatedText = aiData.candidates[0].content.parts[0].text;
-    const parsedOutput = JSON.parse(generatedText);
-
-    // Logging técnico
+    // Logging técnico en background
     supabase.from('ai_logs').insert({
-      user_id: userId || null, 
+      user_id: userId,
       action,
       coach_tone: tone,
       model: 'gemini-1.5-flash',
       input_data: data,
-      output_data: parsedOutput,
-      tokens_used: aiData.usageMetadata?.totalTokenCount || 0,
-      prompt_version: promptVersion
-    }).then(({ error }) => { if(error) console.error("Log error:", error) });
+      output_data: output
+    }).then();
 
-    return new Response(JSON.stringify(parsedOutput), {
+    return new Response(JSON.stringify(output), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: true, message: error.message }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
   }
 })
