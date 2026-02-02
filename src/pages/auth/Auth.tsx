@@ -46,33 +46,28 @@ const Auth = () => {
 
       if (profileError) {
         console.error("Profile check error:", profileError);
-        // Si hay error de conexión, intentamos dejar pasar al dashboard para que maneje el error ahí
-        navigate('/dashboard');
+        navigate('/dashboard'); // Ante la duda, dejar pasar
         return;
       }
 
-      // 1. Si no existe perfil, al onboarding directo
+      // Si no existe perfil en absoluto, enviar a onboarding
       if (!profile) {
         navigate('/onboarding');
         return;
       }
 
-      // 2. Si es Coach o Admin, PASE VIP (Evita el bucle de "perfil incompleto")
-      if (profile.is_coach || profile.is_admin) {
-        navigate('/dashboard');
-        return;
+      // Si el perfil EXISTE, aunque esté incompleto, dejamos pasar al Dashboard.
+      // El usuario podrá completar sus datos desde Ajustes.
+      // Esto evita el bucle infinito de redirección.
+      if (profile.is_coach) {
+          navigate('/coach');
+      } else {
+          navigate('/dashboard');
       }
 
-      // 3. Si es Atleta, verificamos campos mínimos
-      if (!profile.display_name || profile.sex === 'other' || !profile.sex) {
-        // Solo si falta nombre o sexo, enviamos a completar perfil
-        navigate('/onboarding');
-      } else {
-        navigate('/dashboard');
-      }
     } catch (err) {
       console.error("Auth redirect logic failed:", err);
-      navigate('/dashboard'); // Fallback seguro
+      navigate('/dashboard'); 
     }
   };
 

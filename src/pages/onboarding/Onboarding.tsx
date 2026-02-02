@@ -51,12 +51,9 @@ const Onboarding = () => {
   const isProfessional = role === 'coach' || role === 'agency';
 
   const handleNext = () => {
-    // SKIP LOGIC: If professional, skip Step 3 (Physical) and Step 4 (AI Coach for self)
-    // We might want to keep Step 4 to set the *Default* tone for their students, but usually they config that later.
-    // For now, let's keep it simple: Professionals skip physical stats.
-    
+    // Si es profesional, saltamos los pasos de configuración física y coach IA personal
+    // Directamente a confirmación
     if (step === 2 && isProfessional) {
-        // Skip physical stats -> Go to Confirmation
         setStep(5);
         return;
     }
@@ -70,7 +67,7 @@ const Onboarding = () => {
 
   const handleBack = () => {
     if (step === 5 && isProfessional) {
-      setStep(2); // Go back to Name
+      setStep(2); // Volver al nombre
       return;
     }
     if (step > 1) setStep(step - 1);
@@ -84,43 +81,49 @@ const Onboarding = () => {
     setLoading(true);
 
     try {
-      // Prepare update object based on role
       const updateData: any = {
+        user_id: userId, // CRÍTICO para el upsert
         display_name: displayName,
         updated_at: new Date().toISOString(),
       };
 
       if (isProfessional) {
         updateData.is_coach = true;
-        updateData.coach_tone = 'analytical'; // Default for professionals
-        // If agency, we might want to store that in business_info later, but for now is_coach=true gives access
-        // We set dummy values for required fields if any constraint exists, or rely on defaults
+        // Valores por defecto para profesionales (no se piden en UI)
+        updateData.coach_tone = 'analytical';
         updateData.sex = 'other'; 
         updateData.units = 'kg';
+        // Si es agencia, podríamos guardar un flag adicional en business_info si fuera necesario
+        if (role === 'agency') {
+            updateData.business_info = { type: 'agency' };
+        }
       } else {
-        // Athlete Data
+        // Datos de Atleta
         updateData.sex = sex;
         updateData.birth_date = birthDate || null;
         updateData.units = units;
         updateData.coach_tone = coachTone;
         updateData.discipline = discipline;
         updateData.is_coach = false;
-        // Save weight in settings as it's not a main column usually, or if you have a column for initial weight
         updateData.settings = { current_weight: weight.toString() }; 
       }
 
+      // Usamos UPSERT en lugar de UPDATE para garantizar que se guarde 
+      // incluso si el perfil no se creó correctamente en el registro.
       const { error } = await supabase
         .from("profiles")
-        .update(updateData)
-        .eq("user_id", userId);
+        .upsert(updateData, { onConflict: 'user_id' });
 
       if (error) throw error;
 
       toast.success("Perfil configurado correctamente");
       
-      // Force reload or explicit navigation to ensure Auth.tsx check passes now
-      if (isProfessional) navigate("/coach");
-      else navigate("/dashboard");
+      // Forzar recarga del contexto de perfil navegando
+      if (isProfessional) {
+          window.location.href = "/coach";
+      } else {
+          window.location.href = "/dashboard";
+      }
       
     } catch (error: any) {
       console.error("Onboarding error:", error);
@@ -221,6 +224,7 @@ const Onboarding = () => {
             </div>
           )}
 
+          {/* PASO 3: Solo atletas */}
           {step === 3 && !isProfessional && (
             <div className="space-y-6">
               <div className="space-y-4">
@@ -262,6 +266,7 @@ const Onboarding = () => {
             </div>
           )}
 
+          {/* PASO 4: Solo atletas */}
           {step === 4 && !isProfessional && (
             <div className="space-y-4">
               <Label className="text-zinc-400 font-bold uppercase tracking-wider text-xs block text-center mb-2">Elige la personalidad de tu IA</Label>
