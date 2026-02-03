@@ -28,19 +28,12 @@ export interface UserProfile {
   premium_expires_at?: string;
   business_info?: any;
   logging_preference?: LoggingPreference;
-}
-
-export interface AthleteProfile {
-  user_id: string;
-  tier: 'free' | 'pro';
-  subscription_status: string;
-}
-
-export interface CoachProfile {
-  user_id: string;
-  plan_type: 'starter' | 'hub' | 'agency';
+  // Campos consolidados
+  tier?: 'free' | 'pro';
+  subscription_status?: string;
+  plan_type?: 'starter' | 'hub' | 'agency';
   business_name?: string;
-  student_limit: number;
+  student_limit?: number;
 }
 
 export interface SetExtension {

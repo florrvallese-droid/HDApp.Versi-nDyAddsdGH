@@ -1,13 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/services/supabase";
-import { UserProfile, AthleteProfile, CoachProfile } from "@/types";
+import { UserProfile } from "@/types";
 import { Session } from "@supabase/supabase-js";
 import { differenceInDays, addDays } from "date-fns";
 
 interface ProfileContextType {
   profile: UserProfile | null;
-  athleteProfile: AthleteProfile | null;
-  coachProfile: CoachProfile | null;
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
@@ -20,8 +18,6 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export const ProfileProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [athleteProfile, setAthleteProfile] = useState<AthleteProfile | null>(null);
-  const [coachProfile, setCoachProfile] = useState<CoachProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,41 +32,28 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
     return diff > 0 ? diff : 0;
   };
 
-  const loadAllProfiles = async (userId: string) => {
+  const loadProfile = async (userId: string) => {
     try {
-      // 1. Carga del perfil base (Prioridad máxima)
-      const { data: baseProfile, error: baseError } = await supabase
+      const { data: userProfile, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", userId)
-        .maybeSingle();
+        .single();
 
-      if (baseError) throw baseError;
+      if (error) throw error;
 
-      if (baseProfile) {
-        const fullProfile = baseProfile as UserProfile;
+      if (userProfile) {
+        const fullProfile = userProfile as UserProfile;
         setProfile(fullProfile);
         
         const trialDays = calculateTrial(fullProfile);
         setDaysLeftInTrial(trialDays);
         setHasProAccess(fullProfile.is_premium === true || trialDays > 0);
         setIsAdmin(fullProfile.is_admin === true);
-
-        // 2. Carga asíncrona de datos de especialidad (No bloqueante)
-        const isCoach = fullProfile.user_role === 'coach' || fullProfile.is_coach;
-        
-        if (isCoach) {
-            supabase.from('coach_profiles').select('*').eq('user_id', userId).maybeSingle()
-                .then(({ data }) => setCoachProfile(data));
-        } else {
-            supabase.from('athlete_profiles').select('*').eq('user_id', userId).maybeSingle()
-                .then(({ data }) => setAthleteProfile(data));
-        }
       }
     } catch (error) {
-      console.error("[ProfileContext] Fallo en sincronización:", error);
+      console.error("[ProfileContext] Fallo en sincronización de perfil:", error);
     } finally {
-      // Seguro de vida: la app siempre se desbloquea
       setLoading(false);
     }
   };
@@ -84,7 +67,7 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
       
       setSession(initSession);
       if (initSession?.user) {
-        await loadAllProfiles(initSession.user.id);
+        await loadProfile(initSession.user.id);
       } else {
         setLoading(false);
       }
@@ -97,11 +80,9 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
       setSession(newSession);
       
       if (newSession?.user) {
-        await loadAllProfiles(newSession.user.id);
+        await loadProfile(newSession.user.id);
       } else {
         setProfile(null);
-        setAthleteProfile(null);
-        setCoachProfile(null);
         setIsAdmin(false);
         setHasProAccess(false);
         setDaysLeftInTrial(0);
@@ -117,13 +98,13 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
 
   const refreshProfile = async () => {
     if (session?.user) {
-        await loadAllProfiles(session.user.id);
+        await loadProfile(session.user.id);
     }
   };
 
   return (
     <ProfileContext.Provider value={{ 
-      profile, athleteProfile, coachProfile, session, loading, isAdmin, hasProAccess, daysLeftInTrial, refreshProfile 
+      profile, session, loading, isAdmin, hasProAccess, daysLeftInTrial, refreshProfile 
     }}>
       {children}
     </ProfileContext.Provider>

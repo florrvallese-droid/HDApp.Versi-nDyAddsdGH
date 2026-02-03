@@ -9,11 +9,11 @@ import { supabase } from "@/services/supabase";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { profile, coachProfile, loading, session } = useProfileContext();
+  const { profile, loading, session } = useProfileContext();
 
   useEffect(() => {
     if (loading) {
-      return; // Do nothing while the context is loading session and profile.
+      return; // Esperar a que el contexto termine de cargar.
     }
 
     if (!session) {
@@ -21,10 +21,10 @@ export default function Dashboard() {
       return;
     }
 
-    // If the session exists but the profile hasn't been created yet (race condition),
-    // sign out to prevent an infinite loop and notify the user.
+    // Si, tras cargar, hay sesión pero no perfil, es un error.
+    // Cerramos sesión para evitar bucles y forzar un reingreso limpio.
     if (session && !profile) {
-      toast.error("Error de perfil. Se cerrará la sesión para reintentar.");
+      toast.error("Error de sincronización de perfil. Por favor, ingresa de nuevo.");
       supabase.auth.signOut().then(() => {
         navigate('/auth');
       });
@@ -47,13 +47,14 @@ export default function Dashboard() {
     );
   }
 
-  // If loading is false, but there's no profile, the useEffect has already handled redirection.
-  // This is a safeguard to prevent rendering with a null profile.
   if (!profile) {
+    // Este estado no debería ser visible para el usuario, ya que el useEffect redirige.
+    // Es una salvaguarda para evitar renderizar con datos nulos.
     return null;
   }
 
-  const isCoach = profile?.user_role === 'coach' || profile?.is_coach === true || !!coachProfile;
+  // La fuente de verdad ahora es el campo 'user_role' del perfil consolidado.
+  const isCoach = profile.user_role === 'coach';
 
   if (isCoach) {
     return <CoachDashboard />;
