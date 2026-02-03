@@ -27,6 +27,8 @@ const Auth = () => {
   const [formData, setFormData] = useState({
     role: 'athlete' as 'athlete' | 'coach',
     displayName: "",
+    sex: 'Masculino' as 'Masculino' | 'Femenino',
+    studentCount: 'Menos de 10' as 'Menos de 10' | 'Entre 10 y 30' | 'Más de 50',
     planType: 'starter' as 'starter' | 'hub' | 'agency',
     email: "",
     password: "",
@@ -74,6 +76,8 @@ const Auth = () => {
     const metadata = {
         role: formData.role,
         display_name: formData.displayName || cleanEmail.split('@')[0],
+        sex: formData.role === 'athlete' ? formData.sex : undefined,
+        student_count: formData.role === 'coach' ? formData.studentCount : undefined,
         plan_type: formData.role === 'coach' ? formData.planType : undefined
     };
 
@@ -195,18 +199,43 @@ const Auth = () => {
                         <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">{formData.role === 'coach' ? 'Nombre de tu Marca / Team' : 'Tu Nombre o Alias'}</Label>
                         <Input value={formData.displayName} onChange={e => handleFormChange('displayName', e.target.value)} placeholder="Ej: John Doe" className="bg-black border-zinc-800 h-12 font-bold text-white" />
                     </div>
-                    {formData.role === 'coach' && (
+                    {formData.role === 'athlete' && (
                         <div className="space-y-2">
-                            <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Plan de Coach</Label>
-                            <Select value={formData.planType} onValueChange={(v: any) => handleFormChange('planType', v)}>
+                            <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Sexo</Label>
+                            <Select value={formData.sex} onValueChange={(v: any) => handleFormChange('sex', v)}>
                                 <SelectTrigger className="bg-black border-zinc-800 h-12 font-bold text-xs uppercase text-white"><SelectValue /></SelectTrigger>
                                 <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                                    <SelectItem value="starter">Independent (15 alumnos)</SelectItem>
-                                    <SelectItem value="hub">Hub (50 alumnos)</SelectItem>
-                                    <SelectItem value="agency">Agency (Ilimitado)</SelectItem>
+                                    <SelectItem value="Masculino">Masculino</SelectItem>
+                                    <SelectItem value="Femenino">Femenino</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
+                    )}
+                    {formData.role === 'coach' && (
+                        <>
+                            <div className="space-y-2">
+                                <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">¿Cuántos alumnos gestionas hoy?</Label>
+                                <Select value={formData.studentCount} onValueChange={(v: any) => handleFormChange('studentCount', v)}>
+                                    <SelectTrigger className="bg-black border-zinc-800 h-12 font-bold text-xs uppercase text-white"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                                        <SelectItem value="Menos de 10">Menos de 10</SelectItem>
+                                        <SelectItem value="Entre 10 y 30">Entre 10 y 30</SelectItem>
+                                        <SelectItem value="Más de 50">Más de 50</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Plan de Coach</Label>
+                                <Select value={formData.planType} onValueChange={(v: any) => handleFormChange('planType', v)}>
+                                    <SelectTrigger className="bg-black border-zinc-800 h-12 font-bold text-xs uppercase text-white"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                                        <SelectItem value="starter">Independent (15 alumnos)</SelectItem>
+                                        <SelectItem value="hub">Hub (50 alumnos)</SelectItem>
+                                        <SelectItem value="agency">Agency (Ilimitado)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </>
                     )}
                     <div className="flex gap-2">
                         <Button variant="ghost" className="flex-1 text-zinc-500 font-bold uppercase text-[10px]" onClick={() => setSignupStep(1)}>Volver</Button>
