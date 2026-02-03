@@ -46,6 +46,7 @@ export interface SetExtension {
 export interface WorkoutSet {
   weight: number;
   reps: number;
+  rpe?: number;
   tempo?: string;
   is_unilateral?: boolean;
   is_failure?: boolean;
@@ -60,6 +61,12 @@ export interface WorkoutExercise {
   sets: WorkoutSet[];
   is_superset?: boolean;
   previous?: { weight: number; reps: number };
+}
+
+export interface WorkoutData {
+  exercises: WorkoutExercise[];
+  total_volume?: number;
+  duration_minutes?: number;
 }
 
 export interface Competition {
