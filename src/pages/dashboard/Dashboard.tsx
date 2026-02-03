@@ -4,23 +4,25 @@ import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AthleteDashboardView from "@/components/dashboard/AthleteDashboardView";
 import CoachDashboard from "@/pages/coach/CoachDashboard";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { profile, coachProfile, loading, session } = useProfileContext();
 
   useEffect(() => {
-    if (loading) return;
+    if (loading) {
+      return; // No hacer nada mientras carga
+    }
 
     if (!session) {
       navigate('/auth');
       return;
     }
 
-    // Si el usuario está logueado pero su perfil no se completó (falta el rol),
-    // lo forzamos a volver al auth para que elija un flujo.
-    // NOTA: Con el nuevo mago, este caso es menos probable, pero es una buena guarda.
-    if (session && !profile?.user_role) {
+    // Este es el estado anómalo que queremos corregir
+    if (session && !profile) {
+      toast.error("Error al sincronizar tu perfil. Por favor, completa tu registro.");
       navigate('/auth?tab=signup');
       return;
     }
@@ -41,8 +43,7 @@ export default function Dashboard() {
     );
   }
 
-  if (!session) return null;
-
+  // Si llegamos aquí, loading es false y profile existe.
   const isCoach = profile?.user_role === 'coach' || profile?.is_coach === true || !!coachProfile;
 
   if (isCoach) {
