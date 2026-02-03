@@ -24,6 +24,15 @@ export default function Dashboard() {
     // Si, tras cargar, hay sesión pero no perfil, es un error.
     // Cerramos sesión para evitar bucles y forzar un reingreso limpio.
     if (session && !profile) {
+      console.error(
+        "[DIAGNÓSTICO DE PERFIL] El perfil no se cargó a pesar de existir una sesión.",
+        {
+          "session_user_id": session.user.id,
+          "profile_object": profile,
+          "is_loading": loading,
+          "session_object": session,
+        }
+      );
       toast.error("Error de sincronización de perfil. Por favor, ingresa de nuevo.");
       supabase.auth.signOut().then(() => {
         navigate('/auth');
