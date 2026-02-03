@@ -50,38 +50,75 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
         setDaysLeftInTrial(trialDays);
         setHasProAccess(fullProfile.is_premium === true || trialDays > 0);
         setIsAdmin(fullProfile.is_admin === true);
+        
+        // Profile found, we can stop loading.
+        setLoading(false);
+        return fullProfile;
       }
     } catch (error) {
-      console.error("[ProfileContext] Fallo en sincronización de perfil:", error);
-    } finally {
-      setLoading(false);
+      // Don't log "not found" as an error, it's expected on signup
+      if ((error as any).code !== 'PGRST116') {
+        console.error("[ProfileContext] Fallo en carga de perfil:", error);
+      }
     }
+    return null;
   };
 
   useEffect(() => {
     let mounted = true;
-
-    const initialize = async () => {
-      const { data: { session: initSession } } = await supabase.auth.getSession();
-      if (!mounted) return;
-      
-      setSession(initSession);
-      if (initSession?.user) {
-        await loadProfile(initSession.user.id);
-      } else {
-        setLoading(false);
-      }
-    };
-
-    initialize();
+    let profileCreationListener: any = null;
+    let timeoutId: any = null;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
+
+      // Clean up previous listener if session changes
+      if (profileCreationListener) {
+        supabase.removeChannel(profileCreationListener);
+        profileCreationListener = null;
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+
       setSession(newSession);
       
       if (newSession?.user) {
-        await loadProfile(newSession.user.id);
+        setLoading(true);
+        
+        // Attempt to load profile immediately (for existing users or refreshes)
+        const existingProfile = await loadProfile(newSession.user.id);
+
+        // If profile is not found, it's likely a new signup.
+        // Set up a real-time listener and a timeout.
+        if (!existingProfile) {
+          profileCreationListener = supabase
+            .channel(`public:profiles:user_id=eq.${newSession.user.id}`)
+            .on(
+              'postgres_changes',
+              { event: 'INSERT', schema: 'public', table: 'profiles', filter: `user_id=eq.${newSession.user.id}` },
+              (payload) => {
+                if (mounted) {
+                  loadProfile(newSession.user.id);
+                  // Cleanup after success
+                  if (profileCreationListener) supabase.removeChannel(profileCreationListener);
+                  if (timeoutId) clearTimeout(timeoutId);
+                }
+              }
+            )
+            .subscribe();
+
+          // Safety timeout: if profile isn't created in 8s, stop loading to show error.
+          timeoutId = setTimeout(() => {
+            if (mounted && !profile) {
+              console.error("Profile creation timed out.");
+              setLoading(false);
+            }
+          }, 8000);
+        }
       } else {
+        // No session, clear everything
         setProfile(null);
         setIsAdmin(false);
         setHasProAccess(false);
@@ -93,6 +130,12 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      if (profileCreationListener) {
+        supabase.removeChannel(profileCreationListener);
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, []);
 
