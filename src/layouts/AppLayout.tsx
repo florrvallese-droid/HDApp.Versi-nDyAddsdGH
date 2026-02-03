@@ -28,7 +28,7 @@ export default function AppLayout() {
   }
 
   // Lógica de navegación basada en identidad validada
-  const isCoach = profile?.user_role === 'coach' || profile?.is_coach;
+  const isCoach = profile?.user_role === 'coach';
 
   const athleteNav = [
     { label: "Home", icon: Home, path: "/dashboard" },

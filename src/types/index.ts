@@ -20,7 +20,6 @@ export interface UserProfile {
   discipline: Discipline;
   settings: any;
   // Campos extendidos para la UI
-  is_coach?: boolean;
   is_admin?: boolean;
   is_premium?: boolean;
   is_competitor?: boolean;

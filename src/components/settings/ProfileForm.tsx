@@ -112,8 +112,8 @@ export function ProfileForm() {
           </div>
           <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-20" accept="image/*" onChange={handleAvatarUpload} disabled={uploadingAvatar}/>
         </div>
-        <Badge variant="outline" className={cn("uppercase font-black text-[10px] py-1 px-4", profile.is_coach ? "border-blue-500 text-blue-500" : "border-red-500 text-red-500")}>
-            {profile.is_coach ? "PREPARADOR" : "ATLETA"}
+        <Badge variant="outline" className={cn("uppercase font-black text-[10px] py-1 px-4", profile.user_role === 'coach' ? "border-blue-500 text-blue-500" : "border-red-500 text-red-500")}>
+            {profile.user_role === 'coach' ? "PREPARADOR" : "ATLETA"}
         </Badge>
       </div>
 
@@ -170,7 +170,7 @@ export function ProfileForm() {
                 <PersonalityCard id="analytical" label="Analytical" desc="Basado en datos duros. Frío y enfocado únicamente en las métricas." current={coachTone} />
                 <PersonalityCard id="motivational" label="Motivational" desc="Energía positiva y empuje constante para superar tus límites." current={coachTone} />
                 <PersonalityCard id="friendly" label="Friendly" desc="Empático y profesional. Apoyo técnico con cercanía emocional." current={coachTone} />
-                {profile.is_coach && (
+                {profile.user_role === 'coach' && (
                     <PersonalityCard 
                         id="business_analytical" 
                         label="Business Logic" 

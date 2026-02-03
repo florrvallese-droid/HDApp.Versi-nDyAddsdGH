@@ -72,7 +72,7 @@ export default function Settings() {
             <UserCircle className="mr-1.5 h-3.5 w-3.5" /> Perfil
           </TabsTrigger>
           
-          {!profile.is_coach ? (
+          {profile.user_role !== 'coach' ? (
             <TabsTrigger value="coach" className="font-bold uppercase text-[9px] tracking-widest">
               <Users className="mr-1.5 h-3.5 w-3.5" /> Mi Coach
             </TabsTrigger>
