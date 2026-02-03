@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import AthleteDashboardView from "@/components/dashboard/AthleteDashboardView";
 import CoachDashboard from "@/pages/coach/CoachDashboard";
 import { toast } from "sonner";
+import { supabase } from "@/services/supabase";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -20,10 +21,12 @@ export default function Dashboard() {
       return;
     }
 
-    // Este es el estado anómalo que queremos corregir
+    // Si hay sesión pero no perfil, cerramos sesión y redirigimos a login.
     if (session && !profile) {
-      toast.error("Error al sincronizar tu perfil. Por favor, completa tu registro.");
-      navigate('/auth?tab=signup');
+      toast.error("Error de perfil. Se cerrará la sesión para reintentar.");
+      supabase.auth.signOut().then(() => {
+        navigate('/auth');
+      });
       return;
     }
 
