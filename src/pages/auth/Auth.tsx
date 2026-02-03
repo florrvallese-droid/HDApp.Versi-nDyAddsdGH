@@ -8,8 +8,8 @@ import { supabase } from "@/services/supabase";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { 
-    ChevronLeft, Loader2, MailCheck, Dumbbell, Users, 
-    ShieldCheck, ArrowRight, Trophy, Briefcase
+    ChevronLeft, Loader2, MailCheck, 
+    ShieldCheck, Trophy, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +23,6 @@ const Auth = () => {
 
   const [formData, setFormData] = useState({
     role: 'athlete' as 'athlete' | 'coach',
-    displayName: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -69,7 +68,6 @@ const Auth = () => {
     const cleanEmail = formData.email.trim().toLowerCase();
     const metadata = {
         role: formData.role,
-        display_name: formData.displayName || cleanEmail.split('@')[0],
     };
 
     try {
@@ -178,7 +176,6 @@ const Auth = () => {
                     </div>
                 </div>
                 <div className="space-y-3">
-                    <Input placeholder="Nombre / Alias" value={formData.displayName} onChange={e => handleFormChange('displayName', e.target.value)} className="bg-black border-zinc-800 h-12 font-bold text-white" />
                     <Input type="email" placeholder="Email" value={formData.email} onChange={e => handleFormChange('email', e.target.value)} className="bg-black border-zinc-800 h-12" required />
                     <Input type="password" placeholder="Contraseña (mín. 8 caracteres)" value={formData.password} onChange={e => handleFormChange('password', e.target.value)} className="bg-black border-zinc-800 h-12" required minLength={8} />
                     <Input type="password" placeholder="Confirmar Contraseña" value={formData.confirmPassword} onChange={e => handleFormChange('confirmPassword', e.target.value)} className="bg-black border-zinc-800 h-12" required />
