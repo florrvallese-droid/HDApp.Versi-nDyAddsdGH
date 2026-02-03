@@ -13,9 +13,9 @@ BEGIN
   display_name_input := COALESCE(new.raw_user_meta_data ->> 'display_name', split_part(new.email, '@', 1));
 
   -- Insertar en la tabla principal de perfiles.
-  -- ON CONFLICT previene errores si el trigger se ejecuta más de una vez.
-  INSERT INTO public.profiles (user_id, email, display_name, user_role, is_coach, trial_started_at)
-  VALUES (new.id, new.email, display_name_input, role_input, (role_input = 'coach'), NOW())
+  -- La columna `is_coach` ya no se inserta manualmente, se genera automáticamente.
+  INSERT INTO public.profiles (user_id, email, display_name, user_role, trial_started_at)
+  VALUES (new.id, new.email, display_name_input, role_input, NOW())
   ON CONFLICT (user_id) DO NOTHING;
 
   -- Insertar en la tabla específica del rol.
