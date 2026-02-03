@@ -13,7 +13,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (loading) {
-      return; // No hacer nada mientras carga
+      return; // Do nothing while the context is loading session and profile.
     }
 
     if (!session) {
@@ -21,7 +21,8 @@ export default function Dashboard() {
       return;
     }
 
-    // Si hay sesión pero no perfil, cerramos sesión y redirigimos a login.
+    // If the session exists but the profile hasn't been created yet (race condition),
+    // sign out to prevent an infinite loop and notify the user.
     if (session && !profile) {
       toast.error("Error de perfil. Se cerrará la sesión para reintentar.");
       supabase.auth.signOut().then(() => {
@@ -32,7 +33,7 @@ export default function Dashboard() {
 
   }, [loading, session, profile, navigate]);
 
-  if (loading || !profile) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center flex-col gap-6">
         <div className="relative">
@@ -46,7 +47,12 @@ export default function Dashboard() {
     );
   }
 
-  // Si llegamos aquí, loading es false y profile existe.
+  // If loading is false, but there's no profile, the useEffect has already handled redirection.
+  // This is a safeguard to prevent rendering with a null profile.
+  if (!profile) {
+    return null;
+  }
+
   const isCoach = profile?.user_role === 'coach' || profile?.is_coach === true || !!coachProfile;
 
   if (isCoach) {
