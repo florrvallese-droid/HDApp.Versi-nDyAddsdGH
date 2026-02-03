@@ -1,20 +1,31 @@
 "use client";
 
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Home, Dumbbell, Utensils, User, TrendingUp, Users, Briefcase } from "lucide-react";
+import { Home, Dumbbell, Utensils, User, TrendingUp, Users, Briefcase, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/hooks/useProfile";
+import { useEffect } from "react";
 
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, loading } = useProfile();
+  const { profile, session, loading } = useProfile();
+
+  useEffect(() => {
+    if (!loading && !session) {
+      navigate('/auth');
+    }
+  }, [loading, session, navigate]);
 
   if (loading) return (
     <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="h-8 w-8 rounded-full border-2 border-red-600 border-t-transparent animate-spin" />
     </div>
   );
+
+  if (!session) {
+    return null;
+  }
 
   // Lógica de navegación basada en identidad validada
   const isCoach = profile?.user_role === 'coach' || profile?.is_coach;
