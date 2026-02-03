@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, UserCircle, CreditCard, LogOut, Database, Users, Star } from "lucide-react";
+import { ChevronLeft, UserCircle, CreditCard, LogOut, Database, Users, Star, Loader2 } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { toast } from "sonner";
 import { ProfileForm } from "@/components/settings/ProfileForm";
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { profile } = useProfile();
+  const { profile, loading: profileLoading } = useProfile();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -34,6 +34,24 @@ export default function Settings() {
     toast.success("Sesión cerrada");
     navigate("/");
   };
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center p-4">
+        <h2 className="text-lg font-bold text-red-500">Error de Perfil</h2>
+        <p className="text-zinc-400 text-sm">No se pudieron cargar tus datos. Intenta reingresar.</p>
+        <Button onClick={handleLogout} className="mt-4">Volver a Ingresar</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pb-24 max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -54,8 +72,7 @@ export default function Settings() {
             <UserCircle className="mr-1.5 h-3.5 w-3.5" /> Perfil
           </TabsTrigger>
           
-          {/* TABS CONDICIONALES */}
-          {!profile?.is_coach ? (
+          {!profile.is_coach ? (
             <TabsTrigger value="coach" className="font-bold uppercase text-[9px] tracking-widest">
               <Users className="mr-1.5 h-3.5 w-3.5" /> Mi Coach
             </TabsTrigger>
@@ -75,7 +92,7 @@ export default function Settings() {
         </TabsContent>
 
         <TabsContent value="coach" className="focus-visible:outline-none">
-          {profile?.user_id && <CoachInfo userId={profile.user_id} />}
+          {profile.user_id && <CoachInfo userId={profile.user_id} />}
         </TabsContent>
 
         <TabsContent value="collabs" className="focus-visible:outline-none">
