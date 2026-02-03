@@ -47,7 +47,7 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
   };
 
   const loadProfileWithRetry = async (userId: string, retries = 2, delay = 1500) => {
-    for (let i = 0; i < retries; i++) {
+    for (let i = 0; i <= retries; i++) {
       const { data: userProfile, error } = await supabase
         .from("profiles")
         .select("*")
@@ -59,7 +59,7 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
         console.error("Error fetching profile:", error);
         return null;
       }
-      await new Promise(resolve => setTimeout(resolve, delay));
+      if (i < retries) await new Promise(resolve => setTimeout(resolve, delay));
     }
     return null;
   };
@@ -69,7 +69,14 @@ export const ProfileProvider = ({ children }: { children: React.ReactNode }) => 
       setSession(session);
       if (session?.user) {
         setLoading(true);
-        const profileData = await loadProfileWithRetry(session.user.id);
+        
+        const timeoutPromise = new Promise<null>((resolve) => 
+          setTimeout(() => resolve(null), 5000) // 5 segundos de timeout
+        );
+
+        const profilePromise = loadProfileWithRetry(session.user.id);
+        const profileData = await Promise.race([profilePromise, timeoutPromise]);
+
         setProfileData(profileData);
         setLoading(false);
       } else {

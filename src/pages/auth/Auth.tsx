@@ -84,7 +84,13 @@ const Auth = () => {
       setIsVerifyStep(true);
       toast.success("¡Registro exitoso! Por favor revisá tu email.");
     } catch (err: any) {
-      toast.error(err.message);
+      if (err.message && err.message.includes("User already registered")) {
+        toast.error("Este email ya está registrado.", {
+          description: "Revisá tu correo para confirmar la cuenta o intentá ingresar.",
+        });
+      } else {
+        toast.error(err.message);
+      }
     } finally {
       setLoading(false);
     }

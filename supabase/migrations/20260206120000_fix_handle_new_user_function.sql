@@ -8,14 +8,32 @@ DECLARE
   role_input TEXT;
   display_name_input TEXT;
 BEGIN
-  -- Extraer datos de los metadatos. Usar 'athlete' como fallback si no viene nada.
+  -- Extraer rol. Default a 'athlete'.
   role_input := COALESCE(new.raw_user_meta_data ->> 'role', 'athlete');
-  display_name_input := COALESCE(new.raw_user_meta_data ->> 'display_name', split_part(new.email, '@', 1));
+  -- Generar display_name a partir del email.
+  display_name_input := split_part(new.email, '@', 1);
 
-  -- Insertar en la tabla principal de perfiles.
-  -- La columna `is_coach` ya no se inserta manualmente, se genera automáticamente.
-  INSERT INTO public.profiles (user_id, email, display_name, user_role, trial_started_at)
-  VALUES (new.id, new.email, display_name_input, role_input, NOW())
+  -- Insertar en la tabla principal de perfiles con todos los defaults explícitos.
+  INSERT INTO public.profiles (
+    user_id, 
+    email, 
+    display_name, 
+    user_role, 
+    coach_tone, 
+    discipline, 
+    units, 
+    trial_started_at
+  )
+  VALUES (
+    new.id, 
+    new.email, 
+    display_name_input, 
+    role_input, 
+    'strict',  -- Default explícito
+    'general', -- Default explícito
+    'kg',      -- Default explícito
+    NOW()
+  )
   ON CONFLICT (user_id) DO NOTHING;
 
   -- Insertar en la tabla específica del rol.
